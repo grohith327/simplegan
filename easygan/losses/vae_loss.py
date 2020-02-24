@@ -25,8 +25,3 @@ def vae_loss(values):
 
 	vae_loss = tf.keras.backend.mean(recon_loss + kl_loss)
 	return vae_loss
-
-
-
-
-

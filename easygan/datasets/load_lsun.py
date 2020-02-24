@@ -34,6 +34,3 @@ def load_lsun(info=False, img_shape = (64, 64)):
     	return train_data, info
 
     return train_data
-
-
-

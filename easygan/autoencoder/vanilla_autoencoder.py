@@ -116,11 +116,3 @@ class VanillaAutoencoder(Model):
 		x = self.enc(x)
 		x = self.dec(x)
 		return x
-
-
-
-
-
-
-
-

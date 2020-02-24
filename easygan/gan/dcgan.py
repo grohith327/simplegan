@@ -223,19 +223,3 @@ class DCGAN():
             else:
                 self.gen_model.save_weights(save_model + 'generator_checkpoint')
                 self.disc_model.save_weights(save_model + 'discriminator_checkpoint')
-
-    	
-
-
-
-
-
-
-
-
-
-
-
-
-
-

@@ -141,15 +141,3 @@ class VAE(Model):
 		x = self.enc(x)
 		x = self.dec(x)
 		return x
-
-
-
-
-
-
-
-
-
-
-
-

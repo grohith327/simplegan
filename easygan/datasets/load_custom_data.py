@@ -30,7 +30,4 @@ def load_data(datadir = None, img_shape = (64, 64)):
 
 	train_data = np.array(train_data).astype('float32')
 
-	return train_data	
-
-
-
+	return train_data
