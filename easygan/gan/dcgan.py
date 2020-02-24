@@ -64,7 +64,7 @@ class DCGAN():
     '''
     def generator(self, params):
 
-        noise_dim = params['noise_dim'] if 'noise_dim' in params else 64
+        noise_dim = params['noise_dim'] if 'noise_dim' in params else 100
         self.noise_dim = noise_dim
         gen_channels = params['gen_channels'] if 'gen_channels' in params else [64, 32, 16]
         gen_layers = params['gen_layers'] if 'gen_layers' in params else 3
@@ -152,7 +152,7 @@ class DCGAN():
     '''
     call build_model() to get the generator and discriminator objects
     '''
-    def build_model(self, params = {'gen_layers':3, 'disc_layers':3, 'noise_dim':64, 'dropout_rate':0.4, 
+    def build_model(self, params = {'gen_layers':3, 'disc_layers':3, 'noise_dim':100, 'dropout_rate':0.4, 
         'activation':'relu', 'kernel_initializer': 'glorot_uniform', 'kernel_size':(5,5),
         'gen_channels': [64, 32, 16], 'disc_channels': [16, 32, 64], 'kernel_regularizer': None}):
 
@@ -160,15 +160,19 @@ class DCGAN():
 
 
     def fit(self, train_ds = None, epochs = 100, gen_optimizer = 'Adam', disc_optimizer = 'Adam', 
-        print_steps = 100, gen_learning_rate = 0.0001, disc_learning_rate = 0.0001, 
+        print_steps = 100, gen_learning_rate = 0.0001, disc_learning_rate = 0.0002, beta_1 = 0.5, 
         tensorboard = False, save_model = None):
 
         kwargs = {}
         kwargs['learning_rate'] = gen_learning_rate
+        if(gen_optimizer == 'Adam'):
+            kwargs['beta_1'] = beta_1
         gen_optimizer = getattr(tf.keras.optimizers, gen_optimizer)(**kwargs)
 
         kwargs = {}
         kwargs['learning_rate'] = disc_learning_rate
+        if(gen_optimizer == 'Adam'):
+            kwargs['beta_1'] = beta_1
         disc_optimizer = getattr(tf.keras.optimizers, gen_optimizer)(**kwargs)
 
         if(tensorboard):
@@ -183,7 +187,7 @@ class DCGAN():
 
                 with tf.GradientTape() as tape:
 
-                    Z = np.random.uniform(-1, 1, (data.shape[0], self.noise_dim))
+                    Z = tf.random.normal([data.shape[0], self.noise_dim])
                     fake = self.gen_model(Z)
                     fake_logits = self.disc_model(fake)
                     real_logits = self.disc_model(real)
@@ -194,7 +198,7 @@ class DCGAN():
 
                 with tf.GradientTape() as tape:
 
-                    Z = np.random.uniform(-1, 1, (data.shape[0], self.noise_dim))
+                    Z = tf.random.normal([data.shape[0], self.noise_dim])
                     fake = self.gen_model(Z)
                     fake_logits = self.disc_model(fake)
                     G_loss = gan_generator_loss(fake_logits)
