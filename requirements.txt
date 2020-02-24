@@ -1,0 +1,6 @@
+numpy
+tqdm
+tensorflow
+opencv-python
+tensorflow_io
+tensorflow-datasets
