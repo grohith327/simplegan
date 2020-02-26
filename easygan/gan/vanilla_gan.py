@@ -117,6 +117,8 @@ class VanillaGAN():
         print_steps = 100, gen_learning_rate = 0.0001, disc_learning_rate = 0.0001, 
         tensorboard = False, save_model = None):
 
+        assert train_ds != None, 'Initialize training data through train_ds parameter'
+
         kwargs = {}
         kwargs['learning_rate'] = gen_learning_rate
         gen_optimizer = getattr(tf.keras.optimizers, gen_optimizer)(**kwargs)

@@ -163,6 +163,8 @@ class DCGAN():
         print_steps = 100, gen_learning_rate = 0.0001, disc_learning_rate = 0.0002, beta_1 = 0.5, 
         tensorboard = False, save_model = None):
 
+        assert train_ds != None, 'Initialize training data through train_ds parameter'
+
         kwargs = {}
         kwargs['learning_rate'] = gen_learning_rate
         if(gen_optimizer == 'Adam'):

@@ -11,6 +11,8 @@ class WGAN(DCGAN):
         print_steps = 100, gen_learning_rate = 5e-5, disc_learning_rate = 5e-5, beta_1 = 0.5
         tensorboard = False, save_model = None):
 
+        assert train_ds != None, 'Initialize training data through train_ds parameter'
+
         kwargs = {}
         kwargs['learning_rate'] = gen_learning_rate
         if(gen_optimizer == 'Adam'):
