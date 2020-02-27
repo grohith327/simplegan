@@ -1,6 +1,14 @@
 import tensorflow as tf
 
 '''
+						-- Not used anywhere -- 
+
+possibly be removed
+'''
+
+
+
+'''
 Computes KL loss + reconstruction loss
 
 source: https://github.com/keras-team/keras/blob/master/examples/variational_autoencoder.py

@@ -3,26 +3,23 @@ from tensorflow.keras.layers import Dropout, BatchNormalization, Lambda, Dense, 
 from tensorflow.keras import Model
 import numpy as np
 from ..datasets import load_cifar10, load_mnist, load_custom_data
+import datetime 
+from ..losses import mse_loss
 
 '''
-vae imports from tensorflow Model class
-
 source: https://github.com/keras-team/keras/blob/master/examples/variational_autoencoder.py
 
 Reference: https://arxiv.org/abs/1312.6114
 
-Create an instance of the class and compile it by using the loss from ../losses/vae_loss and use an optimizer and metric of your choice
-
 use the fit function to train the model. 
 '''
 
-class VAE(Model):
+class VAE():
 
 	def __init__(self):
 
 		super(VAE, self).__init__()
-		self.enc = None
-		self.dec = None
+		self.model = None
 		self.image_size = None
 
 
@@ -66,10 +63,12 @@ class VAE(Model):
     encoder and decoder layers for custom dataset can be reimplemented by inherting this class(vae)
     '''
 
-    def encoder(self, params):
+    def vae(self, params):
 
 		enc_units = params['enc_units'] if 'enc_units' in params else [256, 128]
         encoder_layers = params['encoder_layers'] if 'encoder_layers' in params else 2
+        dec_units = params['dec_units'] if 'dec_units' in params else [128, 256]
+        decoder_layers = params['decoder_layers'] if 'decoder_layers' in params else 2
         interm_dim = params['interm_dim'] if 'interm_dim' in params else 64
         latent_dim = params['latent_dim'] if 'latent_dim' in params else 32
         activation = params['activation'] if 'activation' in params else 'relu'
@@ -77,17 +76,18 @@ class VAE(Model):
         kernel_regularizer = params['kernel_regularizer'] if 'kernel_regularizer' in params else None
 
         assert len(enc_units) == encoder_layers, "Dimension mismatch: length of enocoder units should match number of encoder layers"
+        assert len(dec_units) == decoder_layers, "Dimension mismatch: length of decoder units should match number of decoder layers"
 
-		inputs = Input(shape = self.image_size[0]*self.image_size[1]*self.image_size[2])
-		outputs = Dense(enc_units[0] * 2, activation= activation, kernel_initializer=kernel_initializer,
-            kernel_regularizer=kernel_regularizer)(inputs)
+		org_inputs = Input(shape = self.image_size[0]*self.image_size[1]*self.image_size[2])
+		x = Dense(enc_units[0] * 2, activation= activation, kernel_initializer=kernel_initializer,
+            kernel_regularizer=kernel_regularizer)(org_inputs)
 
         for i in range(encoder_layers):
-            outputs = Dense(enc_units[i], activation= activation, kernel_initializer=kernel_initializer,
-            kernel_regularizer=kernel_regularizer)(outputs)
+            x = Dense(enc_units[i], activation= activation, kernel_initializer=kernel_initializer,
+            kernel_regularizer=kernel_regularizer)(x)
             
         x = Dense(interm_dim,activation= activation, kernel_initializer=kernel_initializer,
-            kernel_regularizer=kernel_regularizer)(outputs)
+            kernel_regularizer=kernel_regularizer)(x)
 
         z_mean = Dense(latent_dim)(x)
         z_var = Dense(latent_dim)(x)
@@ -95,35 +95,30 @@ class VAE(Model):
         ## Sampling from intermediate dimensiont to get a probability density 
         z = Lambda(self.sampling, output_shape = (latent_dim, ))([z_mean, z_var])
 
-        model = Model(inputs, [z_mean, z_var])
-        return model
+        ## Encoder model
+        enc_model = Model(org_inputs, [z_mean, z_var])
 
 
-    def decoder(self, params):
+        latent_inputs = Input(shape = (latent_dim, ))
+        outputs = Dense(dec_units[0]  // 2, activation= activation, kernel_initializer=kernel_initializer,
+            kernel_regularizer=kernel_regularizer)(latent_inputs)
 
-    	dec_units = params['dec_units'] if 'dec_units' in params else [128, 256]
-        decoder_layers = params['decoder_layers'] if 'decoder_layers' in params else 2
-        interm_dim = params['interm_dim'] if 'interm_dim' in params else 64
-        activation = params['activation'] if 'activation' in params else 'relu'
-        kernel_initializer = params['kernel_initializer'] if 'kernel_initializer' in params else 'glorot_uniform'
-        kernel_regularizer = params['kernel_regularizer'] if 'kernel_regularizer' in params else None
-        latent_dim = params['latent_dim'] if 'latent_dim' in params else 32
-
-        assert len(dec_units) == decoder_layers, "Dimension mismatch: length of decoder units should match number of decoder layers"
-
-    	inputs = Input(shape = latent_dim)
-    	outputs = Dense(dec_units[0]  // 2, activation= activation, kernel_initializer=kernel_initializer,
-            kernel_regularizer=kernel_regularizer)(inputs)
-
-    	for i in range(decoder_layers):
-    		outputs = Dense(dec_units[i], activation= activation, kernel_initializer=kernel_initializer,
+        for i in range(decoder_layers):
+            outputs = Dense(dec_units[i], activation= activation, kernel_initializer=kernel_initializer,
             kernel_regularizer=kernel_regularizer)(outputs)
 
-    	outputs = Dense(self.image_size[0]*self.image_size[1]*self.image_size[2], activation = 'sigmoid')(outputs)
+        final_outputs = Dense(self.image_size[0]*self.image_size[1]*self.image_size[2], activation = 'sigmoid')(outputs)
 
-    	model = Model(inputs, outputs)
-    	return model
+        ## Decoder model
+        dec_model = Model(latent_inputs, final_outputs)
 
+        out = dec_model(z)
+        model = Model(org_inputs, out)
+
+        kl_loss = - 0.5 * tf.math.reduce_mean(z_var - tf.math.square(z_mean) - tf.math.exp(z_var) + 1)
+        model.add_loss(kl_loss)
+
+        return model
 
     '''
     call build_model to intialize the layers before you train the model
@@ -132,12 +127,50 @@ class VAE(Model):
         'enc_units': [256, 128], 'dec_units':[128, 256], 'interm_dim':256, 'latent_dim':32, 
         'activation':'relu', 'kernel_initializer': 'glorot_uniform', 'kernel_regularizer': None}):
 
-        self.enc = self.encoder(params)
-        self.dec = self.decoder(params)
+        self.model = self.vae(params)
 
 
-	def call(self, x):
+	def fit(self, train_ds = None, epochs = 100, optimizer = 'Adam', print_steps = 100, 
+        learning_rate = 0.001, tensorboard = False, save_model = None):
 
-		x = self.enc(x)
-		x = self.dec(x)
-		return x
+        assert train_ds != None, 'Initialize training data through train_ds parameter'
+
+        kwargs = {}
+        kwargs['learning_rate'] = gen_learning_rate
+        optimizer = getattr(tf.keras.optimizers, gen_optimizer)(**kwargs)
+
+        if(tensorboard):
+            current_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+            train_log_dir = 'logs/gradient_tape/' + current_time + '/train'
+            train_summary_writer = tf.summary.create_file_writer(train_log_dir)
+
+        steps = 0
+
+        for epoch in range(epochs):
+
+            for data in train_ds:
+
+                with tf.GradientTape() as tape:
+                    data_recon = self.model(data)
+                    loss = mse_loss(data, recon_data)
+
+                gradients = tape.gradient(loss, self.model.trainable_variables)
+                optimizer.apply_gradients(zip(gradients, self.model.trainable_variables))
+
+                if(steps % print_steps == 0):
+                    print("Step:", steps+1, 'reconstruction loss', loss.numpy())
+
+                steps += 1
+
+                if(tensorboard):
+                    with train_summary_writer.as_default():
+                        tf.summary.scalar('loss', loss.numpy(), step=steps)
+
+
+        if(save_model != None):
+
+            assert type(save_model) == str, "Not a valid directory"
+            if(save_model[-1] != '/'):
+                self.model.save_weights(save_model + '/variational_autoencoder_checkpoint')
+            else:
+                self.model.save_weights(save_model + 'variational_autoencoder_checkpoint')

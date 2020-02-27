@@ -3,6 +3,8 @@ from tensorflow.keras.layers import Conv2D, Dropout, BatchNormalization, LeakyRe
 from tensorflow.keras import Model
 import numpy as np
 from ..datasets import load_cifar10, load_mnist, load_custom_data
+import datetime 
+from ..losses import mse_loss
 
 '''
 vanilla_autoencoder imports from tensorflow Model class
@@ -12,15 +14,14 @@ Create an instance of the class and compile it by using the loss from ../losses/
 use the fit function to train the model. 
 '''
 
-class ConvolutionalAutoencoder(Model):
+class ConvolutionalAutoencoder():
 
 	def __init__(self):
     	'''
     	initialize the number of encoder and layers
     	'''
         super(ConvolutionalAutoencoder, self).__init__()
-    	self.enc = None
-    	self.dec = None
+    	self.model = tf.keras.Sequential()
         self.image_size = None
 
 
@@ -131,14 +132,53 @@ class ConvolutionalAutoencoder(Model):
         'enc_channels': [32, 64], 'dec_channels':[64, 32], 'kernel_size':(5,5), 'activation':'relu', 
         'kernel_initializer': 'glorot_uniform', 'kernel_regularizer': None}):
 
-        self.enc = self.encoder(params)
-		self.dec = self.decoder(params)
+        self.model.add(self.encoder())
+        self.model.add(self.decoder())
 
-	def call(self, x):
+	def fit(self, train_ds = None, epochs = 100, optimizer = 'Adam', print_steps = 100, 
+        learning_rate = 0.001, tensorboard = False, save_model = None):
 
-		x = self.enc(x)
-		x = self.dec(x)
-		return x
+        assert train_ds != None, 'Initialize training data through train_ds parameter'
+
+        kwargs = {}
+        kwargs['learning_rate'] = gen_learning_rate
+        optimizer = getattr(tf.keras.optimizers, gen_optimizer)(**kwargs)
+
+        if(tensorboard):
+            current_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+            train_log_dir = 'logs/gradient_tape/' + current_time + '/train'
+            train_summary_writer = tf.summary.create_file_writer(train_log_dir)
+
+        steps = 0
+
+        for epoch in range(epochs):
+
+            for data in train_ds:
+
+                with tf.GradientTape() as tape:
+                    recon_data = self.model(data)
+                    loss = mse_loss(data, recon_data)
+
+                gradients = tape.gradient(loss, self.model.trainable_variables)
+                optimizer.apply_gradients(zip(gradients, self.model.trainable_variables))
+
+                if(steps % print_steps == 0):
+                    print("Step:", steps+1, 'reconstruction loss', loss.numpy())
+
+                steps += 1
+
+                if(tensorboard):
+                    with train_summary_writer.as_default():
+                        tf.summary.scalar('loss', loss.numpy(), step=steps)
+
+
+        if(save_model != None):
+
+            assert type(save_model) == str, "Not a valid directory"
+            if(save_model[-1] != '/'):
+                self.model.save_weights(save_model + '/convolutional_autoencoder_autoencoder_checkpoint')
+            else:
+                self.model.save_weights(save_model + 'convolutional_autoencoder_autoencoder_checkpoint')
 
 
 
