@@ -10,7 +10,7 @@ Dataset is loaded from tensorflow keras datasets
 Function load_data returns a numpy array of shape (-1, 64, 64, 3) by default
 '''
 
-def load_data(datadir = None, img_shape = (64, 64)):
+def load_custom_data(datadir = None, img_shape = (64, 64)):
 
 	assert datadir is not None, "Enter a valid directory"
 	assert len(t) == 2 and type(img_shape) == tuple, "img_shape must be a tuple of size 2"

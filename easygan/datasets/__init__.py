@@ -3,10 +3,13 @@ from .load_cifar100 import *
 from .load_mnist import *
 from .load_lsun import *
 from .load_custom_data import *
+from .load_pix2pix_datasets import *
+from .load_cyclegan_datasets import *
 
 __all__ = ['load_mnist', 
             'load_cifar10', 
             'load_cifar100', 
             'load_lsun', 
             'load_data',
-            'pix2pix_dataloader']
+            'pix2pix_dataloader',
+            'cyclegan_dataloader']
