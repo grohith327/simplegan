@@ -2,9 +2,9 @@ import tensorflow as tf
 from tensorflow.keras.layers import Dropout, BatchNormalization, Lambda, Dense, Reshape, Input, ReLU, Conv2D, Conv2DTranspose, Embedding
 from tensorflow.keras import Model
 import numpy as np
-from ..datasets import load_cifar10
+from ..datasets.load_cifar10 import load_cifar10
 import datetime
-from ..losses import mse_loss
+from ..losses.mse_loss import mse_loss
 
 '''
 vector quantized vae

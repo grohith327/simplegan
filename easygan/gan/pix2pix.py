@@ -3,8 +3,8 @@ from tensorflow.keras.layers import Conv2D, Dropout, Concatenate, BatchNormaliza
 from tensorflow.keras import Model
 import numpy as np 
 import datetime 
-from ..datasets import pix2pix_dataloader
-from ..losses import pix2pix_generator_loss, pix2pix_discriminator_loss
+from ..datasets.load_pix2pix_datasets import pix2pix_dataloader
+from ..losses.pix2pix_loss import pix2pix_generator_loss, pix2pix_discriminator_loss
 import cv2
 
 '''
@@ -15,7 +15,7 @@ The following code is inspired from: https://www.tensorflow.org/tutorials/genera
 During trainig, samples will be saved at ./samples and saved rate at a rate given by save_img_per_epoch
 '''
 
-class Pix2Pix():
+class Pix2Pix:
 
     def __init__(self):
 
@@ -239,9 +239,9 @@ class Pix2Pix():
 
         kwargs = {}
         kwargs['learning_rate'] = disc_learning_rate
-        if(gen_optimizer == 'Adam'):
+        if(disc_optimizer == 'Adam'):
             kwargs['beta_1'] = beta_1
-        disc_optimizer = getattr(tf.keras.optimizers, gen_optimizer)(**kwargs)
+        disc_optimizer = getattr(tf.keras.optimizers, disc_optimizer)(**kwargs)
 
         if(tensorboard):
             current_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")

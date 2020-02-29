@@ -1,8 +1,10 @@
 import tensorflow as tf 
 from tensorflow.keras.layers import Dense, Dropout
 from tensorflow.keras import Model
-from ..datasets import load_cifar10, load_mnist, load_custom_data
-from ..losses import gan_discriminator_loss, gan_generator_loss
+from ..datasets.load_cifar10 import load_cifar10
+from ..datasets.load_mnist import load_mnist
+from ..datasets.load_custom_data import load_custom_data
+from ..losses.minmax_loss import gan_discriminator_loss, gan_generator_loss
 import numpy as np
 import datetime
 
@@ -125,7 +127,7 @@ class VanillaGAN():
 
         kwargs = {}
         kwargs['learning_rate'] = disc_learning_rate
-        disc_optimizer = getattr(tf.keras.optimizers, gen_optimizer)(**kwargs)
+        disc_optimizer = getattr(tf.keras.optimizers, disc_optimizer)(**kwargs)
 
         if(tensorboard):
             current_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")

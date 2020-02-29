@@ -1,6 +1,6 @@
 import tensorflow as tf 
 from .dcgan import DCGAN
-from ..losses import wgan_discriminator_loss, wgan_generator_loss
+from ..losses.wasserstein_loss import wgan_discriminator_loss, wgan_generator_loss
 
 class WGAN(DCGAN):
 
@@ -21,9 +21,9 @@ class WGAN(DCGAN):
 
         kwargs = {}
         kwargs['learning_rate'] = disc_learning_rate
-        if(gen_optimizer == 'Adam'):
+        if(disc_optimizer == 'Adam'):
             kwargs['beta_1'] = beta_1
-        disc_optimizer = getattr(tf.keras.optimizers, gen_optimizer)(**kwargs)
+        disc_optimizer = getattr(tf.keras.optimizers, disc_optimizer)(**kwargs)
 
         if(tensorboard):
             current_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
