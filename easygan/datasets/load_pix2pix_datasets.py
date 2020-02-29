@@ -129,9 +129,13 @@ class pix2pix_dataloader:
 
     def _load_custom_data(self):
 
+        assert os.path.exists(os.path.join(self.datadir, '/train')), "No such directory as train found"
+
         train_data = tf.data.Dataset.list_files(os.path.join(self.datadir, '/train/*.jpg'))
         train_ds = train_data.map(self._load_train_images, 
                                         num_parallel_calls=tf.data.experimental.AUTOTUNE)
+
+        assert os.path.exists(os.path.join(self.datadir, '/test')), "No such directory as test found"
 
         test_data = tf.data.Dataset.list_files(os.path.join(self.datadir, '/test/*.jpg'))
         test_ds = test_data.Dataset.map(self._load_test_images)
