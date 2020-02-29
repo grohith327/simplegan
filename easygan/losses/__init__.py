@@ -8,4 +8,6 @@ __all__ = ['gan_discriminator_loss',
             'mse_loss', 
             'vae_loss',
             'wgan_discriminator_loss', 
-            'wgan_generator_loss']
+            'wgan_generator_loss',
+            'pix2pix_generator_loss',
+            'pix2pix_discriminator_loss']
