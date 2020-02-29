@@ -18,7 +18,7 @@ Note:
 '''
 
 
-class pix2pix_dataloader():
+class pix2pix_dataloader:
 
     def __init__(self, dataset_name = None, img_width = 256, img_height = 256, 
                 datadir = None):
@@ -27,6 +27,7 @@ class pix2pix_dataloader():
         self.img_width = img_width
         self.img_height = img_height
         self.datadir = datadir
+        self.channels = None
         
 
     def _load_path(self, dataset_name):
@@ -56,6 +57,8 @@ class pix2pix_dataloader():
         real_image = image[:,:w, :]
         input_image = image[:, w:, :]
 
+        self.channels = real_image.shape[-1]
+
         input_image = tf.cast(input_image, tf.float32)
         real_image = tf.cast(real_image, tf.float32)
 
@@ -74,7 +77,7 @@ class pix2pix_dataloader():
     def _random_crop(self, input_image, real_image):
 
         stacked_image = tf.stack([input_image, real_image], axis=0)
-        cropped_image = tf.image.random_crop(stacked_image, size=[2, self.img_height, self.img_width, 3])
+        cropped_image = tf.image.random_crop(stacked_image, size=[2, self.img_height, self.img_width, self.channels])
 
         return cropped_image[0], cropped_image[1]
 
