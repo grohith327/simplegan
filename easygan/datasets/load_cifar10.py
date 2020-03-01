@@ -14,3 +14,14 @@ def load_cifar10():
     train_data = x_train.astype('float32')
 
     return train_data
+
+def load_cifar10_with_labels():
+
+    (x_train, y_train), (x_test, y_test) = tf.keras.datasets.cifar10.load_data()
+    
+    train_data = np.concatenate((x_train, x_test), 0)
+    train_labels = np.concatenate((y_train, y_test), 0)
+    
+    train_data = train_data.astype('float32')
+
+    return train_data, train_labels
