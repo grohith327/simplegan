@@ -1,14 +1,26 @@
-import tensorflow as tf 
-from .dcgan import DCGAN
-from ..losses.wasserstein_loss import wgan_discriminator_loss, wgan_generator_loss
+import sys
+sys.path.append('..')
+
+import tensorflow as tf
+from tensorflow.keras.layers import Conv2D, Dropout, BatchNormalization, LeakyReLU, Conv2DTranspose, Dense, Reshape, Flatten
+from tensorflow.keras import Model
+from datasets.load_cifar10 import load_cifar10
+from datasets.load_mnist import load_mnist
+from datasets.load_custom_data import load_custom_data
+from datasets.load_cifar100 import load_cifar100
+from datasets.load_lsun import load_lsun 
+from gan.dcgan import DCGAN
+from losses.wasserstein_loss import wgan_discriminator_loss, wgan_generator_loss
+import numpy as np
+import datetime
 
 class WGAN(DCGAN):
 
-	def __init__(self):
-		DCGAN.__init__(self)
+    def __init__(self):
+        DCGAN.__init__(self)
 
-	def fit(self, train_ds = None, epochs = 100, gen_optimizer = 'RMSprop', disc_optimizer = 'RMSprop', 
-        print_steps = 100, gen_learning_rate = 5e-5, disc_learning_rate = 5e-5, beta_1 = 0.5
+    def fit(self, train_ds = None, epochs = 100, gen_optimizer = 'RMSprop', disc_optimizer = 'RMSprop', 
+        print_steps = 100, gen_learning_rate = 5e-5, disc_learning_rate = 5e-5, beta_1 = 0.5,
         tensorboard = False, save_model = None):
 
         assert train_ds != None, 'Initialize training data through train_ds parameter'
@@ -35,18 +47,18 @@ class WGAN(DCGAN):
         for epoch in range(epochs):
             for data in train_ds:
 
-            	for _ in range(5):
-	                with tf.GradientTape() as tape:
+                for _ in range(5):
+                    with tf.GradientTape() as tape:
 
-	                    Z = tf.random.normal([data.shape[0], self.noise_dim])
-	                    fake = self.gen_model(Z)
-	                    fake_logits = self.disc_model(fake)
-	                    real_logits = self.disc_model(real)
-	                    D_loss = wgan_discriminator_loss(real_logits, fake_logits)
+                        Z = tf.random.normal([data.shape[0], self.noise_dim])
+                        fake = self.gen_model(Z)
+                        fake_logits = self.disc_model(fake)
+                        real_logits = self.disc_model(real)
+                        D_loss = wgan_discriminator_loss(real_logits, fake_logits)
 
-	                gradients = tape.gradient(D_loss, self.disc_model.trainable_variables)
-	                clipped_gradients = [(tf.clip_by_value(grad, -0.01, 0.01)) for grad in gradients]
-	                disc_optimizer.apply_gradients(zip(clipped_gradients,self.disc_model.trainable_variables))
+                    gradients = tape.gradient(D_loss, self.disc_model.trainable_variables)
+                    clipped_gradients = [(tf.clip_by_value(grad, -0.01, 0.01)) for grad in gradients]
+                    disc_optimizer.apply_gradients(zip(clipped_gradients,self.disc_model.trainable_variables))
 
                 with tf.GradientTape() as tape:
 

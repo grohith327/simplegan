@@ -1,12 +1,15 @@
+import sys
+sys.path.append('..')
+
 import tensorflow as tf 
 from tensorflow.keras.layers import Conv2D, Dropout, BatchNormalization, LeakyReLU, Conv2DTranspose, Dense, Reshape, Flatten, MaxPool2D
 from tensorflow.keras import Model
 import numpy as np
-from ..datasets.load_cifar10 import load_cifar10
-from ..datasets.load_mnist import load_mnist
-from ..datasets.load_custom_data import load_custom_data
+from datasets.load_cifar10 import load_cifar10
+from datasets.load_mnist import load_mnist
+from datasets.load_custom_data import load_custom_data
 import datetime 
-from ..losses.mse_loss import mse_loss
+from losses.mse_loss import mse_loss
 
 '''
 vanilla_autoencoder imports from tensorflow Model class

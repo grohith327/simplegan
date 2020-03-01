@@ -1,13 +1,16 @@
+import sys
+sys.path.append('..')
+
 import tensorflow as tf 
 from tensorflow.keras.layers import Conv2D, Dropout, Concatenate, BatchNormalization, LeakyReLU, Conv2DTranspose, ZeroPadding2D, Dense, Reshape, Flatten, ReLU, Input
 from tensorflow.keras import Model
 import numpy as np 
 import datetime 
 import cv2 
-from ..losses.minmax_loss import gan_generator_loss, gan_discriminator_loss
-from ..losses.cyclegan_loss import cycle_loss, identity_loss
-from ..datasets.load_cyclegan_datasets import cyclegan_dataloader
-from .pix2pix import Pix2Pix
+from losses.minmax_loss import gan_generator_loss, gan_discriminator_loss
+from losses.cyclegan_loss import cycle_loss, identity_loss
+from datasets.load_cyclegan_datasets import cyclegan_dataloader
+from gan.pix2pix import Pix2Pix
 
 
 '''
@@ -110,7 +113,7 @@ class CycleGAN(Pix2Pix):
         for i, channel in enumerate(disc_channels[:-1]):
             if(i == 0):
                 down_stack.append(self._downsample(channel, kernel_size = kernel_size,
-                                batchnorm = False, kernel_initializer = kernel_initializer))
+                                kernel_initializer = kernel_initializer, batchnorm = False))
             else:
                 down_stack.append(self._downsample(channel, kernel_size = kernel_size,
                                 kernel_initializer = kernel_initializer))

@@ -1,12 +1,15 @@
+import sys
+sys.path.append('..')
+
 import tensorflow as tf 
 from tensorflow.keras.layers import Dropout, BatchNormalization, Lambda, Dense, Reshape, Input
 from tensorflow.keras import Model
 import numpy as np
-from ..datasets.load_cifar10 import load_cifar10
-from ..datasets.load_mnist import load_mnist
-from ..datasets.load_custom_data import load_custom_data
+from datasets.load_cifar10 import load_cifar10
+from datasets.load_mnist import load_mnist
+from datasets.load_custom_data import load_custom_data
 import datetime 
-from ..losses.mse_loss import mse_loss
+from losses.mse_loss import mse_loss
 
 '''
 source: https://github.com/keras-team/keras/blob/master/examples/variational_autoencoder.py
@@ -52,7 +55,10 @@ class VAE():
         return train_ds
 
 
-    def sampling(self, [z_mean, z_var]):
+    def sampling(self, distribution):
+
+        z_mean = distribution[0]
+        z_var = distribution[1]
 
         batch = tf.keras.backend.shape(z_mean)[0]
         dim = tf.keras.backend.int_shape(z_mean)[1]
@@ -192,4 +198,4 @@ class VAE():
 
         assert os.path.exists(save_dir), "Directory does not exist"
         for i, sample in enumerate(generated_samples):
-            cv2.imwrite(os.path.join(save_dir, 'sample_' + str(i) + '.jpg'), sample
+            cv2.imwrite(os.path.join(save_dir, 'sample_' + str(i) + '.jpg'), sample)

@@ -1,10 +1,13 @@
+import sys
+sys.path.append('..')
+
 import tensorflow as tf 
 from tensorflow.keras.layers import Dense, Dropout
 from tensorflow.keras import Model
-from ..datasets.load_cifar10 import load_cifar10
-from ..datasets.load_mnist import load_mnist
-from ..datasets.load_custom_data import load_custom_data
-from ..losses.minmax_loss import gan_discriminator_loss, gan_generator_loss
+from datasets.load_cifar10 import load_cifar10
+from datasets.load_mnist import load_mnist
+from datasets.load_custom_data import load_custom_data
+from losses.minmax_loss import gan_discriminator_loss, gan_generator_loss
 import numpy as np
 import datetime
 import cv2

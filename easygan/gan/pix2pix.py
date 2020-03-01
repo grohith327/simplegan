@@ -1,10 +1,13 @@
+import sys
+sys.path.append('..')
+
 import tensorflow as tf 
 from tensorflow.keras.layers import Conv2D, Dropout, Concatenate, BatchNormalization, LeakyReLU, Conv2DTranspose, ZeroPadding2D, Dense, Reshape, Flatten, ReLU, Input
 from tensorflow.keras import Model
 import numpy as np 
 import datetime 
-from ..datasets.load_pix2pix_datasets import pix2pix_dataloader
-from ..losses.pix2pix_loss import pix2pix_generator_loss, pix2pix_discriminator_loss
+from datasets.load_pix2pix_datasets import pix2pix_dataloader
+from losses.pix2pix_loss import pix2pix_generator_loss, pix2pix_discriminator_loss
 import cv2
 
 '''
@@ -63,8 +66,8 @@ class Pix2Pix:
         return train_ds, test_ds
 
 
-    def _downsample(self, filters, kernel_size, batchnorm = True,
-        kernel_initializer):
+    def _downsample(self, filters, kernel_size, kernel_initializer,
+        batchnorm = True):
 
         model = tf.keras.Sequential()
         model.add(Conv2D(filters, kernel_size = kernel_size, strides = 2,
@@ -78,7 +81,7 @@ class Pix2Pix:
         return model
 
     def _upsample(self, filters, kernel_size, kernel_initializer,
-        dropout = False, dropout_rate):
+        dropout_rate, dropout = False):
 
         model = tf.keras.Sequential()
         model.add(Conv2DTranspose(filters, kernel_size = kernel_size, 
@@ -108,7 +111,7 @@ class Pix2Pix:
 
         inputs = Input(shape = self.img_size)
 
-        down_stack = [self._downsample(64, 4, batchnorm = False, kernel_initializer)]
+        down_stack = [self._downsample(64, 4, kernel_initializer, batchnorm = False)]
 
         for channel in gen_enc_channels:
             down_stack.append(self._downsample(channel, kernel_size, kernel_initializer = kernel_initializer))
@@ -118,7 +121,7 @@ class Pix2Pix:
         for i, channel in enumerate(gen_dec_channels):
             if(i < 2):
                 up_stack.append(self._upsample(channel, kernel_size, kernel_initializer = kernel_initializer, 
-                            dropout = True, dropout_rate = dropout_rate))
+                            dropout_rate = dropout_rate), dropout = True)
             else:
                 up_stack.append(self._upsample(channel, kernel_size, kernel_initializer = kernel_initializer, 
                             dropout_rate = dropout_rate))
@@ -163,7 +166,7 @@ class Pix2Pix:
         for i, channel in enumerate(disc_channels[:-1]):
             if(i == 0):
                 down_stack.append(self._downsample(channel, kernel_size = kernel_size,
-                                batchnorm = False, kernel_initializer = kernel_initializer))
+                                kernel_initializer = kernel_initializer, batchnorm = False))
             else:
                 down_stack.append(self._downsample(channel, kernel_size = kernel_size,
                                 kernel_initializer = kernel_initializer))

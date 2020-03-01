@@ -1,10 +1,13 @@
+import sys
+sys.path.append('..')
+
 import numpy as np
 import tensorflow as tf
 from tensorflow.keras import layers
-from ..datasets.load_mnist import load_mnist_with_labels
-from ..datasets.load_cifar10 import load_cifar10_with_labels
-from ..datasets.load_custom_data import load_custom_data_with_labels
-from ..losses.minmax_loss import gan_discriminator_loss, gan_generator_loss
+from datasets.load_mnist import load_mnist_with_labels
+from datasets.load_cifar10 import load_cifar10_with_labels
+from datasets.load_custom_data import load_custom_data_with_labels
+from losses.minmax_loss import gan_discriminator_loss, gan_generator_loss
 import datetime
 
 class CGAN:
