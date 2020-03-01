@@ -9,10 +9,8 @@ Function load_cifar10 returns a numpy array of shape (-1, 32, 32, 3)
 
 def load_cifar10():
 
-	(x_train, _), (x_test, _) = tf.keras.datasets.cifar10.load_data()
+    (x_train, _), (_, _) = tf.keras.datasets.cifar10.load_data()
 
-	train_data = np.concatenate((x_train, x_test), 0)
+    train_data = x_train.astype('float32')
 
-	train_data = train_data.astype('float32')
-
-	return train_data
+    return train_data

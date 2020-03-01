@@ -18,44 +18,44 @@ DCGAN paper: https://arxiv.org/abs/1511.06434
 
 class DCGAN():
 
-	def __init__(self):
+    def __init__(self):
 
-		self.image_size = None
+        self.image_size = None
         self.noise_dim = None
-		self.gen_model = None 
+        self.gen_model = None 
         self.disc_model = None
-		
+        
 
-	def load_data(self, data_dir = None, use_mnist = False, 
+    def load_data(self, data_dir = None, use_mnist = False, 
         use_cifar10 = False, use_cifar100 = False, use_lsun = False, 
         batch_size = 32, img_shape = (64, 64)):
 
-		'''
-		choose the dataset, if None is provided returns an assertion error -> ../datasets/load_custom_data
-		returns a tensorflow dataset loader
-		'''
+        '''
+        choose the dataset, if None is provided returns an assertion error -> ../datasets/load_custom_data
+        returns a tensorflow dataset loader
+        '''
 
-		if(use_mnist):
+        if(use_mnist):
 
-			train_data = load_mnist()
+            train_data = load_mnist()
 
-		elif(use_cifar10):
+        elif(use_cifar10):
 
-			train_data = load_cifar10()
-			
-		elif(use_cifar100):
+            train_data = load_cifar10()
+            
+        elif(use_cifar100):
 
-			train_data = load_cifar100()
-			
-		elif(use_lsun):
+            train_data = load_cifar100()
+            
+        elif(use_lsun):
 
-			train_data = load_lsun()
+            train_data = load_lsun()
 
-		else:
+        else:
 
-			train_data = load_custom_data(data_dir)
+            train_data = load_custom_data(data_dir)
 
-		self.image_size = train_data.shape[1:]
+        self.image_size = train_data.shape[1:]
 
         train_data = (train_data - 127.5) / 127.5
         train_ds = tf.data.Dataset.from_tensor_slices(train_data).shuffle(10000).batch(batch_size)
@@ -79,7 +79,7 @@ class DCGAN():
 
         assert len(gen_channels) == gen_layers, "Dimension mismatch: length of generator channels should match number of generator layers"
 
-    	model = tf.keras.Sequential()
+        model = tf.keras.Sequential()
         model.add(Dense((self.image_size[0] // 4)*(self.image_size[1] // 4)*(gen_channels*2), 
             activation = activation, kernel_initializer=kernel_initializer,
             kernel_regularizer=kernel_regularizer, input_dim = noise_dim))
@@ -90,11 +90,11 @@ class DCGAN():
 
         i = 0
         for _ in range(gen_layers//2):
-        	model.add(Conv2DTranspose(gen_channels[i], kernel_size = kernel_size, strides=(1, 1), 
+            model.add(Conv2DTranspose(gen_channels[i], kernel_size = kernel_size, strides=(1, 1), 
                 padding='same', use_bias=False, kernel_initializer=kernel_initializer, 
                 kernel_regularizer=kernel_regularizer))
-        	model.add(BatchNormalization())
-        	model.add(LeakyReLU())
+            model.add(BatchNormalization())
+            model.add(LeakyReLU())
             i += 1
 
         model.add(Conv2DTranspose(gen_channels[i], kernel_size = kernel_size, strides=(2, 2), 
@@ -104,11 +104,11 @@ class DCGAN():
         model.add(LeakyReLU())
 
         for _ in range(gen_layers//2):
-        	model.add(Conv2DTranspose(gen_channels[i], kernel_size = kernel_size, strides=(1, 1), 
+            model.add(Conv2DTranspose(gen_channels[i], kernel_size = kernel_size, strides=(1, 1), 
                 padding='same', use_bias=False, kernel_initializer=kernel_initializer, 
                 kernel_regularizer=kernel_regularizer))
-        	model.add(BatchNormalization())
-        	model.add(LeakyReLU())
+            model.add(BatchNormalization())
+            model.add(LeakyReLU())
             i += 1
 
         model.add(Conv2DTranspose(self.image_size[2], kernel_size = kernel_size, strides=(2, 2), padding='same', use_bias=False, activation='tanh'))
@@ -133,22 +133,22 @@ class DCGAN():
         model.add(Conv2D(disc_channels[0] // 2, kernel_size = kernel_size, strides=(2, 2), 
             padding='same', kernel_initializer = kernel_initializer, kernel_regularizer = kernel_regularizer,
             input_shape=self.image_size))
-	    model.add(LeakyReLU())
-	    model.add(Dropout(dropout_rate))
+        model.add(LeakyReLU())
+        model.add(Dropout(dropout_rate))
 
-	    for i in range(disc_layers):
-		    model.add(Conv2D(disc_channels[i], kernel_size = kernel_size, strides=(1, 1), 
+        for i in range(disc_layers):
+            model.add(Conv2D(disc_channels[i], kernel_size = kernel_size, strides=(1, 1), 
                 padding='same', kernel_initializer = kernel_initializer, kernel_regularizer = kernel_regularizer))
-		    model.add(LeakyReLU())
-		    model.add(Dropout(dropout_rate))
+            model.add(LeakyReLU())
+            model.add(Dropout(dropout_rate))
 
-	    model.add(Conv2D(disc_channels[-1]*2, kernel_size = kernel_size, strides=(2, 2), 
+        model.add(Conv2D(disc_channels[-1]*2, kernel_size = kernel_size, strides=(2, 2), 
             padding='same', kernel_initializer = kernel_initializer, kernel_regularizer = kernel_regularizer))
-	    model.add(LeakyReLU())
-	    model.add(Dropout(dropout_rate))
+        model.add(LeakyReLU())
+        model.add(Dropout(dropout_rate))
 
-	    model.add(Flatten())
-	    model.add(Dense(1))
+        model.add(Flatten())
+        model.add(Dense(1))
 
         return model
 
@@ -233,3 +233,16 @@ class DCGAN():
             else:
                 self.gen_model.save_weights(save_model + 'generator_checkpoint')
                 self.disc_model.save_weights(save_model + 'discriminator_checkpoint')
+
+
+    def generate_samples(self, n_samples = 1, save_dir = None):
+
+        Z = tf.random.normal([n_samples, self.noise_dim])
+        generated_samples = self.gen_model(Z).numpy()
+
+        if(save_dir is None):
+            return generated_samples
+
+        assert os.path.exists(save_dir), "Directory does not exist"
+        for i, sample in enumerate(generated_samples):
+            cv2.imwrite(os.path.join(save_dir, 'sample_' + str(i) + '.jpg'), sample)

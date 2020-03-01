@@ -7,6 +7,7 @@ from ..datasets.load_custom_data import load_custom_data
 from ..losses.minmax_loss import gan_discriminator_loss, gan_generator_loss
 import numpy as np
 import datetime
+import cv2
 
 '''
 vanilla gan imports from tensorflow Model class
@@ -181,3 +182,16 @@ class VanillaGAN():
             else:
                 self.gen_model.save_weights(save_model + 'generator_checkpoint')
                 self.disc_model.save_weights(save_model + 'discriminator_checkpoint')
+
+    def generate_samples(self, n_samples = 1, save_dir = None):
+
+        Z = np.random.uniform(-1, 1, (n_samples, self.noise_dim))
+        generated_samples = self.gen_model(Z)
+        generated_samples = tf.reshape(generated_samples, [n_samples, self.image_size[0], self.image_size[1], self.image_size[2]]).numpy()
+
+        if(save_dir is None):
+            return generated_samples
+
+        assert os.path.exists(save_dir), "Directory does not exist"
+        for i, sample in enumerate(generated_samples):
+            cv2.imwrite(os.path.join(save_dir, 'sample_' + str(i) + '.jpg'), sample)

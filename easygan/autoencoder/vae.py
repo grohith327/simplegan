@@ -176,3 +176,20 @@ class VAE():
                 self.model.save_weights(save_model + '/variational_autoencoder_checkpoint')
             else:
                 self.model.save_weights(save_model + 'variational_autoencoder_checkpoint')
+
+
+    def generate_samples(self, test_ds = None, save_dir = None):
+
+        assert test_ds is not None, "Enter input test dataset"
+
+        generated_samples = []
+        for data in test_ds:
+            gen_sample = self.model(data, training = False)
+            generated_samples.append(gen_sample)
+
+        if(save_dir is None):
+            return generated_samples
+
+        assert os.path.exists(save_dir), "Directory does not exist"
+        for i, sample in enumerate(generated_samples):
+            cv2.imwrite(os.path.join(save_dir, 'sample_' + str(i) + '.jpg'), sample

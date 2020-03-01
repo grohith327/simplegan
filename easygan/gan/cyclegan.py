@@ -286,3 +286,20 @@ class CycleGAN(Pix2Pix):
                 self.gen_model_g.save_weights(save_model + '/generator_g_checkpoint')
             else:
                 self.gen_model_g.save_weights(save_model + 'generator_g_checkpoint')
+
+
+    def generate_samples(self, test_ds = None, save_dir = None):
+
+        assert test_ds is not None, "Enter input test dataset"
+
+        generated_samples = []
+        for image in test_ds:
+            gen_image = self.gen_model_g(image, training = False).numpy()
+            generated_samples.append(gen_image)
+
+        if(save_dir is None):
+            return generated_samples
+
+        assert os.path.exists(save_dir), "Directory does not exist"
+        for i, sample in enumerate(generated_samples):
+            cv2.imwrite(os.path.join(save_dir, 'sample_' + str(i) + '.jpg'), sample)

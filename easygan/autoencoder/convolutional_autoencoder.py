@@ -18,43 +18,43 @@ use the fit function to train the model.
 
 class ConvolutionalAutoencoder():
 
-	def __init__(self):
-    	'''
-    	initialize the number of encoder and layers
-    	'''
+    def __init__(self):
+        '''
+        initialize the number of encoder and layers
+        '''
         super(ConvolutionalAutoencoder, self).__init__()
-    	self.model = tf.keras.Sequential()
+        self.model = tf.keras.Sequential()
         self.image_size = None
 
 
-	def load_data(self, data_dir = None, use_mnist = False, 
+    def load_data(self, data_dir = None, use_mnist = False, 
         use_cifar10 = False, batch_size = 32, img_shape = (64,64)):
 
-		'''
-		choose the dataset, if None is provided returns an assertion error -> ../datasets/load_custom_data
-		returns a tensorflow dataset loader
-		'''
-		if(use_mnist):
+        '''
+        choose the dataset, if None is provided returns an assertion error -> ../datasets/load_custom_data
+        returns a tensorflow dataset loader
+        '''
+        if(use_mnist):
 
-			train_data = load_mnist()
+            train_data = load_mnist()
 
-		elif(use_cifar10):
+        elif(use_cifar10):
 
-			train_data = load_cifar10()
+            train_data = load_cifar10()
 
-		else:
+        else:
 
-			train_data = load_custom_data(data_dir)
+            train_data = load_custom_data(data_dir)
 
         self.image_size = train_data.shape[1:]
 
         train_data = train_data / 255
         train_ds = tf.data.Dataset.from_tensor_slices(train_data).shuffle(10000).batch(batch_size)
 
-		return train_ds
+        return train_ds
 
     '''
-   	encoder and decoder layers for custom dataset can be reimplemented by inherting this class(vanilla_autoencoder)
+    encoder and decoder layers for custom dataset can be reimplemented by inherting this class(vanilla_autoencoder)
     '''
     def encoder(self, params):
 
@@ -130,14 +130,14 @@ class ConvolutionalAutoencoder():
     '''
     call build_model to intialize the layers before you train the model
     '''
-	def build_model(self, params = {'encoder_layers':2, 'decoder_layers':2, 'interm_dim': 128, 
+    def build_model(self, params = {'encoder_layers':2, 'decoder_layers':2, 'interm_dim': 128, 
         'enc_channels': [32, 64], 'dec_channels':[64, 32], 'kernel_size':(5,5), 'activation':'relu', 
         'kernel_initializer': 'glorot_uniform', 'kernel_regularizer': None}):
 
         self.model.add(self.encoder())
         self.model.add(self.decoder())
 
-	def fit(self, train_ds = None, epochs = 100, optimizer = 'Adam', print_steps = 100, 
+    def fit(self, train_ds = None, epochs = 100, optimizer = 'Adam', print_steps = 100, 
         learning_rate = 0.001, tensorboard = False, save_model = None):
 
         assert train_ds != None, 'Initialize training data through train_ds parameter'
@@ -183,9 +183,18 @@ class ConvolutionalAutoencoder():
                 self.model.save_weights(save_model + 'convolutional_autoencoder_autoencoder_checkpoint')
 
 
+    def generate_samples(self, test_ds = None, save_dir = None):
 
+        assert test_ds is not None, "Enter input test dataset"
 
+        generated_samples = []
+        for data in test_ds:
+            gen_sample = self.model(data, training = False)
+            generated_samples.append(gen_sample)
 
+        if(save_dir is None):
+            return generated_samples
 
-
-
+        assert os.path.exists(save_dir), "Directory does not exist"
+        for i, sample in enumerate(generated_samples):
+            cv2.imwrite(os.path.join(save_dir, 'sample_' + str(i) + '.jpg'), sample)

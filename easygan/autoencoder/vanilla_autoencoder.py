@@ -18,41 +18,41 @@ use the fit function to train the model.
 '''
 class VanillaAutoencoder():
 
-	def __init__(self):
-    	'''
-    	initialize the number of encoder and layers
-    	'''
+    def __init__(self):
+        '''
+        initialize the number of encoder and layers
+        '''
         super(VanillaAutoencoder, self).__init__()
-    	self.model = tf.keras.Sequential()
+        self.model = tf.keras.Sequential()
         self.image_size = None
 
 
-	def load_data(self, data_dir = None, use_mnist = False, 
+    def load_data(self, data_dir = None, use_mnist = False, 
         use_cifar10 = False, batch_size = 32, img_shape = (64,64)):
 
-		'''
-		choose the dataset, if None is provided returns an assertion error -> ../datasets/load_custom_data
-		returns a tensorflow dataset loader
-		'''
+        '''
+        choose the dataset, if None is provided returns an assertion error -> ../datasets/load_custom_data
+        returns a tensorflow dataset loader
+        '''
 
-		if(use_mnist):
+        if(use_mnist):
 
-			train_data = load_mnist()
-		
-		elif(use_cifar10):
+            train_data = load_mnist()
+        
+        elif(use_cifar10):
 
-			train_data = load_cifar10()
+            train_data = load_cifar10()
 
-		else:
+        else:
 
-			train_data = load_custom_data(data_dir, img_shape)
+            train_data = load_custom_data(data_dir, img_shape)
 
         self.image_size = train_data.shape[1:]
 
         train_data = train_data.reshape((-1, self.image_size[0]*self.image_size[1]*self.image_size[2])) / 255
         train_ds = tf.data.Dataset.from_tensor_slices(train_data).shuffle(10000).batch(batch_size)
 
-		return train_ds
+        return train_ds
 
 
     def encoder(self, params):
@@ -107,11 +107,11 @@ class VanillaAutoencoder():
     '''
     call build_model to intialize the layers before you train the model
     '''
-	def build_model(self, params = {'encoder_layers':2, 'decoder_layers':2, 'interm_dim':64, 
+    def build_model(self, params = {'encoder_layers':2, 'decoder_layers':2, 'interm_dim':64, 
         'enc_units': [256, 128], 'dec_units':[128, 256], 'activation':'relu', 'kernel_initializer': 'glorot_uniform', 
         'kernel_regularizer': None}):
 
-		self.model.add(self.encoder())
+        self.model.add(self.encoder())
         self.model.add(self.decoder())
 
 
@@ -159,3 +159,19 @@ class VanillaAutoencoder():
                 self.model.save_weights(save_model + '/vanilla_autoencoder_checkpoint')
             else:
                 self.model.save_weights(save_model + 'vanilla_autoencoder_checkpoint')
+
+    def generate_samples(self, test_ds = None, save_dir = None):
+
+        assert test_ds is not None, "Enter input test dataset"
+
+        generated_samples = []
+        for data in test_ds:
+            gen_sample = self.model(data, training = False)
+            generated_samples.append(gen_sample)
+
+        if(save_dir is None):
+            return generated_samples
+
+        assert os.path.exists(save_dir), "Directory does not exist"
+        for i, sample in enumerate(generated_samples):
+            cv2.imwrite(os.path.join(save_dir, 'sample_' + str(i) + '.jpg'), sample)
