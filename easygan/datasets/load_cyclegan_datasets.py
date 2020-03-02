@@ -1,7 +1,7 @@
 import tensorflow as tf
 import tensorflow_datasets as tfds
 import numpy as np
-import os 
+import os
 
 '''
 returns train_dataA, train_dataB, test_dataA, test_dataB -> tensorflow dataset
@@ -12,10 +12,11 @@ paper: https://arxiv.org/abs/1703.10593
 Code inspired from: https://www.tensorflow.org/tutorials/generative/cyclegan#import_and_reuse_the_pix2pix_models
 '''
 
+
 class cyclegan_dataloader:
 
-    def __init__(self, dataset_name = None, img_width = 256, img_height = 256, 
-                datadir = None):
+    def __init__(self, dataset_name=None, img_width=256, img_height=256,
+                 datadir=None):
 
         self.dataset_name = dataset_name
         self.img_width = img_width
@@ -23,11 +24,14 @@ class cyclegan_dataloader:
         self.datadir = datadir
         self.channels = None
 
-
     def __random_crop(self, image):
 
-        cropped_image = tf.image.random_crop(image, size = [self.img_height,
-                                            self.img_width, self.channels])
+        cropped_image = tf.image.random_crop(
+            image,
+            size=[
+                self.img_height,
+                self.img_width,
+                self.channels])
         return cropped_image
 
     def _normalize(self, image):
@@ -38,7 +42,9 @@ class cyclegan_dataloader:
 
     def _random_jitter(self, image):
 
-        image = tf.image.resize(image, [286, 286], method = tf.image.ResizeMethod.NEAREST_NEIGHBOR)
+        image = tf.image.resize(
+            image, [
+                286, 286], method=tf.image.ResizeMethod.NEAREST_NEIGHBOR)
         image = self._random_crop(image)
         image = tf.image.random_flip_left_right(image)
 
@@ -57,16 +63,25 @@ class cyclegan_dataloader:
 
     def _load_cyclegan_data(self):
 
-        dataset_list = ['apple2orange', 'summer2winter_yosemite', 'horse2zebra',
-                        'monet2photo', 'cezanne2photo', 'ukiyoe2photo',
-                        'vangogh2photo', 'maps', 'cityscapes',
-                        'facades', 'iphone2dslr_flower']
+        dataset_list = [
+            'apple2orange',
+            'summer2winter_yosemite',
+            'horse2zebra',
+            'monet2photo',
+            'cezanne2photo',
+            'ukiyoe2photo',
+            'vangogh2photo',
+            'maps',
+            'cityscapes',
+            'facades',
+            'iphone2dslr_flower']
 
-        assert self.dataset_name in dataset_list, "Dataset name not a valid member of " + ','.join(dataset_list)
+        assert self.dataset_name in dataset_list, "Dataset name not a valid member of " + \
+            ','.join(dataset_list)
 
         load_data = os.path.join('cycle_gan', self.dataset_name)
 
-        dataset = tfds.load(load_data, as_supervised = True)
+        dataset = tfds.load(load_data, as_supervised=True)
         trainA, trainB = dataset['trainA'], dataset['trainB']
         testA, testB = dataset['testA'], dataset['testB']
 
@@ -92,7 +107,6 @@ class cyclegan_dataloader:
 
         return image
 
-
     def _load__test_image(self, filename):
 
         image = tf.io.read_file(filename)
@@ -104,29 +118,41 @@ class cyclegan_dataloader:
 
     def _load_custom_data(self):
 
-        assert os.path.exists(os.path.join(self.datadir, '/trainA')), "trainA directory not found"
-        train_data = tf.data.Dataset.list_files(os.path.join(self.datadir, '/trainA/*.jpg'))
+        assert os.path.exists(
+            os.path.join(
+                self.datadir, '/trainA')), "trainA directory not found"
+        train_data = tf.data.Dataset.list_files(
+            os.path.join(self.datadir, '/trainA/*.jpg'))
         trainA = train_data.map(self._load__train_image)
 
-        assert os.path.exists(os.path.join(self.datadir, '/trainB')), "trainB directory not found"
-        train_data = tf.data.Dataset.list_files(os.path.join(self.datadir, '/trainB/*.jpg'))
+        assert os.path.exists(
+            os.path.join(
+                self.datadir, '/trainB')), "trainB directory not found"
+        train_data = tf.data.Dataset.list_files(
+            os.path.join(self.datadir, '/trainB/*.jpg'))
         trainB = train_data.map(self._load__train_image)
 
-        assert os.path.exists(os.path.join(self.datadir, '/testA')), "testA directory not found"
-        test_data = tf.data.Dataset.list_files(os.path.join(self.datadir, '/testA/*.jpg'))
+        assert os.path.exists(
+            os.path.join(
+                self.datadir, '/testA')), "testA directory not found"
+        test_data = tf.data.Dataset.list_files(
+            os.path.join(self.datadir, '/testA/*.jpg'))
         testA = test_data.map(self._load__test_image)
 
-        assert os.path.exists(os.path.join(self.datadir, '/testB')), "testB directory not found"
-        test_data = tf.data.Dataset.list_files(os.path.join(self.datadir, '/testB/*.jpg'))
+        assert os.path.exists(
+            os.path.join(
+                self.datadir, '/testB')), "testB directory not found"
+        test_data = tf.data.Dataset.list_files(
+            os.path.join(self.datadir, '/testB/*.jpg'))
         testB = test_data.map(self._load__test_image)
 
         return trainA, trainB, testA, testB
 
     def load_dataset(self):
 
-        assert self.dataset_name != None or self.datadir != None, "Enter directory to load custom data or choose from exisisting data to load from"
+        assert self.dataset_name is not None or self.datadir is not None, "Enter directory to load custom data or choose from exisisting data to load from"
 
-        if(self.dataset_name != None):
+        if(self.dataset_name is not None):
             trainA, trainB, testA, testB = self._load_cyclegan_data()
 
         else:

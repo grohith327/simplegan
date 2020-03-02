@@ -10,19 +10,21 @@ Dataset is loaded from tensorflow keras datasets
 Function load_data returns a numpy array of shape (-1, 64, 64, 3) by default
 '''
 
-def load_custom_data(datadir = None, img_shape = (64, 64)):
+
+def load_custom_data(datadir=None, img_shape=(64, 64)):
 
     assert datadir is not None, "Enter a valid directory"
-    assert len(img_shape) == 2 and type(img_shape) == tuple, "img_shape must be a tuple of size 2"
+    assert len(img_shape) == 2 and isinstance(
+        img_shape, tuple), "img_shape must be a tuple of size 2"
 
     train_data = []
     files = glob.glob(datadir)
     for file in tqdm(files, desc="Loading images"):
         try:
             image = cv2.imread(file)
-            image = cv2.resize(image, img_shape, interpolation = cv2.INTER_AREA)
+            image = cv2.resize(image, img_shape, interpolation=cv2.INTER_AREA)
             train_data.append(image)
-        except:
+        except BaseException:
             print("Error: Unable to load an image from directory")
             pass
 
@@ -32,23 +34,25 @@ def load_custom_data(datadir = None, img_shape = (64, 64)):
 
     return train_data
 
-def load_custom_data_with_labels(datadir = None, img_shape = (64, 64)):
+
+def load_custom_data_with_labels(datadir=None, img_shape=(64, 64)):
 
     assert datadir is not None, "Enter a valid directory"
-    assert len(img_shape) == 2 and type(img_shape) == tuple, "img_shape must be a tuple of size 2"
+    assert len(img_shape) == 2 and isinstance(
+        img_shape, tuple), "img_shape must be a tuple of size 2"
 
     train_data = []
     labels = []
-    files = glob.glob(os.path.join(datadir,'*/*'))
+    files = glob.glob(os.path.join(datadir, '*/*'))
 
     for file in tqdm(files, desc="Loading images"):
         try:
             image = cv2.imread(file)
-            image = cv2.resize(image, img_shape, interpolation = cv2.INTER_AREA)
+            image = cv2.resize(image, img_shape, interpolation=cv2.INTER_AREA)
             train_data.append(image)
             label_name = int(file.split('/')[-2])
             labels.append(label_name)
-        except:
+        except BaseException:
             print("Error: Unable to load an image from directory")
             pass
 
