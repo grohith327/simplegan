@@ -10,6 +10,8 @@ from datasets.load_cifar10 import load_cifar10
 import numpy as np
 from tensorflow.keras import Model
 from tensorflow.keras.layers import Dropout, BatchNormalization, Lambda, Dense, Reshape, Input
+import os
+import cv2
 
 
 
@@ -185,8 +187,8 @@ class VAE():
         assert train_ds is not None, 'Initialize training data through train_ds parameter'
 
         kwargs = {}
-        kwargs['learning_rate'] = gen_learning_rate
-        optimizer = getattr(tf.keras.optimizers, gen_optimizer)(**kwargs)
+        kwargs['learning_rate'] = learning_rate
+        optimizer = getattr(tf.keras.optimizers, optimizer)(**kwargs)
 
         if(tensorboard):
             current_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
@@ -201,7 +203,7 @@ class VAE():
 
                 with tf.GradientTape() as tape:
                     data_recon = self.model(data)
-                    loss = mse_loss(data, recon_data)
+                    loss = mse_loss(data, data_recon)
 
                 gradients = tape.gradient(loss, self.model.trainable_variables)
                 optimizer.apply_gradients(
@@ -211,7 +213,7 @@ class VAE():
                     print(
                         "Step:",
                         steps + 1,
-                        'reconstruction loss',
+                        'reconstruction loss:',
                         loss.numpy())
 
                 steps += 1
@@ -237,8 +239,11 @@ class VAE():
         generated_samples = []
         for data in test_ds:
             gen_sample = self.model(data, training=False)
+            gen_sample = gen_sample.numpy()
             generated_samples.append(gen_sample)
 
+        generated_samples = np.array(generated_samples)
+        generated_samples = generated_samples.reshape((-1, self.image_size[0], self.image_size[1], self.image_size[2]))
         if(save_dir is None):
             return generated_samples
 

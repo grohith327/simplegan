@@ -3,6 +3,7 @@ import numpy as np
 import cv2
 import glob
 from tqdm import tqdm
+import os 
 
 '''
 Dataset is loaded from tensorflow keras datasets
@@ -18,7 +19,7 @@ def load_custom_data(datadir=None, img_shape=(64, 64)):
         img_shape, tuple), "img_shape must be a tuple of size 2"
 
     train_data = []
-    files = glob.glob(datadir)
+    files = glob.glob(os.path.join(datadir, '*'))
     for file in tqdm(files, desc="Loading images"):
         try:
             image = cv2.imread(file)

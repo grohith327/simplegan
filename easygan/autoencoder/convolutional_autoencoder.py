@@ -9,6 +9,8 @@ from datasets.load_mnist import load_mnist
 from datasets.load_cifar10 import load_cifar10
 import numpy as np
 from tensorflow.keras import Model
+import os
+import cv2
 from tensorflow.keras.layers import Conv2D, Dropout, BatchNormalization, LeakyReLU, Conv2DTranspose, Dense, Reshape, Flatten, MaxPool2D
 
 
@@ -210,8 +212,8 @@ class ConvolutionalAutoencoder():
             'kernel_initializer': 'glorot_uniform',
             'kernel_regularizer': None}):
 
-        self.model.add(self.encoder())
-        self.model.add(self.decoder())
+        self.model.add(self.encoder(params))
+        self.model.add(self.decoder(params))
 
     def fit(self, train_ds=None, epochs=100, optimizer='Adam', print_steps=100,
             learning_rate=0.001, tensorboard=False, save_model=None):
@@ -219,8 +221,8 @@ class ConvolutionalAutoencoder():
         assert train_ds is not None, 'Initialize training data through train_ds parameter'
 
         kwargs = {}
-        kwargs['learning_rate'] = gen_learning_rate
-        optimizer = getattr(tf.keras.optimizers, gen_optimizer)(**kwargs)
+        kwargs['learning_rate'] = learning_rate
+        optimizer = getattr(tf.keras.optimizers, optimizer)(**kwargs)
 
         if(tensorboard):
             current_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
@@ -245,7 +247,7 @@ class ConvolutionalAutoencoder():
                     print(
                         "Step:",
                         steps + 1,
-                        'reconstruction loss',
+                        'reconstruction loss:',
                         loss.numpy())
 
                 steps += 1
@@ -271,8 +273,11 @@ class ConvolutionalAutoencoder():
         generated_samples = []
         for data in test_ds:
             gen_sample = self.model(data, training=False)
+            gen_sample = gen_sample.numpy()
             generated_samples.append(gen_sample)
 
+        generated_samples = np.array(generated_samples)
+        generated_samples = np.squeeze(generated_samples, axis = 0)
         if(save_dir is None):
             return generated_samples
 

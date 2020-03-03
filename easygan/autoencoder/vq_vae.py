@@ -5,9 +5,13 @@ import tensorflow as tf
 from losses.mse_loss import mse_loss
 import datetime
 from datasets.load_cifar10 import load_cifar10
+from datasets.load_mnist import load_mnist
+from datasets.load_custom_data import load_custom_data
 import numpy as np
 from tensorflow.keras import Model
-from tensorflow.keras.layers import Dropout, BatchNormalization, Lambda, Dense, Reshape, Input, ReLU, Conv2D, Conv2DTranspose, Embedding
+from tensorflow.keras.layers import Dropout, BatchNormalization, Lambda, Dense, Reshape, Input, ReLU, Conv2D, Conv2DTranspose, Embedding, Flatten
+import os
+import cv2
 
 
 '''
@@ -32,14 +36,15 @@ class VectorQuantizer(Model):
         self.num_embeddings = num_embeddings
         self.commiment_cost = commiment_cost
 
-        intializer = tf.keras.initializers.VarianceScaling(
+        initializer = tf.keras.initializers.VarianceScaling(
             distribution='uniform')
-        self.embedding = Embedding(self.num_embeddings, self.embedding_dim,
-                                   embeddings_initializer=initializer)
+        self.embedding = tf.Variable(initializer(shape = [self.embedding_dim, self.num_embeddings]), trainable = True)
+        # Embedding(self.num_embeddings, self.embedding_dim,
+        #                            embeddings_initializer=initializer)
 
     def call(self, x):
 
-        x = tf.tranpose(x, perm=[0, 2, 3, 1])
+        # x = tf.transpose(x, perm=[0, 2, 3, 1])
         flat_x = tf.reshape(x, [-1, self.embedding_dim])
 
         distances = (
@@ -50,9 +55,9 @@ class VectorQuantizer(Model):
             2 *
             tf.linalg.matmul(
                 flat_x,
-                self.embedding.get_weights()[0]) +
+                self.embedding) +
             tf.math.reduce_sum(
-                self.embedding.get_weights()[0]**2,
+                self.embedding**2,
                 axis=0,
                 keepdims=True))
 
@@ -60,7 +65,7 @@ class VectorQuantizer(Model):
         encodings = tf.one_hot(encoding_indices, self.num_embeddings)
         encoding_indices = tf.reshape(encoding_indices, tf.shape(x)[:-1])
         quantized = tf.linalg.matmul(
-            encodings, self.embedding.get_weights()[0])
+            encodings, tf.transpose(self.embedding))
         quantized = tf.reshape(quantized, x.shape)
 
         e_latent_loss = tf.math.reduce_mean(
@@ -75,9 +80,7 @@ class VectorQuantizer(Model):
         perplexity = tf.math.exp(- tf.math.reduce_sum(avg_probs *
                                                       tf.math.log(avg_probs + 1e-10)))
 
-        return loss, tf.tranpose(
-            quantized, perm=[
-                0, 3, 1, 2]), perplexity, encodings
+        return loss, quantized, perplexity, encodings
 
 
 class residual(Model):
@@ -94,7 +97,7 @@ class residual(Model):
         self.conv1 = Conv2D(
             self.num_residual_hiddens, activation='relu', kernel_size=(
                 3, 3), strides=(
-                1, 1))
+                1, 1), padding= 'same')
 
         self.conv2 = Conv2D(
             self.num_hiddens, kernel_size=(
@@ -161,7 +164,7 @@ class encoder(Model):
 
 class decoder(Model):
 
-    def __init__(self, params):
+    def __init__(self, params, image_size):
         super(decoder, self).__init__()
 
         self.num_hiddens = params['num_hiddens']
@@ -171,12 +174,18 @@ class decoder(Model):
         self.conv1 = Conv2D(
             self.num_hiddens, kernel_size=(
                 3, 3), strides=(
-                1, 1))
+                1, 1), padding = 'same')
 
         self.residual_stack = residual(
             self.num_hiddens,
             self.num_residual_layers,
             self.num_residual_hiddens)
+
+        self.flatten = Flatten()
+
+        self.dense1 = Dense((image_size[0] // 4) * (image_size[1] // 4) * 128, activation='relu')
+
+        self.reshape = Reshape(((image_size[0] // 4), (image_size[1] // 4), 128))
 
         self.upconv1 = Conv2DTranspose(
             self.num_hiddens // 2,
@@ -186,15 +195,18 @@ class decoder(Model):
             strides=(
                 2,
                 2),
-            activation='relu')
+            activation='relu', padding='same')
 
         self.upconv2 = Conv2DTranspose(
-            self.image_size[-1], kernel_size=(4, 4), strides=(2, 2))
+            image_size[-1], kernel_size=(4, 4), strides=(2, 2), padding='same')
 
     def call(self, x):
 
         x = self.conv1(x)
         x = self.residual_stack(x)
+        x = self.flatten(x)
+        x = self.dense1(x)
+        x = self.reshape(x)
         x = self.upconv1(x)
         x = self.upconv2(x)
 
@@ -203,28 +215,29 @@ class decoder(Model):
 
 class nn_model(Model):
 
-    def __init__(self, params):
+    def __init__(self, params, image_size):
         super(nn_model, self).__init__()
 
         embedding_dim = params['embedding_dim'] if 'embedding_dim' in params else 64
         commiment_cost = params['commiment_cost'] if 'commiment_cost' in params else 0.25
+        num_embeddings = params['num_embeddings'] if 'num_embeddings' in params else 512
 
         self.encoder = encoder(params)
         self.pre_vq_conv = Conv2D(
             embedding_dim, kernel_size=(
                 1, 1), strides=(
                 1, 1))
-        self.decoder = decoder(params)
+        self.decoder = decoder(params, image_size)
         self.vq_vae = VectorQuantizer(
-            params['num_embeddings'],
-            params['embedding_dim'],
-            params['commiment_cost'])
+                                    num_embeddings,
+                                    embedding_dim,
+                                    commiment_cost)
 
     def call(self, x):
 
         output = self.encoder(x)
         output = self.pre_vq_conv(output)
-        loss, quantized, perplexity = self.vq_vae(output)
+        loss, quantized, perplexity, encodings = self.vq_vae(output)
         x_recon = self.decoder(quantized)
 
         return loss, x_recon, perplexity
@@ -268,6 +281,7 @@ class VQ_VAE():
             'num_hiddens': 128,
             'num_residual_hiddens': 32,
             'num_residual_layers': 2,
+            'num_embeddings': 512,
             'embedding_dim': 64,
             'commiment_cost': 0.25}):
 
@@ -275,7 +289,7 @@ class VQ_VAE():
         assert 'num_residual_hiddens' in params, "Enter num_hiddens parameter"
         assert 'num_residual_layers' in params, "Enter num_hiddens parameter"
 
-        self.model = nn_model(params)
+        self.model = nn_model(params, self.image_size)
 
     def fit(self, train_ds=None, epochs=100, optimizer='Adam', print_steps=100,
             learning_rate=3e-4, tensorboard=False, save_model=None):
@@ -283,8 +297,8 @@ class VQ_VAE():
         assert train_ds is not None, 'Initialize training data through train_ds parameter'
 
         kwargs = {}
-        kwargs['learning_rate'] = gen_learning_rate
-        optimizer = getattr(tf.keras.optimizers, gen_optimizer)(**kwargs)
+        kwargs['learning_rate'] = learning_rate
+        optimizer = getattr(tf.keras.optimizers, optimizer)(**kwargs)
 
         if(tensorboard):
             current_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
@@ -341,8 +355,11 @@ class VQ_VAE():
         generated_samples = []
         for data in test_ds:
             _, gen_sample, _ = self.model(data, training=False)
+            gen_sample = gen_sample.numpy()
             generated_samples.append(gen_sample)
 
+        generated_samples = np.array(generated_samples)
+        generated_samples = np.squeeze(generated_samples, axis = 0)
         if(save_dir is None):
             return generated_samples
 
