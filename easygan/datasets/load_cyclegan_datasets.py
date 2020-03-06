@@ -127,30 +127,34 @@ class cyclegan_dataloader:
 
     def _load_custom_data(self):
 
+        error_message = "trainA directory not found \n Directory structure: \n {} \n {} -trainA \n {} -*.jpg \n {} -trainB \n {} -*.jpg \n {} -testA \n {} -*.jpg \n {} -testB \n {} -*.jpg".format(self.datadir, ' '*2, ' '*4, ' '*2, ' '*4, ' '*2, ' '*4, ' '*2, ' '*4)
         assert os.path.exists(
             os.path.join(
-                self.datadir, 'trainA')), "trainA directory not found"
+                self.datadir, 'trainA')), error_message
         train_data = tf.data.Dataset.list_files(
             os.path.join(self.datadir, 'trainA/*.jpg'))
         trainA = train_data.map(self._load__train_image)
 
+        error_message = "trainB directory not found \n Directory structure: \n {} \n {} -trainA \n {} -*.jpg \n {} -trainB \n {} -*.jpg \n {} -testA \n {} -*.jpg \n {} -testB \n {} -*.jpg".format(self.datadir, ' '*2, ' '*4, ' '*2, ' '*4, ' '*2, ' '*4, ' '*2, ' '*4)
         assert os.path.exists(
             os.path.join(
-                self.datadir, 'trainB')), "trainB directory not found"
+                self.datadir, 'trainB')), error_message
         train_data = tf.data.Dataset.list_files(
             os.path.join(self.datadir, 'trainB/*.jpg'))
         trainB = train_data.map(self._load__train_image)
 
+        error_message = "testA directory not found \n Directory structure: \n {} \n {} -trainA \n {} -*.jpg \n {} -trainB \n {} -*.jpg \n {} -testA \n {} -*.jpg \n {} -testB \n {} -*.jpg".format(self.datadir, ' '*2, ' '*4, ' '*2, ' '*4, ' '*2, ' '*4, ' '*2, ' '*4)
         assert os.path.exists(
             os.path.join(
-                self.datadir, 'testA')), "testA directory not found"
+                self.datadir, 'testA')), error_message
         test_data = tf.data.Dataset.list_files(
             os.path.join(self.datadir, 'testA/*.jpg'))
         testA = test_data.map(self._load__test_image)
 
+        error_message = "testB directory not found \n Directory structure: \n {} \n {} -trainA \n {} -*.jpg \n {} -trainB \n {} -*.jpg \n {} -testA \n {} -*.jpg \n {} -testB \n {} -*.jpg".format(self.datadir, ' '*2, ' '*4, ' '*2, ' '*4, ' '*2, ' '*4, ' '*2, ' '*4)
         assert os.path.exists(
             os.path.join(
-                self.datadir, 'testB')), "testB directory not found"
+                self.datadir, 'testB')), error_message
         test_data = tf.data.Dataset.list_files(
             os.path.join(self.datadir, 'testB/*.jpg'))
         testB = test_data.map(self._load__test_image)

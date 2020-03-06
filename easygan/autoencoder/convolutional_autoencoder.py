@@ -4,12 +4,13 @@ sys.path.append('..')
 import datetime
 import tensorflow as tf
 from losses.mse_loss import mse_loss
-from datasets.load_custom_data import load_custom_data
-from datasets.load_mnist import load_mnist
-from datasets.load_cifar10 import load_cifar10
+from datasets.load_custom_data import load_custom_data_AE
+from datasets.load_mnist import load_mnist_AE
+from datasets.load_cifar10 import load_cifar10_AE
 import numpy as np
 from tensorflow.keras import Model
 import os
+import imageio
 import cv2
 from tensorflow.keras.layers import Conv2D, Dropout, BatchNormalization, LeakyReLU, Conv2DTranspose, Dense, Reshape, Flatten, MaxPool2D
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
@@ -42,15 +43,15 @@ class ConvolutionalAutoencoder():
         '''
         if(use_mnist):
 
-            train_data = load_mnist()
+            train_data, test_data = load_mnist_AE()
 
         elif(use_cifar10):
 
-            train_data = load_cifar10()
+            train_data, test_data = load_cifar10_AE()
 
         else:
 
-            train_data = load_custom_data(data_dir)
+            train_data, test_data = load_custom_data_AE(data_dir, img_shape)
 
         self.image_size = train_data.shape[1:]
 
@@ -58,7 +59,11 @@ class ConvolutionalAutoencoder():
         train_ds = tf.data.Dataset.from_tensor_slices(
             train_data).shuffle(10000).batch(batch_size)
 
-        return train_ds
+        test_data = test_data / 255
+        test_ds = tf.data.Dataset.from_tensor_slices(
+            test_data).shuffle(10000).batch(batch_size)
+
+        return train_ds, test_ds
 
     '''
     encoder and decoder layers for custom dataset can be reimplemented by inherting this class(vanilla_autoencoder)
@@ -284,7 +289,7 @@ class ConvolutionalAutoencoder():
 
         assert os.path.exists(save_dir), "Directory does not exist"
         for i, sample in enumerate(generated_samples):
-            cv2.imwrite(
+            imageio.imwrite(
                 os.path.join(
                     save_dir,
                     'sample_' +

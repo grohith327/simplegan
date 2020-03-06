@@ -146,9 +146,10 @@ class pix2pix_dataloader:
 
     def _load_custom_data(self):
 
+        error_message = "train directory not found \n Directory structure: \n {} \n {} -train \n {} -*.jpg \n {} -test \n {} -*.jpg".format(self.datadir, ' '*2, ' '*4, ' '*2, ' '*4)
         assert os.path.exists(
             os.path.join(
-                self.datadir, 'train')), "No such directory as train found"
+                self.datadir, 'train')), error_message
 
         train_data = tf.data.Dataset.list_files(
             os.path.join(self.datadir, 'train/*.jpg'))
@@ -156,9 +157,10 @@ class pix2pix_dataloader:
             self._load_train_images,
             num_parallel_calls=tf.data.experimental.AUTOTUNE)
 
+        error_message = "test directory not found \n Directory structure: \n {} \n {} -train \n {} -*.jpg \n {} -test \n {} -*.jpg".format(self.datadir, ' '*2, ' '*4, ' '*2, ' '*4)
         assert os.path.exists(
             os.path.join(
-                self.datadir, 'test')), "No such directory as test found"
+                self.datadir, 'test')), error_message
 
         try:
             test_data = tf.data.Dataset.list_files(
@@ -173,7 +175,7 @@ class pix2pix_dataloader:
 
     def load_dataset(self):
 
-        assert self.dataset_name is not None or self.datadir is not None, "Enter directory to load custom data or choose from exisisting data to load from"
+        assert self.dataset_name is not None or self.datadir is not None, "Enter directory to load custom data or choose from existing datasets"
 
         if(self.dataset_name is not None):
             train_ds, test_ds = self._load_pix2pix_data()

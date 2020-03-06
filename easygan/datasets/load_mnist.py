@@ -18,6 +18,18 @@ def load_mnist():
 
     return train_data
 
+def load_mnist_AE():
+
+    (x_train, _), (x_test, _) = tf.keras.datasets.mnist.load_data()
+
+    train_data = x_train.astype('float32')
+    test_data = x_test.astype('float32')
+
+    train_data = train_data.reshape((-1, 28, 28, 1))
+    test_data = test_data.reshape((-1, 28, 28, 1))
+
+    return train_data, test_data
+
 
 def load_mnist_with_labels():
 
