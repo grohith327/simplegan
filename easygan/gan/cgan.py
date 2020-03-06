@@ -8,7 +8,10 @@ from datasets.load_cifar10 import load_cifar10_with_labels
 from datasets.load_mnist import load_mnist_with_labels
 from tensorflow.keras import layers
 import tensorflow as tf
+import cv2
 import numpy as np
+import os
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
 
 
@@ -82,38 +85,50 @@ class CGAN:
         input_img = layers.Dense(
             start_image_size[0] *
             start_image_size[1] *
-            128)(z)
+            gen_channels[0] * 2,
+            activation = activation, 
+            kernel_initializer = kernel_initializer,
+            kernel_regularizer = kernel_regularizer)(z)
         input_img = layers.Reshape(
-            (start_image_size[0], start_image_size[1], 128))(input_img)
+            (start_image_size[0], start_image_size[1], gen_channels[0] * 2))(input_img)
 
         x = layers.Concatenate()([input_img, embedded_label])
 
-        # Upsampling
         for i in range(gen_layers):
             x = layers.Conv2DTranspose(
                 filters=gen_channels[i],
                 kernel_size=kernel_size,
                 strides=(
-                    2,
-                    2),
+                    1,
+                    1),
                 padding="same",
                 use_bias=False,
                 kernel_initializer=kernel_initializer,
                 kernel_regularizer=kernel_regularizer)(x)
+            x = layers.BatchNormalization()(x)
+            x = layers.LeakyReLU()(x)
+
+        x = layers.Conv2DTranspose(
+            filters=gen_channels[-1] // 2,
+            kernel_size=kernel_size,
+            strides=(
+                2,
+                2),
+            padding='same',
+            use_bias=False,
+            activation='tanh')(x)
         x = layers.BatchNormalization()(x)
         x = layers.LeakyReLU()(x)
 
         output = layers.Conv2DTranspose(
-            filters=1,
+            filters=self.image_size[-1],
             kernel_size=kernel_size,
             strides=(
-                1,
-                1),
+                2,
+                2),
             padding='same',
             use_bias=False,
-            activation='tanh',
-            kernel_initializer=kernel_initializer,
-            kernel_regularizer=kernel_regularizer)(x)
+            activation='tanh')(x)
         model = tf.keras.Model([z, label], output)
         return model
 
@@ -297,7 +312,7 @@ class CGAN:
 
         Z = np.random.uniform(-1, 1, (n_samples, self.noise_dim))
         labels_list = np.array(labels_list)
-        generated_samples = self.gen_model([Z, labels_list])
+        generated_samples = self.gen_model([Z, labels_list]).numpy()
 
         if(save_dir is None):
             return generated_samples

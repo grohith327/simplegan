@@ -27,7 +27,7 @@ class pix2pix_dataloader:
         self.img_width = img_width
         self.img_height = img_height
         self.datadir = datadir
-        self.channels = None
+        self.channels = 3
 
     def _load_path(self, dataset_name):
 
@@ -56,14 +56,12 @@ class pix2pix_dataloader:
         real_image = image[:, :w, :]
         input_image = image[:, w:, :]
 
-        self.channels = real_image.shape[-1]
-
         input_image = tf.cast(input_image, tf.float32)
         real_image = tf.cast(real_image, tf.float32)
 
         return input_image, real_image
 
-    def __resize(self, input_image, real_image, height, width):
+    def _resize(self, input_image, real_image, height, width):
 
         input_image = tf.image.resize(
             input_image, [
@@ -133,11 +131,16 @@ class pix2pix_dataloader:
             self._load_path(self.dataset_name) + '/train/*.jpg')
         train_ds = train_data.map(
             self._load_train_images,
-            num_arallel_calls=tf.data.experimental.AUTOTUNE)
+            num_parallel_calls=tf.data.experimental.AUTOTUNE)
 
-        test_data = tf.data.Dataset.list_files(
-            self._load_path(self.dataset_name) + '/test/*.jpg')
-        test_ds = test_data.map(self.__load_test_images)
+        try:
+            test_data = tf.data.Dataset.list_files(
+                self._load_path(self.dataset_name) + '/test/*.jpg')
+        except BaseException:
+            test_data = tf.data.Dataset.list_files(
+                self._load_path(self.dataset_name) + '/val/*.jpg')
+
+        test_ds = test_data.map(self._load_test_images)
 
         return train_ds, test_ds
 
@@ -145,21 +148,26 @@ class pix2pix_dataloader:
 
         assert os.path.exists(
             os.path.join(
-                self.datadir, '/train')), "No such directory as train found"
+                self.datadir, 'train')), "No such directory as train found"
 
         train_data = tf.data.Dataset.list_files(
-            os.path.join(self.datadir, '/train/*.jpg'))
+            os.path.join(self.datadir, 'train/*.jpg'))
         train_ds = train_data.map(
             self._load_train_images,
             num_parallel_calls=tf.data.experimental.AUTOTUNE)
 
         assert os.path.exists(
             os.path.join(
-                self.datadir, '/test')), "No such directory as test found"
+                self.datadir, 'test')), "No such directory as test found"
 
-        test_data = tf.data.Dataset.list_files(
-            os.path.join(self.datadir, '/test/*.jpg'))
-        test_ds = test_data.Dataset.map(self._load_test_images)
+        try:
+            test_data = tf.data.Dataset.list_files(
+                os.path.join(self.datadir, 'test/*.jpg'))
+        except BaseException:
+            test_data = tf.data.Dataset.list_files(
+                os.path.join(self.datadir, 'val/*.jpg'))
+
+        test_ds = test_data.map(self._load_test_images)
 
         return train_ds, test_ds
 

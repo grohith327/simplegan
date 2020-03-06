@@ -22,9 +22,9 @@ class cyclegan_dataloader:
         self.img_width = img_width
         self.img_height = img_height
         self.datadir = datadir
-        self.channels = None
+        self.channels = 3
 
-    def __random_crop(self, image):
+    def _random_crop(self, image):
 
         cropped_image = tf.image.random_crop(
             image,
@@ -40,11 +40,16 @@ class cyclegan_dataloader:
         img = (img / 127.5) - 1
         return img
 
-    def _random_jitter(self, image):
+    def _resize(self, image, height, width):
 
         image = tf.image.resize(
             image, [
-                286, 286], method=tf.image.ResizeMethod.NEAREST_NEIGHBOR)
+                height, width], method=tf.image.ResizeMethod.NEAREST_NEIGHBOR)
+        return image
+
+    def _random_jitter(self, image):
+
+        image = self._resize(image, 286, 286)
         image = self._random_crop(image)
         image = tf.image.random_flip_left_right(image)
 
@@ -59,6 +64,7 @@ class cyclegan_dataloader:
     def _preprocess_image_test(self, image, label):
 
         image = self._normalize(image)
+        image = self._resize(image, self.img_height, self.img_width)
         return image
 
     def _load_cyclegan_data(self):
@@ -76,7 +82,7 @@ class cyclegan_dataloader:
             'facades',
             'iphone2dslr_flower']
 
-        assert self.dataset_name in dataset_list, "Dataset name not a valid member of " + \
+        assert self.dataset_name in dataset_list, "Dataset name is not a valid member of " + \
             ','.join(dataset_list)
 
         load_data = os.path.join('cycle_gan', self.dataset_name)
@@ -98,9 +104,9 @@ class cyclegan_dataloader:
     def _load__train_image(self, filename):
 
         image = tf.io.read_file(filename)
-        image = tf.image.decode_jpeg(image)
+        image = tf.image.decode_jpeg(image, channels = 3)
 
-        self.channels = image.shape[-1]
+        image = tf.cast(image, tf.float32)
 
         image = self._random_jitter(image)
         image = self._normalize(image)
@@ -110,8 +116,11 @@ class cyclegan_dataloader:
     def _load__test_image(self, filename):
 
         image = tf.io.read_file(filename)
-        image = tf.image.decode_jpeg(image)
+        image = tf.image.decode_jpeg(image, channels = 3)
 
+        image = tf.cast(image, tf.float32)
+
+        image = self._resize(image, self.img_height, self.img_width)
         image = self._normalize(image)
 
         return image
@@ -120,30 +129,30 @@ class cyclegan_dataloader:
 
         assert os.path.exists(
             os.path.join(
-                self.datadir, '/trainA')), "trainA directory not found"
+                self.datadir, 'trainA')), "trainA directory not found"
         train_data = tf.data.Dataset.list_files(
-            os.path.join(self.datadir, '/trainA/*.jpg'))
+            os.path.join(self.datadir, 'trainA/*.jpg'))
         trainA = train_data.map(self._load__train_image)
 
         assert os.path.exists(
             os.path.join(
-                self.datadir, '/trainB')), "trainB directory not found"
+                self.datadir, 'trainB')), "trainB directory not found"
         train_data = tf.data.Dataset.list_files(
-            os.path.join(self.datadir, '/trainB/*.jpg'))
+            os.path.join(self.datadir, 'trainB/*.jpg'))
         trainB = train_data.map(self._load__train_image)
 
         assert os.path.exists(
             os.path.join(
-                self.datadir, '/testA')), "testA directory not found"
+                self.datadir, 'testA')), "testA directory not found"
         test_data = tf.data.Dataset.list_files(
-            os.path.join(self.datadir, '/testA/*.jpg'))
+            os.path.join(self.datadir, 'testA/*.jpg'))
         testA = test_data.map(self._load__test_image)
 
         assert os.path.exists(
             os.path.join(
-                self.datadir, '/testB')), "testB directory not found"
+                self.datadir, 'testB')), "testB directory not found"
         test_data = tf.data.Dataset.list_files(
-            os.path.join(self.datadir, '/testB/*.jpg'))
+            os.path.join(self.datadir, 'testB/*.jpg'))
         testB = test_data.map(self._load__test_image)
 
         return trainA, trainB, testA, testB

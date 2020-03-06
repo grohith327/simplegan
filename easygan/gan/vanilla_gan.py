@@ -11,7 +11,8 @@ from datasets.load_mnist import load_mnist
 from datasets.load_cifar10 import load_cifar10
 from tensorflow.keras import Model
 from tensorflow.keras.layers import Dense, Dropout
-
+import os
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
 '''
 vanilla gan imports from tensorflow Model class
@@ -66,7 +67,7 @@ class VanillaGAN():
 
         noise_dim = params['noise_dim'] if 'noise_dim' in params else 64
         self.noise_dim = noise_dim
-        dropout_rate = params['dropout_rate'] if 'dropout_rate' in params else 64
+        dropout_rate = params['dropout_rate'] if 'dropout_rate' in params else 0.4
         gen_units = params['gen_units'] if 'gen_units' in params else [
             128, 256, 512]
         gen_layers = params['gen_layers'] if 'gen_layers' in params else 3
@@ -85,7 +86,8 @@ class VanillaGAN():
                 activation=activation,
                 kernel_initializer=kernel_initializer,
                 kernel_regularizer=kernel_regularizer,
-                input_dim=noise_dim))
+                input_dim=noise_dim,
+                dtype = tf.float32))
         model.add(Dropout(dropout_rate))
 
         for i in range(gen_layers):
@@ -94,7 +96,8 @@ class VanillaGAN():
                     gen_units[i],
                     activation=activation,
                     kernel_initializer=kernel_initializer,
-                    kernel_regularizer=kernel_regularizer))
+                    kernel_regularizer=kernel_regularizer,
+                    dtype = tf.float32))
             model.add(Dropout(dropout_rate))
 
         model.add(
@@ -102,7 +105,8 @@ class VanillaGAN():
                 self.image_size[0] *
                 self.image_size[1] *
                 self.image_size[2],
-                activation='sigmoid'))
+                activation='sigmoid',
+                dtype = tf.float32))
         return model
 
     def discriminator(self, params):
@@ -208,7 +212,7 @@ class VanillaGAN():
                                           (data.shape[0], self.noise_dim))
                     fake = self.gen_model(Z)
                     fake_logits = self.disc_model(fake)
-                    real_logits = self.disc_model(real)
+                    real_logits = self.disc_model(data)
                     D_loss = gan_discriminator_loss(real_logits, fake_logits)
 
                 gradients = tape.gradient(

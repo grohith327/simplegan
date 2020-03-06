@@ -4,6 +4,7 @@ sys.path.append('..')
 import tensorflow as tf
 import datetime
 import numpy as np
+import cv2
 from losses.minmax_loss import gan_discriminator_loss, gan_generator_loss
 from datasets.load_lsun import load_lsun
 from datasets.load_cifar100 import load_cifar100
@@ -12,6 +13,8 @@ from datasets.load_mnist import load_mnist
 from datasets.load_cifar10 import load_cifar10
 from tensorflow.keras import Model
 from tensorflow.keras.layers import Conv2D, Dropout, BatchNormalization, LeakyReLU, Conv2DTranspose, Dense, Reshape, Flatten
+import os
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
 
 '''
@@ -92,7 +95,7 @@ class DCGAN():
             Dense(
                 (self.image_size[0] // 4) * (
                     self.image_size[1] // 4) * (
-                    gen_channels * 2),
+                    gen_channels[0] * 2),
                 activation=activation,
                 kernel_initializer=kernel_initializer,
                 kernel_regularizer=kernel_regularizer,
@@ -104,7 +107,7 @@ class DCGAN():
             Reshape(
                 ((self.image_size[0] // 4),
                  (self.image_size[1] // 4),
-                    (gen_channels * 2))))
+                    (gen_channels[0] * 2))))
 
         i = 0
         for _ in range(gen_layers // 2):
@@ -296,7 +299,7 @@ class DCGAN():
                     Z = tf.random.normal([data.shape[0], self.noise_dim])
                     fake = self.gen_model(Z)
                     fake_logits = self.disc_model(fake)
-                    real_logits = self.disc_model(real)
+                    real_logits = self.disc_model(data)
                     D_loss = gan_discriminator_loss(real_logits, fake_logits)
 
                 gradients = tape.gradient(

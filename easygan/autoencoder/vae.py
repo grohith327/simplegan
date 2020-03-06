@@ -12,7 +12,7 @@ from tensorflow.keras import Model
 from tensorflow.keras.layers import Dropout, BatchNormalization, Lambda, Dense, Reshape, Input
 import os
 import cv2
-
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
 
 '''

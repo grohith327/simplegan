@@ -5,10 +5,13 @@ import datetime
 import numpy as np
 import tensorflow as tf
 import cv2
+import imageio
 from losses.pix2pix_loss import pix2pix_generator_loss, pix2pix_discriminator_loss
 from datasets.load_pix2pix_datasets import pix2pix_dataloader
 from tensorflow.keras import Model
 from tensorflow.keras.layers import Conv2D, Dropout, Concatenate, BatchNormalization, LeakyReLU, Conv2DTranspose, ZeroPadding2D, Dense, Reshape, Flatten, ReLU, Input
+import os
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
 
 '''
@@ -19,6 +22,12 @@ The following code is inspired from: https://www.tensorflow.org/tutorials/genera
 During trainig, samples will be saved at ./samples and saved rate at a rate given by save_img_per_epoch
 '''
 
+import imageio.core.util
+
+def silence_imageio_warning(*args, **kwargs):
+    pass
+
+imageio.core.util._precision_warn = silence_imageio_warning
 
 class Pix2Pix:
 
@@ -55,13 +64,13 @@ class Pix2Pix:
 
         train_ds, test_ds = data_obj.load_dataset()
 
+        for data in train_ds.take(1):
+            self.img_size = data[0].shape
+            self.channels = data[0].shape[-1]
+
         train_ds = train_ds.shuffle(100000).batch(batch_size)
         test_ds = test_ds.shuffle(100000).batch(batch_size)
 
-        for data in train_ds:
-            self.img_size = data[0].shape
-            self.channels = data[0].shape[-1]
-            break
 
         return train_ds, test_ds
 
@@ -86,7 +95,7 @@ class Pix2Pix:
         return model
 
     def _upsample(self, filters, kernel_size, kernel_initializer,
-                  dropout_rate, dropout=False):
+                  dropout_rate = None, dropout=False):
 
         model = tf.keras.Sequential()
         model.add(
@@ -94,6 +103,7 @@ class Pix2Pix:
                 filters,
                 kernel_size=kernel_size,
                 strides=2,
+                padding = 'same',
                 kernel_initializer=kernel_initializer,
                 use_bias=False))
         model.add(BatchNormalization())
@@ -107,7 +117,7 @@ class Pix2Pix:
 
     def generator(self, params):
 
-        kernel_initializer = params['kernel_initializer'] if 'kernel_initializer' in params else 'RandomNormal'
+        kernel_initializer = params['kernel_initializer'] if 'kernel_initializer' in params else tf.random_normal_initializer(0., 0.02)
         dropout_rate = params['dropout_rate'] if 'dropout_rate' in params else 0.5
         kernel_size = params['kernel_size'] if 'kernel_size' in params else (
             4, 4)
@@ -121,11 +131,16 @@ class Pix2Pix:
         assert len(gen_enc_channels) == gen_enc_layers, "Dimension mismatch: length of generator encoder channels should match number of generator encoder layers"
         assert len(gen_dec_channels) == gen_dec_layers, "Dimension mismatch: length of generator decoder channels should match number of generator decoder layers"
 
+        assert len(gen_enc_channels) == len(gen_dec_channels), "Dimension mismatch: length of gen_enc_channels should match length of gen_dec_channels"
+        test = gen_enc_channels[:-1]
+        test.reverse()
+        assert test == gen_dec_channels[:-1], "Number of channels in Enocder of generator should be equal to reverse of number of Decoder channels of generator"
+
         inputs = Input(shape=self.img_size)
 
         down_stack = [
             self._downsample(
-                64,
+                (gen_enc_channels[0] // 2),
                 4,
                 kernel_initializer,
                 batchnorm=False)]
@@ -139,26 +154,26 @@ class Pix2Pix:
 
         up_stack = []
         for i, channel in enumerate(gen_dec_channels):
-            if(i < 2):
+            if(i < 3):
                 up_stack.append(
                     self._upsample(
                         channel,
                         kernel_size,
                         kernel_initializer=kernel_initializer,
-                        dropout_rate=dropout_rate),
-                    dropout=True)
+                        dropout_rate=dropout_rate,
+                        dropout=True))
             else:
                 up_stack.append(
                     self._upsample(
                         channel,
                         kernel_size,
-                        kernel_initializer=kernel_initializer,
-                        dropout_rate=dropout_rate))
+                        kernel_initializer=kernel_initializer))
 
         last = Conv2DTranspose(
             self.channels,
             strides=2,
             padding='same',
+            kernel_size = kernel_size,
             kernel_initializer=kernel_initializer,
             activation='tanh')
 
@@ -177,12 +192,12 @@ class Pix2Pix:
 
         x = last(x)
 
-        model = Model(input=inputs, outputs=x)
+        model = Model(inputs=inputs, outputs=x)
         return model
 
     def discriminator(self, params):
 
-        kernel_initializer = params['kernel_initializer'] if 'kernel_initializer' in params else 'RandomNormal'
+        kernel_initializer = params['kernel_initializer'] if 'kernel_initializer' in params else tf.random_normal_initializer(0., 0.02)
         kernel_size = params['kernel_size'] if 'kernel_size' in params else (
             4, 4)
         disc_layers = params['disc_layers'] if 'disc_layers' in params else 4
@@ -194,7 +209,7 @@ class Pix2Pix:
         inputs = Input(shape=self.img_size)
         target = Input(shape=self.img_size)
 
-        x = Concatenate()[inputs, target]
+        x = Concatenate()([inputs, target])
 
         down_stack = []
         for i, channel in enumerate(disc_channels[:-1]):
@@ -236,7 +251,7 @@ class Pix2Pix:
     def build_model(
         self,
         params={
-            'kernel_initializer': 'RandomNormal',
+            'kernel_initializer': tf.random_normal_initializer(0., 0.02),
             'dropout_rate': 0.5,
             'gen_enc_layers': 7,
             'kernel_size': (
@@ -283,16 +298,22 @@ class Pix2Pix:
 
         prediction = model(ex_input, training=False)
 
-        input_image = ex_input.numpy()
-        target_image = ex_target.numpy()
-        prediction = prediction.numpy()
+        input_images = ex_input.numpy()
+        target_images = ex_target.numpy()
+        predictions = prediction.numpy()
 
         curr_dir = os.path.join(self.save_img_dir, count)
-        os.mkdir(curr_dir)
+        try:
+            os.mkdir(curr_dir)
+        except OSError:
+            pass
 
-        cv2.imwrite(os.path.join(curr_dir, 'input_image.jpg'), input_image)
-        cv2.imwrite(os.path.join(curr_dir, 'target_image.jpg'), target_image)
-        cv2.imwrite(os.path.join(curr_dir, 'prediction.jpg'), prediction)
+        sample = 0
+        for input_image, target_image, prediction in zip(input_images, target_images, predictions):
+            imageio.imwrite(os.path.join(curr_dir, 'input_image_' + str(sample) +'.png'), input_image)
+            imageio.imwrite(os.path.join(curr_dir, 'target_image_' + str(sample) +'.png'), target_image)
+            imageio.imwrite(os.path.join(curr_dir, 'translated_image_' + str(sample) +'.png'), prediction)
+            sample += 1
 
     def fit(
             self,
@@ -334,8 +355,11 @@ class Pix2Pix:
         steps = 0
 
         curr_dir = os.getcwd()
-        os.mkdir(os.path.join(curr_dir, 'samples'))
-        self.save_img_dir = os.path.join(curr_dir, 'samples')
+        try:
+            os.mkdir(os.path.join(curr_dir, 'pix2pix_samples'))
+        except OSError:
+            pass
+        self.save_img_dir = os.path.join(curr_dir, 'pix2pix_samples')
 
         for epoch in range(epochs):
 
@@ -413,14 +437,15 @@ class Pix2Pix:
         generated_samples = []
         for image in test_ds:
             gen_image = self.gen_model(image, training=False).numpy()
-            generated_samples.append(gen_image)
+            generated_samples.append(gen_image[0])
 
+        generated_samples = np.array(generated_samples)
         if(save_dir is None):
             return generated_samples
 
         assert os.path.exists(save_dir), "Directory does not exist"
         for i, sample in enumerate(generated_samples):
-            cv2.imwrite(
+            imageio.imwrite(
                 os.path.join(
                     save_dir,
                     'sample_' +

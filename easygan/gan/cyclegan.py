@@ -11,13 +11,22 @@ from losses.cyclegan_loss import cycle_loss, identity_loss
 from losses.minmax_loss import gan_generator_loss, gan_discriminator_loss
 from tensorflow.keras import Model
 from tensorflow.keras.layers import Conv2D, Dropout, Concatenate, BatchNormalization, LeakyReLU, Conv2DTranspose, ZeroPadding2D, Dense, Reshape, Flatten, ReLU, Input
-
+import os
+import imageio
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
 '''
 Paper: https://arxiv.org/abs/1703.10593
 
 Code inspired from: https://www.tensorflow.org/tutorials/generative/cyclegan#import_and_reuse_the_pix2pix_models
 '''
+
+import imageio.core.util
+
+def silence_imageio_warning(*args, **kwargs):
+    pass
+
+imageio.core.util._precision_warn = silence_imageio_warning
 
 
 class CycleGAN(Pix2Pix):
@@ -32,7 +41,7 @@ class CycleGAN(Pix2Pix):
     def load_data(
             self,
             data_dir=None,
-            batch_size=1,
+            batch_size=32,
             use_apple2orange=False,
             use_summer2winter_yosemite=False,
             use_horse2zebra=False,
@@ -64,7 +73,7 @@ class CycleGAN(Pix2Pix):
 
         elif(use_cezanne2photo):
 
-            data_obj = cyclegan_dataloader(dataset_name='use_cezanne2photo')
+            data_obj = cyclegan_dataloader(dataset_name='cezanne2photo')
 
         elif(use_ukiyoe2photo):
 
@@ -92,9 +101,13 @@ class CycleGAN(Pix2Pix):
 
         else:
 
-            data_obj = cyclegan_dataloader(datadir=datadir)
+            data_obj = cyclegan_dataloader(datadir=data_dir)
 
         trainA, trainB, testA, testB = data_obj.load_dataset()
+
+        for data in trainA.take(1):
+            self.img_size = data.shape
+            self.channels = data.shape[-1]
 
         trainA = trainA.shuffle(100000).batch(batch_size)
         trainB = trainB.shuffle(100000).batch(batch_size)
@@ -102,15 +115,11 @@ class CycleGAN(Pix2Pix):
         testA = testA.shuffle(100000).batch(batch_size)
         testB = testB.shuffle(100000).batch(batch_size)
 
-        for data in trainA.take(1):
-            self.img_size = data[0].shape
-            self.channels = data[0].shape[-1]
-
         return trainA, trainB, testA, testB
 
     def discriminator(self, params):
 
-        kernel_initializer = params['kernel_initializer'] if 'kernel_initializer' in params else 'RandomNormal'
+        kernel_initializer = params['kernel_initializer'] if 'kernel_initializer' in params else tf.random_normal_initializer(0., 0.02)
         kernel_size = params['kernel_size'] if 'kernel_size' in params else (
             4, 4)
         disc_layers = params['disc_layers'] if 'disc_layers' in params else 4
@@ -162,7 +171,7 @@ class CycleGAN(Pix2Pix):
     def build_model(
         self,
         params={
-            'kernel_initializer': 'RandomNormal',
+            'kernel_initializer': tf.random_normal_initializer(0., 0.02),
             'dropout_rate': 0.5,
             'gen_enc_layers': 7,
             'kernel_size': (
@@ -208,14 +217,21 @@ class CycleGAN(Pix2Pix):
             self.save_img_dir), "sample directory does not exist"
 
         pred = model(image, training=False)
-        pred = pred[0].numpy()
-        image = image[0].numpy()
+        pred = pred.numpy()
+        image = image.numpy()
 
         curr_dir = os.path.join(self.save_img_dir, count)
-        os.mkdir(curr_dir)
 
-        cv2.imwrite(os.path.join(curr_dir, 'input_image.jpg'), image)
-        cv2.imwrite(os.path.join(curr_dir, 'translated_image.jpg'), pred)
+        try:
+            os.mkdir(curr_dir)
+        except OSError:
+            pass
+
+        sample = 0
+        for input_image, prediction in zip(image, pred):
+            imageio.imwrite(os.path.join(curr_dir, 'input_image_' + str(sample) +'.png'), input_image)
+            imageio.imwrite(os.path.join(curr_dir, 'translated_image_' + str(sample) +'.png'), prediction)
+            sample += 1
 
     def fit(
             self,
@@ -289,8 +305,11 @@ class CycleGAN(Pix2Pix):
         steps = 0
 
         curr_dir = os.getcwd()
-        os.mkdir(os.path.join(curr_dir, 'samples'))
-        self.save_img_dir = os.path.join(curr_dir, 'samples')
+        try:
+            os.mkdir(os.path.join(curr_dir, 'cyclegan_samples'))
+        except OSError:
+            pass
+        self.save_img_dir = os.path.join(curr_dir, 'cyclegan_samples')
 
         for epoch in range(epochs):
 
@@ -377,7 +396,7 @@ class CycleGAN(Pix2Pix):
 
             if(epoch % save_img_per_epoch == 0):
                 for image in testA.take(1):
-                    self._save_samples(self.gen_model_g, image)
+                    self._save_samples(self.gen_model_g, image, str(epoch))
 
         if(save_model is not None):
 
@@ -396,14 +415,15 @@ class CycleGAN(Pix2Pix):
         generated_samples = []
         for image in test_ds:
             gen_image = self.gen_model_g(image, training=False).numpy()
-            generated_samples.append(gen_image)
+            generated_samples.append(gen_image[0])
 
+        generated_samples = np.array(generated_samples)
         if(save_dir is None):
             return generated_samples
 
         assert os.path.exists(save_dir), "Directory does not exist"
         for i, sample in enumerate(generated_samples):
-            cv2.imwrite(
+            imageio.imwrite(
                 os.path.join(
                     save_dir,
                     'sample_' +

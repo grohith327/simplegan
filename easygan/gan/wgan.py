@@ -4,6 +4,7 @@ sys.path.append('..')
 from datasets.load_lsun import load_lsun
 import datetime
 import numpy as np
+import cv2
 from losses.wasserstein_loss import wgan_discriminator_loss, wgan_generator_loss
 from gan.dcgan import DCGAN
 from datasets.load_cifar100 import load_cifar100
@@ -13,7 +14,8 @@ from datasets.load_cifar10 import load_cifar10
 from tensorflow.keras import Model
 from tensorflow.keras.layers import Conv2D, Dropout, BatchNormalization, LeakyReLU, Conv2DTranspose, Dense, Reshape, Flatten
 import tensorflow as tf
-
+import os
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
 
 class WGAN(DCGAN):
@@ -64,7 +66,7 @@ class WGAN(DCGAN):
                         Z = tf.random.normal([data.shape[0], self.noise_dim])
                         fake = self.gen_model(Z)
                         fake_logits = self.disc_model(fake)
-                        real_logits = self.disc_model(real)
+                        real_logits = self.disc_model(data)
                         D_loss = wgan_discriminator_loss(
                             real_logits, fake_logits)
 

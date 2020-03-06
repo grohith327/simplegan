@@ -12,6 +12,7 @@ from tensorflow.keras import Model
 from tensorflow.keras.layers import Conv2D, Dropout, BatchNormalization, LeakyReLU, Conv2DTranspose, Dense, Reshape, Flatten
 import os
 import cv2
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
 
 '''
