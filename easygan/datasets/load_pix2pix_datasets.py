@@ -63,13 +63,17 @@ class pix2pix_dataloader:
 
     def _resize(self, input_image, real_image, height, width):
 
-        input_image = tf.image.resize(
-            input_image, [
-                height, width], method=tf.image.ResizeMethod.NEAREST_NEIGHBOR)
+        input_image = tf.image.resize(input_image, 
+                                    [
+                                    height, 
+                                    width], 
+                                    method=tf.image.ResizeMethod.NEAREST_NEIGHBOR)
 
-        real_image = tf.image.resize(
-            real_image, [
-                height, width], method=tf.image.ResizeMethod.NEAREST_NEIGHBOR)
+        real_image = tf.image.resize(real_image, 
+                                    [
+                                    height, 
+                                    width], 
+                                    method=tf.image.ResizeMethod.NEAREST_NEIGHBOR)
 
         return input_image, real_image
 
@@ -96,8 +100,7 @@ class pix2pix_dataloader:
     @tf.function
     def _random_jitter(self, input_image, real_image):
 
-        input_image, real_image = self._resize(
-            input_image, real_image, 286, 286)
+        input_image, real_image = self._resize(input_image, real_image, 286, 286)
         input_image, real_image = self._random_crop(input_image, real_image)
 
         if(tf.random.uniform(()) > 0.5):
@@ -118,10 +121,8 @@ class pix2pix_dataloader:
     def _load_test_images(self, filename):
 
         input_image, real_image = self._load_image(filename)
-        input_image, real_image = self._resize(
-            input_image, real_image, self.img_height, self.img_width)
-        input_image, real_image = self._normalize_image(
-            input_image, real_image)
+        input_image, real_image = self._resize(input_image, real_image, self.img_height, self.img_width)
+        input_image, real_image = self._normalize_image(input_image, real_image)
 
         return input_image, real_image
 
@@ -146,10 +147,9 @@ class pix2pix_dataloader:
 
     def _load_custom_data(self):
 
-        error_message = "train directory not found \n Directory structure: \n {} \n {} -train \n {} -*.jpg \n {} -test \n {} -*.jpg".format(self.datadir, ' '*2, ' '*4, ' '*2, ' '*4)
-        assert os.path.exists(
-            os.path.join(
-                self.datadir, 'train')), error_message
+        error_message = "train directory not found \n Directory structure: \n {} \n {} -train \n {} -*.jpg \n {} -test \n {} -*.jpg".format(
+            self.datadir, ' ' * 2, ' ' * 4, ' ' * 2, ' ' * 4)
+        assert os.path.exists(os.path.join(self.datadir, 'train')), error_message
 
         train_data = tf.data.Dataset.list_files(
             os.path.join(self.datadir, 'train/*.jpg'))
@@ -157,14 +157,14 @@ class pix2pix_dataloader:
             self._load_train_images,
             num_parallel_calls=tf.data.experimental.AUTOTUNE)
 
-        error_message = "test directory not found \n Directory structure: \n {} \n {} -train \n {} -*.jpg \n {} -test \n {} -*.jpg".format(self.datadir, ' '*2, ' '*4, ' '*2, ' '*4)
-        assert os.path.exists(
-            os.path.join(
-                self.datadir, 'test')), error_message
+        error_message = "test directory not found \n Directory structure: \n {} \n {} -train \n {} -*.jpg \n {} -test \n {} -*.jpg".format(
+            self.datadir, ' ' * 2, ' ' * 4, ' ' * 2, ' ' * 4)
+        assert os.path.exists(os.path.join(self.datadir, 'test')), error_message
 
         try:
             test_data = tf.data.Dataset.list_files(
                 os.path.join(self.datadir, 'test/*.jpg'))
+
         except BaseException:
             test_data = tf.data.Dataset.list_files(
                 os.path.join(self.datadir, 'val/*.jpg'))
@@ -178,9 +178,11 @@ class pix2pix_dataloader:
         assert self.dataset_name is not None or self.datadir is not None, "Enter directory to load custom data or choose from existing datasets"
 
         if(self.dataset_name is not None):
+
             train_ds, test_ds = self._load_pix2pix_data()
 
         else:
+            
             train_ds, test_ds = self._load_custom_data()
 
         return train_ds, test_ds

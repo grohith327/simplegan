@@ -1,18 +1,20 @@
 import sys
 sys.path.append('..')
 
-import tensorflow as tf
-from losses.mse_loss import mse_loss
-import datetime
-from datasets.load_cifar10 import load_cifar10_AE
-from datasets.load_mnist import load_mnist_AE
-from datasets.load_custom_data import load_custom_data_AE
-import numpy as np
-import imageio
-from tensorflow.keras import Model
-from tensorflow.keras.layers import Dropout, BatchNormalization, Lambda, Dense, Reshape, Input, ReLU, Conv2D, Conv2DTranspose, Embedding, Flatten
-import os
 import cv2
+import os
+from tensorflow.keras.layers import Dropout, BatchNormalization, Lambda
+from tensorflow.keras.layers import Dense, Reshape, Input, ReLU, Conv2D
+from tensorflow.keras.layers import Conv2DTranspose, Embedding, Flatten
+from tensorflow.keras import Model
+import imageio  
+import numpy as np
+from datasets.load_custom_data import load_custom_data_AE
+from datasets.load_mnist import load_mnist_AE
+from datasets.load_cifar10 import load_cifar10_AE
+import datetime
+from losses.mse_loss import mse_loss
+import tensorflow as tf
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
 
@@ -40,7 +42,12 @@ class VectorQuantizer(Model):
 
         initializer = tf.keras.initializers.VarianceScaling(
             distribution='uniform')
-        self.embedding = tf.Variable(initializer(shape = [self.embedding_dim, self.num_embeddings]), trainable = True)
+        self.embedding = tf.Variable(
+            initializer(
+                shape=[
+                    self.embedding_dim,
+                    self.num_embeddings]),
+            trainable=True)
         # Embedding(self.num_embeddings, self.embedding_dim,
         #                            embeddings_initializer=initializer)
 
@@ -97,14 +104,20 @@ class residual(Model):
 
         self.relu = ReLU()
         self.conv1 = Conv2D(
-            self.num_residual_hiddens, activation='relu', kernel_size=(
-                3, 3), strides=(
-                1, 1), padding= 'same')
+            self.num_residual_hiddens, 
+            activation='relu', 
+            kernel_size=(
+                3,
+                3),
+            strides=(
+                1,
+                1),
+            padding='same')
 
         self.conv2 = Conv2D(
-            self.num_hiddens, kernel_size=(
-                1, 1), strides=(
-                1, 1))
+            self.num_hiddens, 
+            kernel_size=(1, 1), 
+            strides=(1, 1))
 
     def call(self, x):
 
@@ -140,14 +153,23 @@ class encoder(Model):
             activation='relu')
 
         self.conv2 = Conv2D(
-            self.num_hiddens, kernel_size=(
-                4, 4), strides=(
-                2, 2), activation='relu')
+            self.num_hiddens, 
+            kernel_size=(
+                4,
+                4), 
+            strides=(
+                2,
+                2), 
+            activation='relu')
 
         self.conv3 = Conv2D(
-            self.num_hiddens, kernel_size=(
-                3, 3), strides=(
-                1, 1))
+            self.num_hiddens, 
+            kernel_size=(
+                3,
+                3),
+            strides=(
+                1,
+                1))
 
         self.residual_stack = residual(
             self.num_hiddens,
@@ -174,9 +196,14 @@ class decoder(Model):
         self.num_residual_layers = params['num_residual_layers']
 
         self.conv1 = Conv2D(
-            self.num_hiddens, kernel_size=(
-                3, 3), strides=(
-                1, 1), padding = 'same')
+            self.num_hiddens, 
+            kernel_size=(
+                3,
+                3),
+            strides=(
+                1,
+                1),
+            padding='same')
 
         self.residual_stack = residual(
             self.num_hiddens,
@@ -185,9 +212,12 @@ class decoder(Model):
 
         self.flatten = Flatten()
 
-        self.dense1 = Dense((image_size[0] // 4) * (image_size[1] // 4) * 128, activation='relu')
+        self.dense1 = Dense(
+            (image_size[0] // 4) * (image_size[1] // 4) * 128,
+            activation='relu')
 
-        self.reshape = Reshape(((image_size[0] // 4), (image_size[1] // 4), 128))
+        self.reshape = Reshape(
+            ((image_size[0] // 4), (image_size[1] // 4), 128))
 
         self.upconv1 = Conv2DTranspose(
             self.num_hiddens // 2,
@@ -226,14 +256,18 @@ class nn_model(Model):
 
         self.encoder = encoder(params)
         self.pre_vq_conv = Conv2D(
-            embedding_dim, kernel_size=(
-                1, 1), strides=(
-                1, 1))
+                            embedding_dim, 
+                            kernel_size=(
+                                1, 
+                                1), 
+                            strides=(
+                                1, 
+                                1))
         self.decoder = decoder(params, image_size)
         self.vq_vae = VectorQuantizer(
-                                    num_embeddings,
-                                    embedding_dim,
-                                    commiment_cost)
+            num_embeddings,
+            embedding_dim,
+            commiment_cost)
 
     def call(self, x):
 
@@ -281,7 +315,7 @@ class VQ_VAE():
 
         return train_ds, test_ds
 
-    def get_sample(self, data = None, n_samples = 1, save_dir = None):
+    def get_sample(self, data=None, n_samples=1, save_dir=None):
 
         assert data is not None, "Data not provided"
 
@@ -298,9 +332,14 @@ class VQ_VAE():
 
         assert os.path.exists(save_dir), "Directory does not exist"
         for i, sample in enumerate(sample_images):
-            imageio.imwrite(os.path.join(save_dir, 'sample_'+str(i)+'.jpg'), sample)
+            imageio.imwrite(
+                os.path.join(
+                    save_dir,
+                    'sample_' +
+                    str(i) +
+                    '.jpg'),
+                sample)
 
-    
     def build_model(
         self,
         params={
@@ -317,8 +356,14 @@ class VQ_VAE():
 
         self.model = nn_model(params, self.image_size)
 
-    def fit(self, train_ds=None, epochs=100, optimizer='Adam', print_steps=100,
-            learning_rate=3e-4, tensorboard=False, save_model=None):
+    def fit(self, 
+            train_ds=None, 
+            epochs=100, 
+            optimizer='Adam', 
+            print_steps=100,
+            learning_rate=3e-4, 
+            tensorboard=False, 
+            save_model=None):
 
         assert train_ds is not None, 'Initialize training data through train_ds parameter'
 
@@ -362,9 +407,13 @@ class VQ_VAE():
                 if(tensorboard):
                     with train_summary_writer.as_default():
                         tf.summary.scalar(
-                            'vq_loss', vq_loss.numpy(), step=steps)
+                            'vq_loss', 
+                            vq_loss.numpy(), 
+                            step=steps)
                         tf.summary.scalar(
-                            'reconstruction_loss', recon_err.numpy(), step=steps)
+                            'reconstruction_loss', 
+                            recon_err.numpy(), 
+                            step=steps)
 
         if(save_model is not None):
 
@@ -385,7 +434,7 @@ class VQ_VAE():
             generated_samples.append(gen_sample)
 
         generated_samples = np.array(generated_samples)
-        generated_samples = np.squeeze(generated_samples, axis = 0)
+        generated_samples = np.squeeze(generated_samples, axis=0)
         if(save_dir is None):
             return generated_samples
 

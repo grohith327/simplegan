@@ -1,18 +1,22 @@
 import sys
 sys.path.append('..')
 
-import cv2
-import datetime
-import numpy as np
-import tensorflow as tf
-from gan.pix2pix import Pix2Pix
-from datasets.load_cyclegan_datasets import cyclegan_dataloader
-from losses.cyclegan_loss import cycle_loss, identity_loss
-from losses.minmax_loss import gan_generator_loss, gan_discriminator_loss
-from tensorflow.keras import Model
-from tensorflow.keras.layers import Conv2D, Dropout, Concatenate, BatchNormalization, LeakyReLU, Conv2DTranspose, ZeroPadding2D, Dense, Reshape, Flatten, ReLU, Input
-import os
+import imageio.core.util
 import imageio
+import os
+from tensorflow.keras.layers import Dropout, Concatenate, BatchNormalization
+from tensorflow.keras.layers import LeakyReLU, Conv2DTranspose, ZeroPadding2D
+from tensorflow.keras.layers import Dense, Reshape, Flatten, ReLU
+from tensorflow.keras.layers import Input, Conv2D
+from tensorflow.keras import Model
+from losses.minmax_loss import gan_generator_loss, gan_discriminator_loss
+from losses.cyclegan_loss import cycle_loss, identity_loss
+from datasets.load_cyclegan_datasets import cyclegan_dataloader
+from gan.pix2pix import Pix2Pix
+import tensorflow as tf
+import numpy as np
+import datetime
+import cv2
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
 '''
@@ -21,10 +25,10 @@ Paper: https://arxiv.org/abs/1703.10593
 Code inspired from: https://www.tensorflow.org/tutorials/generative/cyclegan#import_and_reuse_the_pix2pix_models
 '''
 
-import imageio.core.util
 
 def silence_imageio_warning(*args, **kwargs):
     pass
+
 
 imageio.core.util._precision_warn = silence_imageio_warning
 
@@ -32,6 +36,7 @@ imageio.core.util._precision_warn = silence_imageio_warning
 class CycleGAN(Pix2Pix):
 
     def __init__(self):
+
         Pix2Pix.__init__(self)
         self.gen_model_g = None
         self.gen_model_f = None
@@ -60,8 +65,7 @@ class CycleGAN(Pix2Pix):
 
         elif(use_summer2winter_yosemite):
 
-            data_obj = cyclegan_dataloader(
-                dataset_name='summer2winter_yosemite')
+            data_obj = cyclegan_dataloader(dataset_name='summer2winter_yosemite')
 
         elif(use_horse2zebra):
 
@@ -117,8 +121,7 @@ class CycleGAN(Pix2Pix):
 
         return trainA, trainB, testA, testB
 
-    
-    def get_sample(self, data = None, n_samples = 1, save_dir = None):
+    def get_sample(self, data=None, n_samples=1, save_dir=None):
 
         assert data is not None, "Data not provided"
 
@@ -135,12 +138,18 @@ class CycleGAN(Pix2Pix):
 
         assert os.path.exists(save_dir), "Directory does not exist"
         for i, sample in enumerate(sample_images):
-            imageio.imwrite(os.path.join(save_dir, 'sample_'+str(i)+'.jpg'), sample)
-
+            imageio.imwrite(
+                os.path.join(
+                    save_dir,
+                    'sample_' +
+                    str(i) +
+                    '.jpg'),
+                sample)
 
     def discriminator(self, params):
 
-        kernel_initializer = params['kernel_initializer'] if 'kernel_initializer' in params else tf.random_normal_initializer(0., 0.02)
+        kernel_initializer = params['kernel_initializer'] if 'kernel_initializer' in params else tf.random_normal_initializer(
+            0., 0.02)
         kernel_size = params['kernel_size'] if 'kernel_size' in params else (
             4, 4)
         disc_layers = params['disc_layers'] if 'disc_layers' in params else 4
@@ -179,8 +188,10 @@ class CycleGAN(Pix2Pix):
         down_stack.append(LeakyReLU())
         down_stack.append(ZeroPadding2D())
 
-        last = Conv2D(1, kernel_size=kernel_size, strides=1,
-                      kernel_initializer=kernel_initializer)
+        last = Conv2D(1, 
+                    kernel_size=kernel_size, 
+                    strides=1,
+                    kernel_initializer=kernel_initializer)
 
         for down in down_stack:
             x = down(x)
@@ -250,8 +261,22 @@ class CycleGAN(Pix2Pix):
 
         sample = 0
         for input_image, prediction in zip(image, pred):
-            imageio.imwrite(os.path.join(curr_dir, 'input_image_' + str(sample) +'.png'), input_image)
-            imageio.imwrite(os.path.join(curr_dir, 'translated_image_' + str(sample) +'.png'), prediction)
+
+            imageio.imwrite(
+                os.path.join(
+                    curr_dir,
+                    'input_image_' +
+                    str(sample) +
+                    '.png'),
+                input_image)
+
+            imageio.imwrite(
+                os.path.join(
+                    curr_dir,
+                    'translated_image_' +
+                    str(sample) +
+                    '.png'),
+                prediction)
             sample += 1
 
     def fit(
@@ -280,6 +305,7 @@ class CycleGAN(Pix2Pix):
         assert trainB is not None, 'Initialize training data B through trainB parameter'
         assert testA is not None, 'Initialize testing data A through testA parameter'
         assert testB is not None, 'Initialize testing data B through testB parameter'
+        
         self.LAMBDA = LAMBDA
 
         kwargs = {}

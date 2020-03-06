@@ -1,18 +1,20 @@
 import sys
 sys.path.append('..')
 
-import datetime
-import tensorflow as tf
-from losses.mse_loss import mse_loss
-from datasets.load_custom_data import load_custom_data_AE
-from datasets.load_mnist import load_mnist_AE
-from datasets.load_cifar10 import load_cifar10_AE
-import numpy as np
-from tensorflow.keras import Model
-import os
-import imageio
+from tensorflow.keras.layers import Conv2D, Dropout, LeakyReLU
+from tensorflow.keras.layers import BatchNormalization, Conv2DTranspose
+from tensorflow.keras.layers import Dense, Reshape, Flatten, MaxPool2D
 import cv2
-from tensorflow.keras.layers import Conv2D, Dropout, BatchNormalization, LeakyReLU, Conv2DTranspose, Dense, Reshape, Flatten, MaxPool2D
+import imageio
+import os
+from tensorflow.keras import Model
+import numpy as np
+from datasets.load_cifar10 import load_cifar10_AE
+from datasets.load_mnist import load_mnist_AE
+from datasets.load_custom_data import load_custom_data_AE
+from losses.mse_loss import mse_loss
+import tensorflow as tf
+import datetime
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
 
@@ -35,8 +37,12 @@ class ConvolutionalAutoencoder():
         self.model = tf.keras.Sequential()
         self.image_size = None
 
-    def load_data(self, data_dir=None, use_mnist=False,
-                  use_cifar10=False, batch_size=32, img_shape=(64, 64)):
+    def load_data(self, 
+                data_dir=None, 
+                use_mnist=False,
+                use_cifar10=False, 
+                batch_size=32, 
+                img_shape=(64, 64)):
         '''
         choose the dataset, if None is provided returns an assertion error -> ../datasets/load_custom_data
         returns a tensorflow dataset loader
@@ -65,8 +71,7 @@ class ConvolutionalAutoencoder():
 
         return train_ds, test_ds
 
-    
-    def get_sample(self, data = None, n_samples = 1, save_dir = None):
+    def get_sample(self, data=None, n_samples=1, save_dir=None):
 
         assert data is not None, "Data not provided"
 
@@ -83,7 +88,13 @@ class ConvolutionalAutoencoder():
 
         assert os.path.exists(save_dir), "Directory does not exist"
         for i, sample in enumerate(sample_images):
-            imageio.imwrite(os.path.join(save_dir, 'sample_'+str(i)+'.jpg'), sample)
+            imageio.imwrite(
+                os.path.join(
+                    save_dir,
+                    'sample_' +
+                    str(i) +
+                    '.jpg'),
+                sample)
 
     '''
     encoder and decoder layers for custom dataset can be reimplemented by inherting this class(vanilla_autoencoder)
@@ -144,8 +155,7 @@ class ConvolutionalAutoencoder():
         kernel_size = params['kernel_size'] if 'kernel_size' in params else (
             5, 5)
 
-        assert len(
-            dec_channels) == decoder_layers, "Dimension mismatch: length of decoder channels should match number of decoder layers"
+        assert len(dec_channels) == decoder_layers, "Dimension mismatch: length of decoder channels should match number of decoder layers"
 
         model = tf.keras.Sequential()
 
@@ -241,8 +251,14 @@ class ConvolutionalAutoencoder():
         self.model.add(self.encoder(params))
         self.model.add(self.decoder(params))
 
-    def fit(self, train_ds=None, epochs=100, optimizer='Adam', print_steps=100,
-            learning_rate=0.001, tensorboard=False, save_model=None):
+    def fit(self, 
+            train_ds=None, 
+            epochs=100, 
+            optimizer='Adam', 
+            print_steps=100,
+            learning_rate=0.001, 
+            tensorboard=False, 
+            save_model=None):
 
         assert train_ds is not None, 'Initialize training data through train_ds parameter'
 
@@ -303,7 +319,7 @@ class ConvolutionalAutoencoder():
             generated_samples.append(gen_sample)
 
         generated_samples = np.array(generated_samples)
-        generated_samples = np.squeeze(generated_samples, axis = 0)
+        generated_samples = np.squeeze(generated_samples, axis=0)
         if(save_dir is None):
             return generated_samples
 

@@ -1,18 +1,19 @@
 import sys
 sys.path.append('..')
 
-import datetime
-import tensorflow as tf
-from losses.mse_loss import mse_loss
-from datasets.load_custom_data import load_custom_data_AE
-from datasets.load_mnist import load_mnist_AE
-from datasets.load_cifar10 import load_cifar10_AE
-import numpy as np
-import imageio
-from tensorflow.keras import Model
-from tensorflow.keras.layers import Dropout, BatchNormalization, Lambda, Dense, Reshape, Input
-import os
 import cv2
+import os
+from tensorflow.keras.layers import Dropout, BatchNormalization
+from tensorflow.keras.layers import Lambda, Dense, Reshape, Input
+from tensorflow.keras import Model
+import imageio
+import numpy as np
+from datasets.load_cifar10 import load_cifar10_AE
+from datasets.load_mnist import load_mnist_AE
+from datasets.load_custom_data import load_custom_data_AE
+from losses.mse_loss import mse_loss
+import tensorflow as tf
+import datetime
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
 
@@ -33,8 +34,12 @@ class VAE():
         self.model = None
         self.image_size = None
 
-    def load_data(self, data_dir=None, use_mnist=False,
-                  use_cifar10=False, batch_size=32, img_shape=(64, 64)):
+    def load_data(self, 
+                data_dir=None, 
+                use_mnist=False,
+                use_cifar10=False, 
+                batch_size=32, 
+                img_shape=(64, 64)):
         '''
         choose the dataset, if None is provided returns an assertion error -> ../datasets/load_custom_data
         returns a tensorflow dataset loader
@@ -65,8 +70,7 @@ class VAE():
 
         return train_ds, test_ds
 
-
-    def get_sample(self, data = None, n_samples = 1, save_dir = None):
+    def get_sample(self, data=None, n_samples=1, save_dir=None):
 
         assert data is not None, "Data not provided"
 
@@ -74,7 +78,10 @@ class VAE():
         for img in data.take(n_samples):
 
             img = img.numpy()
-            img = img.reshape((self.image_size[0], self.image_size[1], self.image_size[2]))
+            img = img.reshape(
+                (self.image_size[0],
+                 self.image_size[1],
+                 self.image_size[2]))
             sample_images.append(img)
 
         sample_images = np.array(sample_images)
@@ -84,8 +91,13 @@ class VAE():
 
         assert os.path.exists(save_dir), "Directory does not exist"
         for i, sample in enumerate(sample_images):
-            imageio.imwrite(os.path.join(save_dir, 'sample_'+str(i)+'.jpg'), sample)
-
+            imageio.imwrite(
+                os.path.join(
+                    save_dir,
+                    'sample_' +
+                    str(i) +
+                    '.jpg'),
+                sample)
 
     def sampling(self, distribution):
 
@@ -117,10 +129,8 @@ class VAE():
         kernel_initializer = params['kernel_initializer'] if 'kernel_initializer' in params else 'glorot_uniform'
         kernel_regularizer = params['kernel_regularizer'] if 'kernel_regularizer' in params else None
 
-        assert len(
-            enc_units) == encoder_layers, "Dimension mismatch: length of enocoder units should match number of encoder layers"
-        assert len(
-            dec_units) == decoder_layers, "Dimension mismatch: length of decoder units should match number of decoder layers"
+        assert len(enc_units) == encoder_layers, "Dimension mismatch: length of enocoder units should match number of encoder layers"
+        assert len(dec_units) == decoder_layers, "Dimension mismatch: length of decoder units should match number of decoder layers"
 
         org_inputs = Input(
             shape=self.image_size[0] *
@@ -209,8 +219,14 @@ class VAE():
 
         self.model = self.vae(params)
 
-    def fit(self, train_ds=None, epochs=100, optimizer='Adam', print_steps=100,
-            learning_rate=0.001, tensorboard=False, save_model=None):
+    def fit(self, 
+        train_ds=None, 
+        epochs=100, 
+        optimizer='Adam', 
+        print_steps=100,
+        learning_rate=0.001, 
+        tensorboard=False, 
+        save_model=None):
 
         assert train_ds is not None, 'Initialize training data through train_ds parameter'
 
@@ -271,7 +287,8 @@ class VAE():
             generated_samples.append(gen_sample)
 
         generated_samples = np.array(generated_samples)
-        generated_samples = generated_samples.reshape((-1, self.image_size[0], self.image_size[1], self.image_size[2]))
+        generated_samples = generated_samples.reshape(
+            (-1, self.image_size[0], self.image_size[1], self.image_size[2]))
         if(save_dir is None):
             return generated_samples
 

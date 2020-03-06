@@ -1,19 +1,19 @@
+import os
+from tensorflow.keras.layers import Conv2D, Dropout, BatchNormalization, LeakyReLU, Conv2DTranspose, Dense, Reshape, Flatten
+from tensorflow.keras import Model
+from datasets.load_cifar10 import load_cifar10
+from datasets.load_mnist import load_mnist
+from datasets.load_custom_data import load_custom_data
+from datasets.load_cifar100 import load_cifar100
+from datasets.load_lsun import load_lsun
+from losses.minmax_loss import gan_discriminator_loss, gan_generator_loss
+import cv2
+import numpy as np
+import datetime
+import tensorflow as tf
 import sys
 sys.path.append('..')
 
-import tensorflow as tf
-import datetime
-import numpy as np
-import cv2
-from losses.minmax_loss import gan_discriminator_loss, gan_generator_loss
-from datasets.load_lsun import load_lsun
-from datasets.load_cifar100 import load_cifar100
-from datasets.load_custom_data import load_custom_data
-from datasets.load_mnist import load_mnist
-from datasets.load_cifar10 import load_cifar10
-from tensorflow.keras import Model
-from tensorflow.keras.layers import Conv2D, Dropout, BatchNormalization, LeakyReLU, Conv2DTranspose, Dense, Reshape, Flatten
-import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
 
@@ -33,9 +33,13 @@ class DCGAN():
         self.gen_model = None
         self.disc_model = None
 
-    def load_data(self, data_dir=None, use_mnist=False,
-                  use_cifar10=False, use_cifar100=False, use_lsun=False,
-                  batch_size=32, img_shape=(64, 64)):
+    def load_data(self, 
+                data_dir=None, 
+                use_mnist=False,
+                use_cifar10=False, 
+                use_cifar100=False, 
+                use_lsun=False,
+                batch_size=32, img_shape=(64, 64)):
         '''
         choose the dataset, if None is provided returns an assertion error -> ../datasets/load_custom_data
         returns a tensorflow dataset loader
@@ -69,8 +73,7 @@ class DCGAN():
 
         return train_ds
 
-    
-    def get_sample(self, data = None, n_samples = 1, save_dir = None):
+    def get_sample(self, data=None, n_samples=1, save_dir=None):
 
         assert data is not None, "Data not provided"
 
@@ -87,8 +90,13 @@ class DCGAN():
 
         assert os.path.exists(save_dir), "Directory does not exist"
         for i, sample in enumerate(sample_images):
-            imageio.imwrite(os.path.join(save_dir, 'sample_'+str(i)+'.jpg'), sample)
-
+            imageio.imwrite(
+                os.path.join(
+                    save_dir,
+                    'sample_' +
+                    str(i) +
+                    '.jpg'),
+                sample)
 
     '''
     Create a child class to modify generator and discriminator architecture for
@@ -108,8 +116,7 @@ class DCGAN():
         kernel_size = params['kernel_size'] if 'kernel_size' in params else (
             5, 5)
 
-        assert len(
-            gen_channels) == gen_layers, "Dimension mismatch: length of generator channels should match number of generator layers"
+        assert len(gen_channels) == gen_layers, "Dimension mismatch: length of generator channels should match number of generator layers"
 
         model = tf.keras.Sequential()
         model.add(
@@ -278,8 +285,7 @@ class DCGAN():
         self.gen_model, self.disc_model = self.generator(
             params), self.discriminator(params)
 
-    def fit(
-            self,
+    def fit(self,
             train_ds=None,
             epochs=100,
             gen_optimizer='Adam',

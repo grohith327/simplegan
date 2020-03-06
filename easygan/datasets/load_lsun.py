@@ -13,18 +13,19 @@ Function load_lsun returns a numpy array of shape (-1, 64, 64, 3)
 
 def load_lsun(info=False, img_shape=(64, 64)):
 
-    assert len(img_shape) == 2 and isinstance(
-        img_shape, tuple), "img_shape must be a tuple of size 2"
+    assert len(img_shape) == 2 and isinstance(img_shape, tuple), "img_shape must be a tuple of size 2"
 
     if(info):
-        ds_train, info = tfds.load(
-            name="lsun", split='train', shuffle_files=True, with_info=info)
+
+        ds_train, info = tfds.load(name="lsun", 
+                                split='train', 
+                                shuffle_files=True, 
+                                with_info=info)
     else:
-        ds_train = tfds.load(
-            name="lsun",
-            split='train',
-            shuffle_files=True,
-            with_info=info)
+        ds_train = tfds.load(name="lsun",
+                            split='train',
+                            shuffle_files=True,
+                            with_info=info)
 
     train_data = []
     with tqdm(total=100, desc='preparing dataset') as pbar:

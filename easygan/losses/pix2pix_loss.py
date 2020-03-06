@@ -22,9 +22,7 @@ def pix2pix_discriminator_loss(disc_real_output, disc_fake_output):
 
     real_loss = cross_entropy(tf.ones_like(disc_real_output), disc_real_output)
 
-    generated_loss = cross_entropy(
-        tf.ones_like(disc_fake_output),
-        disc_fake_output)
+    generated_loss = cross_entropy(tf.ones_like(disc_fake_output),disc_fake_output)
 
     total_loss = real_loss + generated_loss
 

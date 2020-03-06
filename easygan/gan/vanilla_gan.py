@@ -1,17 +1,17 @@
 import sys
 sys.path.append('..')
 
-import tensorflow as tf
-import cv2
-import datetime
-import numpy as np
-from losses.minmax_loss import gan_discriminator_loss, gan_generator_loss
-from datasets.load_custom_data import load_custom_data
-from datasets.load_mnist import load_mnist
-from datasets.load_cifar10 import load_cifar10
-from tensorflow.keras import Model
-from tensorflow.keras.layers import Dense, Dropout
 import os
+from tensorflow.keras.layers import Dense, Dropout
+from tensorflow.keras import Model
+from datasets.load_cifar10 import load_cifar10
+from datasets.load_mnist import load_mnist
+from datasets.load_custom_data import load_custom_data
+from losses.minmax_loss import gan_discriminator_loss, gan_generator_loss
+import numpy as np
+import datetime
+import cv2
+import tensorflow as tf
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
 '''
@@ -30,8 +30,12 @@ class VanillaGAN():
         self.gen_model = None
         self.disc_model = None
 
-    def load_data(self, data_dir=None, use_mnist=False,
-                  use_cifar10=False, batch_size=32, img_shape=(64, 64)):
+    def load_data(self, 
+                data_dir=None, 
+                use_mnist=False,
+                use_cifar10=False, 
+                batch_size=32, 
+                img_shape=(64, 64)):
         '''
         choose the dataset, if None is provided returns an assertion error -> ../datasets/load_custom_data
         returns a tensorflow dataset loader
@@ -58,8 +62,7 @@ class VanillaGAN():
 
         return train_ds
 
-    
-    def get_sample(self, data = None, n_samples = 1, save_dir = None):
+    def get_sample(self, data=None, n_samples=1, save_dir=None):
 
         assert data is not None, "Data not provided"
 
@@ -67,7 +70,10 @@ class VanillaGAN():
         for img in data.take(n_samples):
 
             img = img.numpy()
-            img = img.reshape((self.image_size[0], self.image_size[1], self.image_size[2]))
+            img = img.reshape(
+                (self.image_size[0],
+                 self.image_size[1],
+                 self.image_size[2]))
             sample_images.append(img)
 
         sample_images = np.array(sample_images)
@@ -77,7 +83,13 @@ class VanillaGAN():
 
         assert os.path.exists(save_dir), "Directory does not exist"
         for i, sample in enumerate(sample_images):
-            imageio.imwrite(os.path.join(save_dir, 'sample_'+str(i)+'.jpg'), sample)
+            imageio.imwrite(
+                os.path.join(
+                    save_dir,
+                    'sample_' +
+                    str(i) +
+                    '.jpg'),
+                sample)
 
     '''
     Create a child class to modify generator and discriminator architecture for
@@ -96,8 +108,7 @@ class VanillaGAN():
         kernel_initializer = params['kernel_initializer'] if 'kernel_initializer' in params else 'glorot_uniform'
         kernel_regularizer = params['kernel_regularizer'] if 'kernel_regularizer' in params else None
 
-        assert len(
-            gen_units) == gen_layers, "Dimension mismatch: length of generator units should match number of generator layers"
+        assert len(gen_units) == gen_layers, "Dimension mismatch: length of generator units should match number of generator layers"
 
         model = tf.keras.Sequential()
 
@@ -108,7 +119,7 @@ class VanillaGAN():
                 kernel_initializer=kernel_initializer,
                 kernel_regularizer=kernel_regularizer,
                 input_dim=noise_dim,
-                dtype = tf.float32))
+                dtype=tf.float32))
         model.add(Dropout(dropout_rate))
 
         for i in range(gen_layers):
@@ -118,7 +129,7 @@ class VanillaGAN():
                     activation=activation,
                     kernel_initializer=kernel_initializer,
                     kernel_regularizer=kernel_regularizer,
-                    dtype = tf.float32))
+                    dtype=tf.float32))
             model.add(Dropout(dropout_rate))
 
         model.add(
@@ -127,7 +138,7 @@ class VanillaGAN():
                 self.image_size[1] *
                 self.image_size[2],
                 activation='sigmoid',
-                dtype = tf.float32))
+                dtype=tf.float32))
         return model
 
     def discriminator(self, params):
@@ -140,8 +151,7 @@ class VanillaGAN():
         kernel_initializer = params['kernel_initializer'] if 'kernel_initializer' in params else 'glorot_uniform'
         kernel_regularizer = params['kernel_regularizer'] if 'kernel_regularizer' in params else None
 
-        assert len(
-            disc_units) == disc_layers, "Dimension mismatch: length of generator units should match number of generator layers"
+        assert len(disc_units) == disc_layers, "Dimension mismatch: length of generator units should match number of generator layers"
 
         model = tf.keras.Sequential()
 
@@ -195,8 +205,7 @@ class VanillaGAN():
         self.gen_model, self.disc_model = self.generator(
             params), self.discriminator(params)
 
-    def fit(
-            self,
+    def fit(self,
             train_ds=None,
             epochs=100,
             gen_optimizer='Adam',

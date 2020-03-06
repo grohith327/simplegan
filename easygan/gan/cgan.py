@@ -1,18 +1,17 @@
 import sys
 sys.path.append('..')
 
-import datetime
-from losses.minmax_loss import gan_discriminator_loss, gan_generator_loss
-from datasets.load_custom_data import load_custom_data_with_labels
-from datasets.load_cifar10 import load_cifar10_with_labels
-from datasets.load_mnist import load_mnist_with_labels
-from tensorflow.keras import layers
-import tensorflow as tf
-import cv2
-import numpy as np
 import os
+import numpy as np
+import cv2
+import tensorflow as tf
+from tensorflow.keras import layers
+from datasets.load_mnist import load_mnist_with_labels
+from datasets.load_cifar10 import load_cifar10_with_labels
+from datasets.load_custom_data import load_custom_data_with_labels
+from losses.minmax_loss import gan_discriminator_loss, gan_generator_loss
+import datetime
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
-
 
 
 class CGAN:
@@ -23,8 +22,12 @@ class CGAN:
         self.embed_dim = None
         self.n_classes = None
 
-    def load_data(self, data_dir=None, use_mnist=False, use_cifar10=False,
-                  batch_size=32, img_shape=(64, 64)):
+    def load_data(self, 
+                data_dir=None, 
+                use_mnist=False, 
+                use_cifar10=False,
+                batch_size=32, 
+                img_shape=(64, 64)):
 
         if(use_mnist):
 
@@ -49,8 +52,7 @@ class CGAN:
 
         return train_ds
 
-
-    def get_sample(self, data = None, n_samples = 1, save_dir = None):
+    def get_sample(self, data=None, n_samples=1, save_dir=None):
 
         assert data is not None, "Data not provided"
 
@@ -67,8 +69,13 @@ class CGAN:
 
         assert os.path.exists(save_dir), "Directory does not exist"
         for i, sample in enumerate(sample_images):
-            imageio.imwrite(os.path.join(save_dir, 'sample_'+str(i)+'.jpg'), sample)
-
+            imageio.imwrite(
+                os.path.join(
+                    save_dir,
+                    'sample_' +
+                    str(i) +
+                    '.jpg'),
+                sample)
 
     def generator(self, params):
 
@@ -84,72 +91,70 @@ class CGAN:
             5, 5)
         self.embed_dim = params['embed_dim'] if 'embed_dim' in params else 100
 
-        assert len(
-            gen_channels) == gen_layers, "Dimension mismatch: length of generator channels should match number of generator layers"
+        assert len(gen_channels) == gen_layers, "Dimension mismatch: length of generator channels should match number of generator layers"
 
         z = layers.Input(shape=self.noise_dim)
         label = layers.Input(shape=1)
 
         start_image_size = (self.image_size[0] // 4, self.image_size[1] // 4)
 
-        embedded_label = layers.Embedding(
-            input_dim=10, output_dim=self.embed_dim)(label)
+        embedded_label = layers.Embedding(input_dim=10, output_dim=self.embed_dim)(label)
         embedded_label = layers.Dense(
-            units=start_image_size[0] * start_image_size[1],
-            activation=activation,
-            kernel_initializer=kernel_initializer,
-            kernel_regularizer=kernel_regularizer,
-            input_dim=self.embed_dim)(embedded_label)
+                                    units=start_image_size[0] * start_image_size[1],
+                                    activation=activation,
+                                    kernel_initializer=kernel_initializer,
+                                    kernel_regularizer=kernel_regularizer,
+                                    input_dim=self.embed_dim)(embedded_label)
         embedded_label = layers.Reshape(
             (start_image_size[0], start_image_size[1], 1))(embedded_label)
 
         input_img = layers.Dense(
-            start_image_size[0] *
-            start_image_size[1] *
-            gen_channels[0] * 2,
-            activation = activation, 
-            kernel_initializer = kernel_initializer,
-            kernel_regularizer = kernel_regularizer)(z)
+                                start_image_size[0] * start_image_size[1] * gen_channels[0] * 2,
+                                activation=activation,
+                                kernel_initializer=kernel_initializer,
+                                kernel_regularizer=kernel_regularizer)(z)
         input_img = layers.Reshape(
-            (start_image_size[0], start_image_size[1], gen_channels[0] * 2))(input_img)
+                                (start_image_size[0],
+                                 start_image_size[1],
+                                 gen_channels[0] * 2))(input_img)
 
         x = layers.Concatenate()([input_img, embedded_label])
 
         for i in range(gen_layers):
             x = layers.Conv2DTranspose(
-                filters=gen_channels[i],
-                kernel_size=kernel_size,
-                strides=(
-                    1,
-                    1),
-                padding="same",
-                use_bias=False,
-                kernel_initializer=kernel_initializer,
-                kernel_regularizer=kernel_regularizer)(x)
+                                    filters=gen_channels[i],
+                                    kernel_size=kernel_size,
+                                    strides=(
+                                        1,
+                                        1),
+                                    padding="same",
+                                    use_bias=False,
+                                    kernel_initializer=kernel_initializer,
+                                    kernel_regularizer=kernel_regularizer)(x)
             x = layers.BatchNormalization()(x)
             x = layers.LeakyReLU()(x)
 
         x = layers.Conv2DTranspose(
-            filters=gen_channels[-1] // 2,
-            kernel_size=kernel_size,
-            strides=(
-                2,
-                2),
-            padding='same',
-            use_bias=False,
-            activation='tanh')(x)
+                                filters=gen_channels[-1] // 2,
+                                kernel_size=kernel_size,
+                                strides=(
+                                    2,
+                                    2),
+                                padding='same',
+                                use_bias=False,
+                                activation='tanh')(x)
         x = layers.BatchNormalization()(x)
         x = layers.LeakyReLU()(x)
 
         output = layers.Conv2DTranspose(
-            filters=self.image_size[-1],
-            kernel_size=kernel_size,
-            strides=(
-                2,
-                2),
-            padding='same',
-            use_bias=False,
-            activation='tanh')(x)
+                                    filters=self.image_size[-1],
+                                    kernel_size=kernel_size,
+                                    strides=(
+                                        2,
+                                        2),
+                                    padding='same',
+                                    use_bias=False,
+                                    activation='tanh')(x)
         model = tf.keras.Model([z, label], output)
         return model
 
@@ -169,27 +174,23 @@ class CGAN:
 
         input_image = layers.Input(shape=self.image_size)
         input_label = layers.Input(shape=1)
-        embedded_label = layers.Embedding(
-            input_dim=self.n_classes,
-            output_dim=self.embed_dim)(input_label)
-        embedded_label = layers.Dense(
-            units=self.image_size[0] *
-            self.image_size[1])(embedded_label)
-        embedded_label = layers.Reshape(
-            (self.image_size[0], self.image_size[1], 1))(embedded_label)
+
+        embedded_label = layers.Embedding(input_dim=self.n_classes,output_dim=self.embed_dim)(input_label)
+        embedded_label = layers.Dense(units=self.image_size[0] * self.image_size[1])(embedded_label)
+        embedded_label = layers.Reshape((self.image_size[0], self.image_size[1], 1))(embedded_label)
 
         x = layers.Concatenate()([input_image, embedded_label])
 
         for i in range(disc_layers):
             x = layers.Conv2D(
-                filters=disc_channels[i],
-                kernel_size=kernel_size,
-                strides=(
-                    2,
-                    2),
-                padding='same',
-                kernel_initializer=kernel_initializer,
-                kernel_regularizer=kernel_regularizer)(x)
+                            filters=disc_channels[i],
+                            kernel_size=kernel_size,
+                            strides=(
+                                2,
+                                2),
+                            padding='same',
+                            kernel_initializer=kernel_initializer,
+                            kernel_regularizer=kernel_regularizer)(x)
         x = layers.BatchNormalization()(x)
         x = layers.LeakyReLU()(x)
 
@@ -328,8 +329,7 @@ class CGAN:
     def generate_samples(self, n_samples=1, labels_list=None, save_dir=None):
 
         assert labels_list is not None, "Enter list of labels to condition the generator"
-        assert len(
-            labels_list) == n_samples, "Number of samples does not match length of labels list"
+        assert len(labels_list) == n_samples, "Number of samples does not match length of labels list"
 
         Z = np.random.uniform(-1, 1, (n_samples, self.noise_dim))
         labels_list = np.array(labels_list)

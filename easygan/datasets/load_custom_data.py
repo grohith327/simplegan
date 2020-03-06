@@ -3,7 +3,7 @@ import numpy as np
 import cv2
 import glob
 from tqdm import tqdm
-import os 
+import os
 
 '''
 Dataset is loaded from tensorflow keras datasets
@@ -14,10 +14,10 @@ Function load_data returns a numpy array of shape (-1, 64, 64, 3) by default
 
 def load_custom_data(datadir=None, img_shape=(64, 64)):
 
-    error_message = "Enter a valid directory \n Directory structure: \n {} \n {} -*jpg".format(datadir, ' '*2)
+    error_message = "Enter a valid directory \n Directory structure: \n {} \n {} -*jpg".format(
+        datadir, ' ' * 2)
     assert datadir is not None, error_message
-    assert len(img_shape) == 2 and isinstance(
-        img_shape, tuple), "img_shape must be a tuple of size 2"
+    assert len(img_shape) == 2 and isinstance(img_shape, tuple), "img_shape must be a tuple of size 2"
 
     train_data = []
     files = glob.glob(os.path.join(datadir, '*'))
@@ -36,18 +36,20 @@ def load_custom_data(datadir=None, img_shape=(64, 64)):
 
     return train_data
 
-def load_custom_data_AE(datadir = None, img_shape=(64, 64)):
+
+def load_custom_data_AE(datadir=None, img_shape=(64, 64)):
 
     assert datadir is not None, "Enter a valid directory"
 
-    error_message = "train directory not found \n Directory structure: \n {} \n {} -train \n {} -*.jpg \n {} -test \n {} -*.jpg".format(datadir, ' '*2, ' '*4, ' '*2, ' '*4)
+    error_message = "train directory not found \n Directory structure: \n {} \n {} -train \n {} -*.jpg \n {} -test \n {} -*.jpg".format(
+        datadir, ' ' * 2, ' ' * 4, ' ' * 2, ' ' * 4)
     assert os.path.exists(os.path.join(datadir, 'train')), error_message
 
-    error_message = "test directory not found \n Directory structure: \n {} \n {} -train \n {} -*.jpg \n {} -test \n {} -*.jpg".format(datadir, ' '*2, ' '*4, ' '*2, ' '*4)
+    error_message = "test directory not found \n Directory structure: \n {} \n {} -train \n {} -*.jpg \n {} -test \n {} -*.jpg".format(
+        datadir, ' ' * 2, ' ' * 4, ' ' * 2, ' ' * 4)
     assert os.path.exists(os.path.join(datadir, 'test')), error_message
 
-    assert len(img_shape) == 2 and isinstance(
-        img_shape, tuple), "img_shape must be a tuple of size 2"
+    assert len(img_shape) == 2 and isinstance(img_shape, tuple), "img_shape must be a tuple of size 2"
 
     train_data = []
 
@@ -86,8 +88,7 @@ def load_custom_data_AE(datadir = None, img_shape=(64, 64)):
 def load_custom_data_with_labels(datadir=None, img_shape=(64, 64)):
 
     assert datadir is not None, "Enter a valid directory"
-    assert len(img_shape) == 2 and isinstance(
-        img_shape, tuple), "img_shape must be a tuple of size 2"
+    assert len(img_shape) == 2 and isinstance(img_shape, tuple), "img_shape must be a tuple of size 2"
 
     train_data = []
     labels = []

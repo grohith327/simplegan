@@ -1,16 +1,20 @@
 import sys
 sys.path.append('..')
 
-import datetime
-import numpy as np
-import tensorflow as tf
-import cv2
-import imageio
-from losses.pix2pix_loss import pix2pix_generator_loss, pix2pix_discriminator_loss
-from datasets.load_pix2pix_datasets import pix2pix_dataloader
-from tensorflow.keras import Model
-from tensorflow.keras.layers import Conv2D, Dropout, Concatenate, BatchNormalization, LeakyReLU, Conv2DTranspose, ZeroPadding2D, Dense, Reshape, Flatten, ReLU, Input
+import imageio.core.util
 import os
+from tensorflow.keras.layers import Dropout, Concatenate, BatchNormalization
+from tensorflow.keras.layers import LeakyReLU, Conv2DTranspose, ZeroPadding2D
+from tensorflow.keras.layers import Dense, Reshape, Flatten
+from tensorflow.keras.layers import Conv2D, ReLU, Input
+from tensorflow.keras import Model
+from datasets.load_pix2pix_datasets import pix2pix_dataloader
+from losses.pix2pix_loss import pix2pix_generator_loss, pix2pix_discriminator_loss
+import imageio
+import cv2
+import tensorflow as tf
+import numpy as np
+import datetime
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
 
@@ -22,12 +26,13 @@ The following code is inspired from: https://www.tensorflow.org/tutorials/genera
 During trainig, samples will be saved at ./samples and saved rate at a rate given by save_img_per_epoch
 '''
 
-import imageio.core.util
 
 def silence_imageio_warning(*args, **kwargs):
     pass
 
+
 imageio.core.util._precision_warn = silence_imageio_warning
+
 
 class Pix2Pix:
 
@@ -40,26 +45,37 @@ class Pix2Pix:
         self.img_size = None
         self.save_img_dir = None
 
-    def load_data(self, data_dir=None, use_cityscapes=False,
-                  use_edges2handbags=False, use_edges2shoes=False,
-                  use_facades=False, use_maps=False, batch_size=32):
+    def load_data(self, 
+                data_dir=None, 
+                use_cityscapes=False,
+                use_edges2handbags=False, 
+                use_edges2shoes=False,
+                use_facades=False, 
+                use_maps=False, 
+                batch_size=32):
 
         if(use_cityscapes):
+
             data_obj = pix2pix_dataloader(dataset_name='cityscapes')
 
         elif(use_edges2handbags):
+
             data_obj = pix2pix_dataloader(dataset_name='edges2handbags')
 
         elif(use_edges2shoes):
+
             data_obj = pix2pix_dataloader(dataset_name='edges2shoes')
 
         elif(use_facades):
+
             data_obj = pix2pix_dataloader(dataset_name='facades')
 
         elif(use_maps):
+
             data_obj = pix2pix_dataloader(dataset_name='maps')
 
         else:
+
             data_obj = pix2pix_dataloader(datadir=data_dir)
 
         train_ds, test_ds = data_obj.load_dataset()
@@ -71,11 +87,9 @@ class Pix2Pix:
         train_ds = train_ds.shuffle(100000).batch(batch_size)
         test_ds = test_ds.shuffle(100000).batch(batch_size)
 
-
         return train_ds, test_ds
 
-    
-    def get_sample(self, data = None, n_samples = 1, save_dir = None):
+    def get_sample(self, data=None, n_samples=1, save_dir=None):
 
         assert data is not None, "Data not provided"
 
@@ -93,11 +107,25 @@ class Pix2Pix:
 
         assert os.path.exists(save_dir), "Directory does not exist"
         for i, sample in enumerate(sample_images):
+
             input_img = sample[0]
             target_img = sample[1]
-            imageio.imwrite(os.path.join(save_dir, 'input_sample_'+str(i)+'.jpg'), input_img)
-            imageio.imwrite(os.path.join(save_dir, 'target_sample_'+str(i)+'.jpg'), target_img)
 
+            imageio.imwrite(
+                os.path.join(
+                    save_dir,
+                    'input_sample_' +
+                    str(i) +
+                    '.jpg'),
+                input_img)
+
+            imageio.imwrite(
+                os.path.join(
+                    save_dir,
+                    'target_sample_' +
+                    str(i) +
+                    '.jpg'),
+                target_img)
 
     def _downsample(self, filters, kernel_size, kernel_initializer,
                     batchnorm=True):
@@ -120,7 +148,7 @@ class Pix2Pix:
         return model
 
     def _upsample(self, filters, kernel_size, kernel_initializer,
-                  dropout_rate = None, dropout=False):
+                  dropout_rate=None, dropout=False):
 
         model = tf.keras.Sequential()
         model.add(
@@ -128,7 +156,7 @@ class Pix2Pix:
                 filters,
                 kernel_size=kernel_size,
                 strides=2,
-                padding = 'same',
+                padding='same',
                 kernel_initializer=kernel_initializer,
                 use_bias=False))
         model.add(BatchNormalization())
@@ -142,7 +170,8 @@ class Pix2Pix:
 
     def generator(self, params):
 
-        kernel_initializer = params['kernel_initializer'] if 'kernel_initializer' in params else tf.random_normal_initializer(0., 0.02)
+        kernel_initializer = params['kernel_initializer'] if 'kernel_initializer' in params else tf.random_normal_initializer(
+            0., 0.02)
         dropout_rate = params['dropout_rate'] if 'dropout_rate' in params else 0.5
         kernel_size = params['kernel_size'] if 'kernel_size' in params else (
             4, 4)
@@ -198,7 +227,7 @@ class Pix2Pix:
             self.channels,
             strides=2,
             padding='same',
-            kernel_size = kernel_size,
+            kernel_size=kernel_size,
             kernel_initializer=kernel_initializer,
             activation='tanh')
 
@@ -222,7 +251,8 @@ class Pix2Pix:
 
     def discriminator(self, params):
 
-        kernel_initializer = params['kernel_initializer'] if 'kernel_initializer' in params else tf.random_normal_initializer(0., 0.02)
+        kernel_initializer = params['kernel_initializer'] if 'kernel_initializer' in params else tf.random_normal_initializer(
+            0., 0.02)
         kernel_size = params['kernel_size'] if 'kernel_size' in params else (
             4, 4)
         disc_layers = params['disc_layers'] if 'disc_layers' in params else 4
@@ -263,8 +293,10 @@ class Pix2Pix:
         down_stack.append(LeakyReLU())
         down_stack.append(ZeroPadding2D())
 
-        last = Conv2D(1, kernel_size=kernel_size, strides=1,
-                      kernel_initializer=kernel_initializer)
+        last = Conv2D(1, 
+                    kernel_size=kernel_size, 
+                    strides=1,
+                    kernel_initializer=kernel_initializer)
 
         for down in down_stack:
             x = down(x)
@@ -334,14 +366,35 @@ class Pix2Pix:
             pass
 
         sample = 0
-        for input_image, target_image, prediction in zip(input_images, target_images, predictions):
-            imageio.imwrite(os.path.join(curr_dir, 'input_image_' + str(sample) +'.png'), input_image)
-            imageio.imwrite(os.path.join(curr_dir, 'target_image_' + str(sample) +'.png'), target_image)
-            imageio.imwrite(os.path.join(curr_dir, 'translated_image_' + str(sample) +'.png'), prediction)
+        for input_image, target_image, prediction in zip(
+                input_images, target_images, predictions):
+
+            imageio.imwrite(
+                os.path.join(
+                    curr_dir,
+                    'input_image_' +
+                    str(sample) +
+                    '.png'),
+                input_image)
+
+            imageio.imwrite(
+                os.path.join(
+                    curr_dir,
+                    'target_image_' +
+                    str(sample) +
+                    '.png'),
+                target_image)
+
+            imageio.imwrite(
+                os.path.join(
+                    curr_dir,
+                    'translated_image_' +
+                    str(sample) +
+                    '.png'),
+                prediction)
             sample += 1
 
-    def fit(
-            self,
+    def fit(self,
             train_ds=None,
             test_ds=None,
             epochs=150,
