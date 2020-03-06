@@ -69,6 +69,27 @@ class DCGAN():
 
         return train_ds
 
+    
+    def get_sample(self, data = None, n_samples = 1, save_dir = None):
+
+        assert data is not None, "Data not provided"
+
+        sample_images = []
+        for img in data.take(n_samples):
+
+            img = img.numpy()
+            sample_images.append(img)
+
+        sample_images = np.array(sample_images)
+
+        if(save_dir is None):
+            return sample_images
+
+        assert os.path.exists(save_dir), "Directory does not exist"
+        for i, sample in enumerate(sample_images):
+            imageio.imwrite(os.path.join(save_dir, 'sample_'+str(i)+'.jpg'), sample)
+
+
     '''
     Create a child class to modify generator and discriminator architecture for
     custom dataset

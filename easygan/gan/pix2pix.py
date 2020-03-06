@@ -74,6 +74,31 @@ class Pix2Pix:
 
         return train_ds, test_ds
 
+    
+    def get_sample(self, data = None, n_samples = 1, save_dir = None):
+
+        assert data is not None, "Data not provided"
+
+        sample_images = []
+        for input_img, target_img in data.take(n_samples):
+
+            input_img = input_img.numpy()
+            target_img = target_img.numpy()
+            sample_images.append([input_img, target_img])
+
+        sample_images = np.array(sample_images)
+
+        if(save_dir is None):
+            return sample_images
+
+        assert os.path.exists(save_dir), "Directory does not exist"
+        for i, sample in enumerate(sample_images):
+            input_img = sample[0]
+            target_img = sample[1]
+            imageio.imwrite(os.path.join(save_dir, 'input_sample_'+str(i)+'.jpg'), input_img)
+            imageio.imwrite(os.path.join(save_dir, 'target_sample_'+str(i)+'.jpg'), target_img)
+
+
     def _downsample(self, filters, kernel_size, kernel_initializer,
                     batchnorm=True):
 
