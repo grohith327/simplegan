@@ -14,8 +14,13 @@ from datasets.load_custom_data import load_custom_data_AE
 from losses.mse_loss import mse_loss
 import tensorflow as tf
 import datetime
+from tqdm.auto import tqdm
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
+def silence_imageio_warning(*args, **kwargs):
+    pass
+
+imageio.core.util._precision_warn = silence_imageio_warning
 
 '''
 source: https://github.com/keras-team/keras/blob/master/examples/variational_autoencoder.py
@@ -75,6 +80,7 @@ class VAE():
         assert data is not None, "Data not provided"
 
         sample_images = []
+        data = data.unbatch()
         for img in data.take(n_samples):
 
             img = img.numpy()
@@ -223,7 +229,7 @@ class VAE():
         train_ds=None, 
         epochs=100, 
         optimizer='Adam', 
-        print_steps=100,
+        verbose=1,
         learning_rate=0.001, 
         tensorboard=False, 
         save_model=None):
@@ -240,9 +246,17 @@ class VAE():
             train_summary_writer = tf.summary.create_file_writer(train_log_dir)
 
         steps = 0
-
+        train_loss = tf.keras.metrics.Mean()
         for epoch in range(epochs):
 
+            train_loss.reset_states()
+
+            try:
+                total = tf.data.experimental.cardinality(train_ds).numpy()
+            except:
+                total = 0
+
+            pbar = tqdm(total = total, desc = 'Epoch - '+str(epoch+1))
             for data in train_ds:
 
                 with tf.GradientTape() as tape:
@@ -253,18 +267,23 @@ class VAE():
                 optimizer.apply_gradients(
                     zip(gradients, self.model.trainable_variables))
 
-                if(steps % print_steps == 0):
-                    print(
-                        "Step:",
-                        steps + 1,
-                        'reconstruction loss:',
-                        loss.numpy())
+                train_loss(loss)
 
                 steps += 1
+                pbar.update(1)
 
                 if(tensorboard):
                     with train_summary_writer.as_default():
                         tf.summary.scalar('loss', loss.numpy(), step=steps)
+
+            pbar.close()
+            del pbar
+
+            if(verbose == 1):
+                print("Epoch:",
+                    epoch + 1,
+                    'reconstruction loss:',
+                    train_loss.result().numpy())
 
         if(save_model is not None):
 
@@ -280,13 +299,15 @@ class VAE():
 
         assert test_ds is not None, "Enter input test dataset"
 
-        generated_samples = []
-        for data in test_ds:
+        generated_samples = np.array([])
+        for i, data in enumerate(test_ds):
             gen_sample = self.model(data, training=False)
             gen_sample = gen_sample.numpy()
-            generated_samples.append(gen_sample)
+            if(i == 0):
+                generated_samples = gen_sample
+            else:
+                generated_samples = np.concatenate((generated_samples, gen_sample), 0)
 
-        generated_samples = np.array(generated_samples)
         generated_samples = generated_samples.reshape(
             (-1, self.image_size[0], self.image_size[1], self.image_size[2]))
         if(save_dir is None):

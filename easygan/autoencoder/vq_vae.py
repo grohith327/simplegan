@@ -15,8 +15,13 @@ from datasets.load_cifar10 import load_cifar10_AE
 import datetime
 from losses.mse_loss import mse_loss
 import tensorflow as tf
+from tqdm.auto import tqdm
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
+def silence_imageio_warning(*args, **kwargs):
+    pass
+
+imageio.core.util._precision_warn = silence_imageio_warning
 
 '''
 vector quantized vae
@@ -320,6 +325,7 @@ class VQ_VAE():
         assert data is not None, "Data not provided"
 
         sample_images = []
+        data = data.unbatch()
         for img in data.take(n_samples):
 
             img = img.numpy()
@@ -360,7 +366,7 @@ class VQ_VAE():
             train_ds=None, 
             epochs=100, 
             optimizer='Adam', 
-            print_steps=100,
+            verbose=1,
             learning_rate=3e-4, 
             tensorboard=False, 
             save_model=None):
@@ -377,9 +383,21 @@ class VQ_VAE():
             train_summary_writer = tf.summary.create_file_writer(train_log_dir)
 
         steps = 0
-
+        total_loss = tf.keras.metrics.Mean()
+        VecQuant_loss = tf.keras.metrics.Mean()
+        reconstruction_loss = tf.keras.metrics.Mean()
         for epoch in range(epochs):
 
+            total_loss.reset_states()
+            reconstruction_loss.reset_states()
+            VecQuant_loss.reset_states()
+
+            try:
+                total = tf.data.experimental.cardinality(train_ds).numpy()
+            except:
+                total = 0
+
+            pbar = tqdm(total = total, desc = 'Epoch - '+str(epoch+1))
             for data in train_ds:
 
                 with tf.GradientTape() as tape:
@@ -391,18 +409,12 @@ class VQ_VAE():
                 optimizer.apply_gradients(
                     zip(gradients, self.model.trainable_variables))
 
-                if(steps % print_steps == 0):
-                    print(
-                        'Step:',
-                        steps + 1,
-                        'total_loss:',
-                        loss.numpy(),
-                        'vq_loss:',
-                        vq_loss.numpy(),
-                        'reconstruction loss:',
-                        recon_err.numpy())
+                total_loss(loss)
+                reconstruction_loss(recon_err)
+                VecQuant_loss(vq_loss)
 
                 steps += 1
+                pbar.update(1)
 
                 if(tensorboard):
                     with train_summary_writer.as_default():
@@ -414,6 +426,19 @@ class VQ_VAE():
                             'reconstruction_loss', 
                             recon_err.numpy(), 
                             step=steps)
+
+            pbar.close()
+            del pbar
+
+            if(verbose == 1):
+                print('Epoch:',
+                    epoch + 1,
+                    'total_loss:',
+                    total_loss.result().numpy(),
+                    'vq_loss:',
+                    VecQuant_loss.result().numpy(),
+                    'reconstruction loss:',
+                    reconstruction_loss.result().numpy())
 
         if(save_model is not None):
 
@@ -427,20 +452,21 @@ class VQ_VAE():
 
         assert test_ds is not None, "Enter input test dataset"
 
-        generated_samples = []
-        for data in test_ds:
+        generated_samples = np.array([])
+        for i, data in enumerate(test_ds):
             _, gen_sample, _ = self.model(data, training=False)
             gen_sample = gen_sample.numpy()
-            generated_samples.append(gen_sample)
+            if(i == 0):
+                generated_samples = gen_sample
+            else:
+                generated_samples = np.concatenate((generated_samples, gen_sample), 0)
 
-        generated_samples = np.array(generated_samples)
-        generated_samples = np.squeeze(generated_samples, axis=0)
         if(save_dir is None):
             return generated_samples
 
         assert os.path.exists(save_dir), "Directory does not exist"
         for i, sample in enumerate(generated_samples):
-            imagio.imwrite(
+            imageio.imwrite(
                 os.path.join(
                     save_dir,
                     'sample_' +
