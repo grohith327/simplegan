@@ -255,9 +255,9 @@ class nn_model(Model):
     def __init__(self, params, image_size):
         super(nn_model, self).__init__()
 
-        embedding_dim = params['embedding_dim'] if 'embedding_dim' in params else 64
-        commiment_cost = params['commiment_cost'] if 'commiment_cost' in params else 0.25
-        num_embeddings = params['num_embeddings'] if 'num_embeddings' in params else 512
+        embedding_dim = params['embedding_dim']
+        commiment_cost = params['commiment_cost']
+        num_embeddings = params['num_embeddings']
 
         self.encoder = encoder(params)
         self.pre_vq_conv = Conv2D(
@@ -284,13 +284,40 @@ class nn_model(Model):
         return loss, x_recon, perplexity
 
 
-class VQ_VAE():
+class VQ_VAE:
 
-    def __init__(self):
+    def __init__(self,
+                params={
+                'num_hiddens': 128,
+                'num_residual_hiddens': 32,
+                'num_residual_layers': 2,
+                'num_embeddings': 512,
+                'embedding_dim': 64,
+                'commiment_cost': 0.25}):
+
+        
+        if('num_hiddens' not in params):
+            params['num_hiddens'] = 128
+
+        if('num_residual_hiddens' not in params):
+            params['num_residual_hiddens'] = 32
+
+        if('num_residual_layers' not in params):
+            params['num_residual_layers'] = 2
+
+        if('num_embeddings' not in params):
+            params['num_embeddings'] = 512
+
+        if('embedding_dim' not in params):
+            params['embedding_dim'] = 64
+
+        if('commiment_cost' not in params):
+            params['commiment_cost'] = 0.25
 
         self.image_size = None
         self.model = None
         self.data_var = None
+        self.params = params
 
     def load_data(self, data_dir=None, use_mnist=False,
                   use_cifar10=False, batch_size=32, img_shape=(64, 64)):
@@ -346,21 +373,9 @@ class VQ_VAE():
                     '.jpg'),
                 sample)
 
-    def build_model(
-        self,
-        params={
-            'num_hiddens': 128,
-            'num_residual_hiddens': 32,
-            'num_residual_layers': 2,
-            'num_embeddings': 512,
-            'embedding_dim': 64,
-            'commiment_cost': 0.25}):
+    def __load_model(self):
 
-        assert 'num_hiddens' in params, "Enter num_hiddens parameter"
-        assert 'num_residual_hiddens' in params, "Enter num_hiddens parameter"
-        assert 'num_residual_layers' in params, "Enter num_hiddens parameter"
-
-        self.model = nn_model(params, self.image_size)
+        self.model = nn_model(self.params, self.image_size)
 
     def fit(self, 
             train_ds=None, 
@@ -372,6 +387,8 @@ class VQ_VAE():
             save_model=None):
 
         assert train_ds is not None, 'Initialize training data through train_ds parameter'
+
+        self.__load_model()
 
         kwargs = {}
         kwargs['learning_rate'] = learning_rate

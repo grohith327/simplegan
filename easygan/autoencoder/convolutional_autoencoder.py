@@ -33,15 +33,50 @@ use the fit function to train the model.
 '''
 
 
-class ConvolutionalAutoencoder():
+class ConvolutionalAutoencoder:
 
-    def __init__(self):
-        '''
-        initialize the number of encoder and layers
-        '''
-        super(ConvolutionalAutoencoder, self).__init__()
+    def __init__(self,
+                params={
+                'interm_dim': 128,
+                'enc_channels': [
+                    32,
+                    64],
+                'dec_channels': [
+                    64,
+                    32],
+                'kernel_size': (
+                    5,
+                    5),
+                'activation': 'relu',
+                'kernel_initializer': 'glorot_uniform',
+                'kernel_regularizer': None}):
+
+        
+        if('interm_dim' not in params):
+            params['interm_dim'] = 128
+
+        if('enc_channels' not in params):
+            params['enc_channels'] = [32, 64]
+
+        if('dec_channels' not in params):
+            params['dec_channels'] = [64, 32]
+
+        if('kernel_size' not in params):
+            params['kernel_size'] = (5, 5)
+
+        if('activation' not in params):
+            params['activation'] = 'relu'
+
+        if('kernel_initializer' not in params):
+            params['kernel_initializer'] = 'glorot_uniform'
+
+        if('kernel_regularizer' not in params):
+            params['kernel_regularizer'] = None
+
+
         self.model = tf.keras.Sequential()
         self.image_size = None
+        self.params = params
 
     def load_data(self, 
                 data_dir=None, 
@@ -109,17 +144,13 @@ class ConvolutionalAutoencoder():
 
     def encoder(self, params):
 
-        enc_channels = params['enc_channels'] if 'enc_channels' in params else [
-            32, 64]
-        encoder_layers = params['encoder_layers'] if 'encoder_layers' in params else 2
-        interm_dim = params['interm_dim'] if 'interm_dim' in params else 128
-        activation = params['activation'] if 'activation' in params else 'relu'
-        kernel_initializer = params['kernel_initializer'] if 'kernel_initializer' in params else 'glorot_uniform'
-        kernel_regularizer = params['kernel_regularizer'] if 'kernel_regularizer' in params else None
-        kernel_size = params['kernel_size'] if 'kernel_size' in params else (
-            5, 5)
-
-        assert len(enc_channels) == encoder_layers, "Dimension mismatch: length of enocoder encoder channels should match number of encoder layers"
+        enc_channels = self.params['enc_channels']
+        encoder_layers = len(enc_channels)
+        interm_dim = self.params['interm_dim']
+        activation = self.params['activation']
+        kernel_initializer = self.params['kernel_initializer']
+        kernel_regularizer = self.params['kernel_regularizer']
+        kernel_size = self.params['kernel_size']
 
         model = tf.keras.Sequential()
 
@@ -152,17 +183,13 @@ class ConvolutionalAutoencoder():
 
     def decoder(self, params):
 
-        dec_channels = params['dec_channels'] if 'dec_channels' in params else [
-            64, 32]
-        decoder_layers = params['decoder_layers'] if 'decoder_layers' in params else 2
-        interm_dim = params['interm_dim'] if 'interm_dim' in params else 128
-        activation = params['activation'] if 'activation' in params else 'relu'
-        kernel_initializer = params['kernel_initializer'] if 'kernel_initializer' in params else 'glorot_uniform'
-        kernel_regularizer = params['kernel_regularizer'] if 'kernel_regularizer' in params else None
-        kernel_size = params['kernel_size'] if 'kernel_size' in params else (
-            5, 5)
-
-        assert len(dec_channels) == decoder_layers, "Dimension mismatch: length of decoder channels should match number of decoder layers"
+        dec_channels = self.params['dec_channels']
+        decoder_layers = len(dec_channels)
+        interm_dim = self.params['interm_dim']
+        activation = self.params['activation']
+        kernel_initializer = self.params['kernel_initializer']
+        kernel_regularizer = self.params['kernel_regularizer']
+        kernel_size = self.params['kernel_size']
 
         model = tf.keras.Sequential()
 
@@ -236,27 +263,10 @@ class ConvolutionalAutoencoder():
     call build_model to intialize the layers before you train the model
     '''
 
-    def build_model(
-        self,
-        params={
-            'encoder_layers': 2,
-            'decoder_layers': 2,
-            'interm_dim': 128,
-            'enc_channels': [
-            32,
-            64],
-            'dec_channels': [
-                64,
-                32],
-            'kernel_size': (
-            5,
-            5),
-            'activation': 'relu',
-            'kernel_initializer': 'glorot_uniform',
-            'kernel_regularizer': None}):
+    def __load_model(self):
 
-        self.model.add(self.encoder(params))
-        self.model.add(self.decoder(params))
+        self.model.add(self.encoder(self.params))
+        self.model.add(self.decoder(self.params))
 
     def fit(self, 
             train_ds=None, 
@@ -268,6 +278,8 @@ class ConvolutionalAutoencoder():
             save_model=None):
 
         assert train_ds is not None, 'Initialize training data through train_ds parameter'
+
+        self.__load_model()
 
         kwargs = {}
         kwargs['learning_rate'] = learning_rate

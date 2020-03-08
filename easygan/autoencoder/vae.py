@@ -31,13 +31,48 @@ use the fit function to train the model.
 '''
 
 
-class VAE():
+class VAE:
 
-    def __init__(self):
+    def __init__(self,
+                params={
+                'enc_units': [
+                    256,
+                    128],
+                'dec_units': [
+                    128,
+                    256],
+                'interm_dim': 256,
+                'latent_dim': 32,
+                'activation': 'relu',
+                'kernel_initializer': 'glorot_uniform',
+                'kernel_regularizer': None}):
 
-        super(VAE, self).__init__()
+        
+        if('interm_dim' not in params):
+            params['interm_dim'] = 256
+
+        if('latent_dim' not in params):
+            params['latent_dim'] = 32
+
+        if('enc_units' not in params):
+            params['enc_units'] = [256, 128]
+
+        if('dec_units' not in params):
+            params['dec_units'] = [128, 256]
+
+        if('activation' not in params):
+            params['activation'] = 'relu'
+
+        if('kernel_initializer' not in params):
+            params['kernel_initializer'] = 'glorot_uniform'
+
+        if('kernel_regularizer' not in params):
+            params['kernel_regularizer'] = None
+
+
         self.model = None
         self.image_size = None
+        self.params = params
 
     def load_data(self, 
                 data_dir=None, 
@@ -123,20 +158,15 @@ class VAE():
 
     def vae(self, params):
 
-        enc_units = params['enc_units'] if 'enc_units' in params else [
-            256, 128]
-        encoder_layers = params['encoder_layers'] if 'encoder_layers' in params else 2
-        dec_units = params['dec_units'] if 'dec_units' in params else [
-            128, 256]
-        decoder_layers = params['decoder_layers'] if 'decoder_layers' in params else 2
-        interm_dim = params['interm_dim'] if 'interm_dim' in params else 64
-        latent_dim = params['latent_dim'] if 'latent_dim' in params else 32
-        activation = params['activation'] if 'activation' in params else 'relu'
-        kernel_initializer = params['kernel_initializer'] if 'kernel_initializer' in params else 'glorot_uniform'
-        kernel_regularizer = params['kernel_regularizer'] if 'kernel_regularizer' in params else None
-
-        assert len(enc_units) == encoder_layers, "Dimension mismatch: length of enocoder units should match number of encoder layers"
-        assert len(dec_units) == decoder_layers, "Dimension mismatch: length of decoder units should match number of decoder layers"
+        enc_units = self.params['enc_units']
+        encoder_layers = len(enc_units)
+        dec_units = self.params['dec_units']
+        decoder_layers = len(dec_units)
+        interm_dim = self.params['interm_dim']
+        latent_dim = self.params['latent_dim']
+        activation = self.params['activation']
+        kernel_initializer = self.params['kernel_initializer']
+        kernel_regularizer = self.params['kernel_regularizer']
 
         org_inputs = Input(
             shape=self.image_size[0] *
@@ -206,24 +236,9 @@ class VAE():
     call build_model to intialize the layers before you train the model
     '''
 
-    def build_model(
-        self,
-        params={
-            'encoder_layers': 2,
-            'decoder_layers': 2,
-            'enc_units': [
-            256,
-            128],
-            'dec_units': [
-                128,
-                256],
-            'interm_dim': 256,
-            'latent_dim': 32,
-            'activation': 'relu',
-            'kernel_initializer': 'glorot_uniform',
-            'kernel_regularizer': None}):
+    def __load_model(self):
 
-        self.model = self.vae(params)
+        self.model = self.vae(self.params)
 
     def fit(self, 
         train_ds=None, 
@@ -235,6 +250,8 @@ class VAE():
         save_model=None):
 
         assert train_ds is not None, 'Initialize training data through train_ds parameter'
+
+        self.__load_model()
 
         kwargs = {}
         kwargs['learning_rate'] = learning_rate
