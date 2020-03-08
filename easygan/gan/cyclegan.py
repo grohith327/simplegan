@@ -63,7 +63,7 @@ class CycleGAN(Pix2Pix):
                     256,
                     512]):
 
-        Pix2Pix.__init__(self
+        Pix2Pix.__init__(self,
                         kernel_initializer,
                         dropout_rate,
                         kernel_size,
