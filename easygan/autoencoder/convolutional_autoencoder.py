@@ -36,47 +36,23 @@ use the fit function to train the model.
 class ConvolutionalAutoencoder:
 
     def __init__(self,
-                config={
-                'interm_dim': 128,
-                'enc_channels': [
+                interm_dim = 128,
+                enc_channels = [
                     32,
                     64],
-                'dec_channels': [
+                dec_channels = [
                     64,
                     32],
-                'kernel_size': (
+                kernel_size = (
                     5,
                     5),
-                'activation': 'relu',
-                'kernel_initializer': 'glorot_uniform',
-                'kernel_regularizer': None}):
-
-        
-        if('interm_dim' not in config):
-            config['interm_dim'] = 128
-
-        if('enc_channels' not in config):
-            config['enc_channels'] = [32, 64]
-
-        if('dec_channels' not in config):
-            config['dec_channels'] = [64, 32]
-
-        if('kernel_size' not in config):
-            config['kernel_size'] = (5, 5)
-
-        if('activation' not in config):
-            config['activation'] = 'relu'
-
-        if('kernel_initializer' not in config):
-            config['kernel_initializer'] = 'glorot_uniform'
-
-        if('kernel_regularizer' not in config):
-            config['kernel_regularizer'] = None
-
+                activation = 'relu',
+                kernel_initializer = 'glorot_uniform',
+                kernel_regularizer = None):
 
         self.model = tf.keras.Sequential()
         self.image_size = None
-        self.config = config
+        self.config = locals()
 
     def load_data(self, 
                 data_dir=None, 

@@ -30,25 +30,32 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 class WGAN(DCGAN):
 
     def __init__(self,
-                config={
-                'noise_dim': 100,
-                'dropout_rate': 0.4,
-                'activation': 'relu',
-                'kernel_initializer': 'glorot_uniform',
-                'kernel_size': (
+                noise_dim = 100,
+                dropout_rate = 0.4,
+                activation = 'relu',
+                kernel_initializer = 'glorot_uniform',
+                kernel_size = (
                     5,
                     5),
-                'gen_channels': [
+                gen_channels = [
                     64,
                     32,
                     16],
-                'disc_channels': [
+                disc_channels = [
                     16,
                     32,
                     64],
-                'kernel_regularizer': None}):
+                kernel_regularizer = None):
 
-        DCGAN.__init__(self, config)
+        DCGAN.__init__(self,
+                    noise_dim,
+                    dropout_rate,
+                    activation,
+                    kernel_initializer,
+                    kernel_size,
+                    gen_channels,
+                    disc_channels,
+                    kernel_regularizer)
 
     def __load_model(self):
 

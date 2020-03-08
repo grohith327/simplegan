@@ -31,48 +31,25 @@ Original GAN paper: https://arxiv.org/abs/1406.2661
 class VanillaGAN():
 
     def __init__(self,
-                config={
-                'noise_dim': 64,
-                'dropout_rate': 0.4,
-                'activation': 'relu',
-                'kernel_initializer': 'glorot_uniform',
-                'gen_units': [
+                noise_dim = 64,
+                dropout_rate = 0.4,
+                activation = 'relu',
+                kernel_initializer = 'glorot_uniform',
+                gen_units = [
                     128,
                     256,
                     512],
-                'disc_units': [
+                disc_units = [
                     512,
                     256,
                     128],
-                'kernel_regularizer': None}):
-
-        
-        if('noise_dim' not in config):
-            config['noise_dim'] = 64
-
-        if('dropout_rate' not in config):
-            config['dropout_rate'] = 0.4
-
-        if('activation' not in config):
-            config['activation'] = 'relu'
-
-        if('kernel_initializer' not in config):
-            config['kernel_initializer'] = 'glorot_uniform'
-
-        if('kernel_regularizer' not in config):
-            config['kernel_regularizer'] = None
-
-        if('gen_units' not in config):
-            config['gen_units'] = [128, 256, 512]
-
-        if('disc_units' not in config):
-            config['disc_units'] = [512, 256, 128]
+                kernel_regularizer = None):
 
         self.image_size = None
-        self.noise_dim = config['noise_dim']
+        self.noise_dim = noise_dim
         self.gen_model = None
         self.disc_model = None
-        self.config = config
+        self.config = locals()
 
     def load_data(self, 
                 data_dir=None, 

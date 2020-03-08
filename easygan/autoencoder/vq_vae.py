@@ -287,37 +287,18 @@ class nn_model(Model):
 class VQ_VAE:
 
     def __init__(self,
-                config={
-                'num_hiddens': 128,
-                'num_residual_hiddens': 32,
-                'num_residual_layers': 2,
-                'num_embeddings': 512,
-                'embedding_dim': 64,
-                'commiment_cost': 0.25}):
+                num_hiddens = 128,
+                num_residual_hiddens = 32,
+                num_residual_layers = 2,
+                num_embeddings = 512,
+                embedding_dim = 64,
+                commiment_cost = 0.25):
 
-        
-        if('num_hiddens' not in config):
-            config['num_hiddens'] = 128
-
-        if('num_residual_hiddens' not in config):
-            config['num_residual_hiddens'] = 32
-
-        if('num_residual_layers' not in config):
-            config['num_residual_layers'] = 2
-
-        if('num_embeddings' not in config):
-            config['num_embeddings'] = 512
-
-        if('embedding_dim' not in config):
-            config['embedding_dim'] = 64
-
-        if('commiment_cost' not in config):
-            config['commiment_cost'] = 0.25
 
         self.image_size = None
         self.model = None
         self.data_var = None
-        self.config = config
+        self.config = locals()
 
     def load_data(self, data_dir=None, use_mnist=False,
                   use_cifar10=False, batch_size=32, img_shape=(64, 64)):

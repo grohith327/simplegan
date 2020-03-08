@@ -34,45 +34,22 @@ use the fit function to train the model.
 class VAE:
 
     def __init__(self,
-                config={
-                'enc_units': [
+                enc_units = [
                     256,
                     128],
-                'dec_units': [
+                dec_units = [
                     128,
                     256],
-                'interm_dim': 256,
-                'latent_dim': 32,
-                'activation': 'relu',
-                'kernel_initializer': 'glorot_uniform',
-                'kernel_regularizer': None}):
-
-        
-        if('interm_dim' not in config):
-            config['interm_dim'] = 256
-
-        if('latent_dim' not in config):
-            config['latent_dim'] = 32
-
-        if('enc_units' not in config):
-            config['enc_units'] = [256, 128]
-
-        if('dec_units' not in config):
-            config['dec_units'] = [128, 256]
-
-        if('activation' not in config):
-            config['activation'] = 'relu'
-
-        if('kernel_initializer' not in config):
-            config['kernel_initializer'] = 'glorot_uniform'
-
-        if('kernel_regularizer' not in config):
-            config['kernel_regularizer'] = None
+                interm_dim = 256,
+                latent_dim = 32,
+                activation = 'relu',
+                kernel_initializer = 'glorot_uniform',
+                kernel_regularizer = None):
 
 
         self.model = None
         self.image_size = None
-        self.config = config
+        self.config = locals()
 
     def load_data(self, 
                 data_dir=None, 

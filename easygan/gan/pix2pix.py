@@ -37,13 +37,12 @@ imageio.core.util._precision_warn = silence_imageio_warning
 class Pix2Pix:
 
     def __init__(self,
-                config={
-                'kernel_initializer': tf.random_normal_initializer(0., 0.02),
-                'dropout_rate': 0.5,
-                'kernel_size': (
+                kernel_initializer = tf.random_normal_initializer(0., 0.02),
+                dropout_rate = 0.5,
+                kernel_size = (
                     4,
                     4),
-                'gen_enc_channels': [
+                gen_enc_channels = [
                     128,
                     256,
                     512,
@@ -51,7 +50,7 @@ class Pix2Pix:
                     512,
                     512,
                     512],
-                'gen_dec_channels': [
+                gen_dec_channels = [
                     512,
                     512,
                     512,
@@ -59,35 +58,11 @@ class Pix2Pix:
                     256,
                     128,
                     64],
-                'disc_channels': [
+                disc_channels = [
                     64,
                     128,
                     256,
-                    512]}):
-
-        
-        if('kernel_initializer' not in config):
-            config['kernel_initializer'] = tf.random_normal_initializer(0., 0.02)
-
-        if('dropout_rate' not in config):
-            config['dropout_rate'] = 0.5
-
-        if('kernel_size' not in config):
-            config['kernel_size'] = (4,4)
-
-        if('gen_enc_channels' not in config):
-            config['gen_enc_channels'] = [128,256,512,512,512,512,512]
-
-        if('gen_dec_channels' not in config):
-            config['gen_dec_channels'] = [512,512,512,512,256,128,64]
-
-        if('disc_channels' not in config):
-            config['disc_channels'] = [64, 128, 256, 512]
-
-        assert len(config['gen_enc_channels']) == len(config['gen_dec_channels']), "Dimension mismatch: length of gen_enc_channels should match length of gen_dec_channels"
-        test = config['gen_enc_channels'][:-1]
-        test.reverse()
-        assert test == config['gen_dec_channels'][:-1], "Number of channels in Enocder of generator should be equal to reverse of number of Decoder channels of generator"
+                    512]):
 
         self.gen_model = None
         self.disc_model = None
@@ -95,7 +70,12 @@ class Pix2Pix:
         self.LAMBDA = None
         self.img_size = None
         self.save_img_dir = None
-        self.config = config
+        self.config = locals()
+
+        assert len(self.config['gen_enc_channels']) == len(self.config['gen_dec_channels']), "Dimension mismatch: length of gen_enc_channels should match length of gen_dec_channels"
+        test = self.config['gen_enc_channels'][:-1]
+        test.reverse()
+        assert test == self.config['gen_dec_channels'][:-1], "Number of channels in Enocder of generator should be equal to reverse of number of Decoder channels of generator"
 
     def load_data(self, 
                 data_dir=None, 
@@ -351,8 +331,6 @@ class Pix2Pix:
         assert os.path.exists(
             self.save_img_dir), "sample directory does not exist"
 
-        self.__load_model()
-
         prediction = model(ex_input, training=False)
 
         input_images = ex_input.numpy()
@@ -412,6 +390,8 @@ class Pix2Pix:
         assert train_ds is not None, 'Initialize training data through train_ds parameter'
         assert test_ds is not None, 'Initialize testing data through test_ds parameter'
         self.LAMBDA = LAMBDA
+
+        self.__load_model()
 
         kwargs = {}
         kwargs['learning_rate'] = gen_learning_rate

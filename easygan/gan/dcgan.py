@@ -34,54 +34,28 @@ DCGAN paper: https://arxiv.org/abs/1511.06434
 class DCGAN():
 
     def __init__(self,
-                config={
-                'noise_dim': 100,
-                'dropout_rate': 0.4,
-                'activation': 'relu',
-                'kernel_initializer': 'glorot_uniform',
-                'kernel_size': (
+                noise_dim = 100,
+                dropout_rate = 0.4,
+                activation = 'relu',
+                kernel_initializer = 'glorot_uniform',
+                kernel_size = (
                     5,
                     5),
-                'gen_channels': [
+                gen_channels = [
                     64,
                     32,
                     16],
-                'disc_channels': [
+                disc_channels = [
                     16,
                     32,
                     64],
-                'kernel_regularizer': None}):
-
-
-        if('noise_dim' not in config):
-            config['noise_dim'] = 64
-
-        if('dropout_rate' not in config):
-            config['dropout_rate'] = 0.4
-
-        if('activation' not in config):
-            config['activation'] = 'relu'
-
-        if('kernel_initializer' not in config):
-            config['kernel_initializer'] = 'glorot_uniform'
-
-        if('kernel_regularizer' not in config):
-            config['kernel_regularizer'] = None
-
-        if('kernel_size' not in config):
-            config['kernel_size'] = (5, 5)
-
-        if('gen_channels' not in config):
-            config['gen_channels'] = [64, 32, 16]
-
-        if('disc_channels' not in config):
-            config['disc_channels'] = [16, 32, 64]
+                kernel_regularizer = None):
 
         self.image_size = None
-        self.noise_dim = config['noise_dim']
+        self.noise_dim = noise_dim
         self.gen_model = None
         self.disc_model = None
-        self.config = config
+        self.config = locals()
 
     def load_data(self, 
                 data_dir=None, 

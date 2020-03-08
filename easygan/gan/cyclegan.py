@@ -36,13 +36,12 @@ imageio.core.util._precision_warn = silence_imageio_warning
 class CycleGAN(Pix2Pix):
 
     def __init__(self,
-                config={
-                'kernel_initializer': tf.random_normal_initializer(0., 0.02),
-                'dropout_rate': 0.5,
-                'kernel_size': (
+                kernel_initializer = tf.random_normal_initializer(0., 0.02),
+                dropout_rate = 0.5,
+                kernel_size = (
                     4,
                     4),
-                'gen_enc_channels': [
+                gen_enc_channels = [
                     128,
                     256,
                     512,
@@ -50,7 +49,7 @@ class CycleGAN(Pix2Pix):
                     512,
                     512,
                     512],
-                'gen_dec_channels': [
+                gen_dec_channels = [
                     512,
                     512,
                     512,
@@ -58,13 +57,20 @@ class CycleGAN(Pix2Pix):
                     256,
                     128,
                     64],
-                'disc_channels': [
+                disc_channels = [
                     64,
                     128,
                     256,
-                    512]}):
+                    512]):
 
-        Pix2Pix.__init__(self, config)
+        Pix2Pix.__init__(self
+                        kernel_initializer,
+                        dropout_rate,
+                        kernel_size,
+                        gen_enc_channels,
+                        gen_dec_channels,
+                        disc_channels)
+
         self.gen_model_g = None
         self.gen_model_f = None
         self.disc_model_x = None
@@ -239,8 +245,6 @@ class CycleGAN(Pix2Pix):
         assert os.path.exists(
             self.save_img_dir), "sample directory does not exist"
 
-        self.__load_model()
-
         pred = model(image, training=False)
         pred = pred.numpy()
         image = image.numpy()
@@ -300,6 +304,8 @@ class CycleGAN(Pix2Pix):
         assert testB is not None, 'Initialize testing data B through testB parameter'
         
         self.LAMBDA = LAMBDA
+
+        self.__load_model()
 
         kwargs = {}
         kwargs['learning_rate'] = gen_g_learning_rate
