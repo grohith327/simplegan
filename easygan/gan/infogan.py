@@ -14,37 +14,50 @@ from tqdm import tqdm
 import sys
 sys.path.append('..')
 import logging
+import imageio
 logging.getLogger("tensorflow").setLevel(logging.ERROR)
+
+def silence_imageio_warning(*args, **kwargs):
+    pass
+
+
+imageio.core.util._precision_warn = silence_imageio_warning
 
 
 class InfoGAN:
-    def __init__(self,noise_dim = 100,code_dim = 2,n_classes = 10,
-            dropout_rate = 0.4,
-            activation = 'leaky_relu',
-            kernel_initializer = 'glorot_uniform',
-            kernel_size = (
-            5,
-            5),
-            gen_channels = [
-                128,
-                64
-            ],
-            disc_channels = [
-            64,
-            128],
-
-            kernel_regularizer = None):
+    def __init__(self,
+                noise_dim = 100,
+                code_dim = 2,
+                n_classes = 10,
+                dropout_rate = 0.4,
+                activation = 'leaky_relu',
+                kernel_initializer = 'glorot_uniform',
+                kernel_size = (
+                    5,
+                    5),
+                gen_channels = [
+                    128,
+                    64
+                ],
+                disc_channels = [
+                    64,
+                    128],
+                kernel_regularizer = None):
         
         
         self.image_size = None
         self.config=locals()
+        self.n_classes = n_classes
+        self.noise_dim = noise_dim
+        self.code_dim = code_dim
         
     def load_data(self,
                   data_dir=None,
                   use_mnist=False,
                   use_cifar10=False,
                   use_lsun=False,
-                  batch_size=32, img_shape=(64, 64)):
+                  batch_size=32, 
+                  img_shape=(64, 64)):
         '''
         choose the dataset, if None is provided returns an assertion error -> ../datasets/load_custom_data
         returns a tensorflow dataset loader
@@ -75,6 +88,7 @@ class InfoGAN:
         assert data is not None, "Data not provided"
 
         sample_images = []
+        data = data.unbatch()
         for img in data.take(n_samples):
 
             img = img.numpy()
@@ -136,13 +150,14 @@ class InfoGAN:
             x = tf.keras.activations.tanh(x)
         return x
 
-    def discriminator(self):
-        dropout_rate = self.config['dropout_rate'] 
-        disc_channels = self.config['disc_channels'] 
+    def discriminator(self, config):
+
+        dropout_rate = config['dropout_rate'] 
+        disc_channels = config['disc_channels'] 
         activation = self.config['activation'] 
-        kernel_initializer = self.config['kernel_initializer'] 
-        kernel_regularizer = self.config['kernel_regularizer']
-        kernel_size = self.config['kernel_size']
+        kernel_initializer = config['kernel_initializer'] 
+        kernel_regularizer = config['kernel_regularizer']
+        kernel_size = config['kernel_size']
 
         image_input = layers.Input(self.image_size)
         img = self.conv_block(
@@ -186,19 +201,19 @@ class InfoGAN:
 
         return disc_model
 
-    def generator(self):
+    def generator(self, config):
 
-        n_classes = self.config['n_classes'] 
-        noise_dim = self.config['noise_dim'] 
-        code_dim = self.config['code_dim'] 
+        n_classes = config['n_classes'] 
+        noise_dim = config['noise_dim'] 
+        code_dim = config['code_dim'] 
 
-        self.n_classes, self.noise_dim, self.code_dim = n_classes, noise_dim, code_dim
-        dropout_rate = self.config['dropout_rate'] 
-        gen_channels = self.config['gen_channels'] 
-        activation = self.config['activation'] 
-        kernel_initializer = self.config['kernel_initializer'] 
-        kernel_regularizer = self.config['kernel_regularizer']
-        kernel_size = self.config['kernel_size']
+        
+        dropout_rate = config['dropout_rate'] 
+        gen_channels = config['gen_channels'] 
+        activation = config['activation'] 
+        kernel_initializer = config['kernel_initializer'] 
+        kernel_regularizer = config['kernel_regularizer']
+        kernel_size = config['kernel_size']
 
         input_shape = self.noise_dim + self.n_classes + self.code_dim
         input_noise = layers.Input(shape=input_shape)
@@ -235,22 +250,25 @@ class InfoGAN:
         gen_model = tf.keras.Model(input_noise, img)
         return gen_model
     
+    def __load_model(self):
+
+        self.gen_model, self.disc_model = self.generator(self.config), self.discriminator(self.config)
+
     def fit(self,
             train_ds=None,
             epochs=100,
             gen_optimizer='Adam',
             disc_optimizer='Adam',
-            print_steps=100,
+            verbose=1,
             gen_learning_rate=0.0001,
             disc_learning_rate=0.0002,
             beta_1=0.5,
             tensorboard=False,
-            save_model=None,
-            verbose=True):
+            save_model=None):
 
         assert train_ds is not None, 'No Input data found'
         
-        self.gen_model, self.disc_model = self.generator(), self.discriminator()
+        self.__load_model()
         
         kwargs = {}
         kwargs['learning_rate'] = gen_learning_rate
@@ -363,7 +381,7 @@ class InfoGAN:
 
         assert os.path.exists(save_dir), "Directory does not exist"
         for i, sample in enumerate(generated_samples):
-            cv2.imwrite(
+            imageio.imwrite(
                 os.path.join(
                     save_dir,
                     'sample_' +
