@@ -1,6 +1,10 @@
+import sys
+sys.path.append('..')
+
 import os
 import tensorflow as tf
-from tensorflow.keras.layers import Conv2D, Dropout, BatchNormalization, LeakyReLU, Conv2DTranspose, Dense, Reshape, Flatten
+from tensorflow.keras.layers import Conv2D, Dropout, BatchNormalization
+from tensorflow.keras.layers import LeakyReLU, Conv2DTranspose, Dense, Reshape, Flatten
 from tensorflow.keras import Model
 from datasets.load_cifar10 import load_cifar10
 from datasets.load_mnist import load_mnist
@@ -12,8 +16,13 @@ import cv2
 import numpy as np
 import datetime
 from datasets.load_lsun import load_lsun
-import sys
-sys.path.append('..')
+import imageio
+from tqdm.auto import tqdm
+
+def silence_imageio_warning(*args, **kwargs):
+    pass
+
+imageio.core.util._precision_warn = silence_imageio_warning
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
@@ -28,7 +37,7 @@ class WGAN(DCGAN):
             epochs=100,
             gen_optimizer='RMSprop',
             disc_optimizer='RMSprop',
-            print_steps=100,
+            verbose=1,
             gen_learning_rate=5e-5,
             disc_learning_rate=5e-5,
             beta_1=0.5,
@@ -55,11 +64,24 @@ class WGAN(DCGAN):
             train_summary_writer = tf.summary.create_file_writer(train_log_dir)
 
         steps = 0
+        generator_loss = tf.keras.metrics.Mean()
+        discriminator_loss = tf.keras.metrics.Mean()
+
+        try:
+            total = tf.data.experimental.cardinality(train_ds).numpy()
+        except:
+            total = 0
 
         for epoch in range(epochs):
+            
+            generator_loss.reset_states()
+            discriminator_loss.reset_states()
+
+            pbar = tqdm(total = total, desc = 'Epoch - '+str(epoch+1))
             for data in train_ds:
 
                 for _ in range(5):
+
                     with tf.GradientTape() as tape:
 
                         Z = tf.random.normal([data.shape[0], self.noise_dim])
@@ -76,6 +98,8 @@ class WGAN(DCGAN):
                     disc_optimizer.apply_gradients(
                         zip(clipped_gradients, self.disc_model.trainable_variables))
 
+                    discriminator_loss(D_loss)
+
                 with tf.GradientTape() as tape:
 
                     Z = tf.random.normal([data.shape[0], self.noise_dim])
@@ -88,16 +112,10 @@ class WGAN(DCGAN):
                 gen_optimizer.apply_gradients(
                     zip(gradients, self.gen_model.trainable_variables))
 
-                if(steps % print_steps == 0):
-                    print(
-                        'Step:',
-                        steps + 1,
-                        'D_loss:',
-                        D_loss.numpy(),
-                        'G_loss',
-                        G_loss.numpy())
+                generator_loss(G_loss)
 
                 steps += 1
+                pbar.update(1)
 
                 if(tensorboard):
                     with train_summary_writer.as_default():
@@ -105,6 +123,18 @@ class WGAN(DCGAN):
                             'discr_loss', D_loss.numpy(), step=steps)
                         tf.summary.scalar(
                             'genr_loss', G_loss.numpy(), step=steps)
+
+
+            pbar.close()
+            del pbar
+
+            if(verbose == 1):
+                print('Epoch:',
+                    epoch + 1,
+                    'D_loss:',
+                    generator_loss.result().numpy(),
+                    'G_loss',
+                    discriminator_loss.result().numpy())
 
         if(save_model is not None):
 

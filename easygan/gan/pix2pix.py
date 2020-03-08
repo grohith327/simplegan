@@ -1,7 +1,6 @@
 import sys
 sys.path.append('..')
 
-import imageio.core.util
 import os
 from tensorflow.keras.layers import Dropout, Concatenate, BatchNormalization
 from tensorflow.keras.layers import LeakyReLU, Conv2DTranspose, ZeroPadding2D
@@ -15,6 +14,7 @@ import cv2
 import tensorflow as tf
 import numpy as np
 import datetime
+from tqdm.auto import tqdm
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
 
@@ -94,6 +94,7 @@ class Pix2Pix:
         assert data is not None, "Data not provided"
 
         sample_images = []
+        data.unbatch()
         for input_img, target_img in data.take(n_samples):
 
             input_img = input_img.numpy()
@@ -400,7 +401,7 @@ class Pix2Pix:
             epochs=150,
             gen_optimizer='Adam',
             disc_optimizer='Adam',
-            print_steps=100,
+            verbose=1,
             gen_learning_rate=2e-4,
             disc_learning_rate=2e-4,
             beta_1=0.5,
@@ -439,8 +440,20 @@ class Pix2Pix:
             pass
         self.save_img_dir = os.path.join(curr_dir, 'pix2pix_samples')
 
+        generator_loss = tf.keras.metrics.Mean()
+        discriminator_loss = tf.keras.metrics.Mean()
+
+        try:
+            total = tf.data.experimental.cardinality(train_ds).numpy()
+        except:
+            total = 0
+
         for epoch in range(epochs):
 
+            generator_loss.reset_states()
+            discriminator_loss.reset_states()
+
+            pbar = tqdm(total = total, desc = 'Epoch - '+str(epoch+1))
             for input_image, target_image in train_ds:
 
                 with tf.GradientTape() as gen_tape, tf.GradientTape() as disc_tape:
@@ -467,16 +480,11 @@ class Pix2Pix:
                 disc_optimizer.apply_gradients(
                     zip(disc_gradients, self.disc_model.trainable_variables))
 
-                if(steps % print_steps == 0):
-                    print(
-                        'Step:',
-                        steps + 1,
-                        'D_loss:',
-                        disc_loss.numpy(),
-                        'G_loss',
-                        gen_total_loss.numpy())
+                generator_loss(gen_total_loss)
+                discriminator_loss(disc_loss)
 
                 steps += 1
+                pbar.update(1)
 
                 if(tensorboard):
                     with train_summary_writer.as_default():
@@ -493,6 +501,17 @@ class Pix2Pix:
                 for input_image, target_image in test_ds.take(1):
                     self._save_samples(
                         self.gen_model, input_image, target_image, str(epoch))
+
+            pbar.close()
+            del pbar
+
+            if(verbose == 1):
+                print('Epoch:',
+                    epoch + 1,
+                    'D_loss:',
+                    generator_loss.result().numpy(),
+                    'G_loss',
+                    discriminator_loss.result().numpy())
 
         if(save_model is not None):
 

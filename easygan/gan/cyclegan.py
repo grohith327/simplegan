@@ -1,8 +1,6 @@
 import sys
 sys.path.append('..')
 
-import imageio.core.util
-import imageio
 import os
 from tensorflow.keras.layers import Dropout, Concatenate, BatchNormalization
 from tensorflow.keras.layers import LeakyReLU, Conv2DTranspose, ZeroPadding2D
@@ -17,6 +15,8 @@ import tensorflow as tf
 import numpy as np
 import datetime
 import cv2
+import imageio
+from tqdm.auto import tqdm
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
 '''
@@ -290,7 +290,7 @@ class CycleGAN(Pix2Pix):
             gen_f_optimizer='Adam',
             disc_x_optimizer='Adam',
             disc_y_optimizer='Adam',
-            print_steps=100,
+            verbose=1,
             gen_g_learning_rate=2e-4,
             gen_f_learning_rate=2e-4,
             disc_x_learning_rate=2e-4,
@@ -356,10 +356,31 @@ class CycleGAN(Pix2Pix):
             os.mkdir(os.path.join(curr_dir, 'cyclegan_samples'))
         except OSError:
             pass
+
         self.save_img_dir = os.path.join(curr_dir, 'cyclegan_samples')
 
+        generator_g_loss = tf.keras.metrics.Mean()
+        discriminator_x_loss = tf.keras.metrics.Mean()
+
+        generator_f_loss = tf.keras.metrics.Mean()
+        discriminator_y_loss = tf.keras.metrics.Mean()
+
+        try:
+            total = tf.data.experimental.cardinality(trainA).numpy()
+        except:
+            total = 0
+
+        total = total if(total > 0) else len(list(trainA))
+        
         for epoch in range(epochs):
 
+            generator_g_loss.reset_states()
+            generator_f_loss.reset_states()
+
+            discriminator_x_loss.reset_states()
+            discriminator_y_loss.reset_states()
+
+            pbar = tqdm(total = total, desc = 'Epoch - '+str(epoch+1))
             for image_x, image_y in tf.data.Dataset.zip((trainA, trainB)):
 
                 with tf.GradientTape(persistent=True) as tape:
@@ -415,20 +436,15 @@ class CycleGAN(Pix2Pix):
                 disc_y_optimizer.apply_gradients(
                     zip(discriminator_y_gradients, self.disc_model_y.trainable_variables))
 
-                if(steps % print_steps == 0):
-                    print(
-                        'Step:',
-                        steps + 1,
-                        'Generator_G_loss:',
-                        total_gen_g_loss.numpy(),
-                        'Generator_F_loss:',
-                        total_gen_f_loss.numpy(),
-                        'Discriminator_X_loss:',
-                        disc_x_loss.numpy(),
-                        'Discriminator_Y_loss:',
-                        disc_y_loss.numpy())
+                
+                generator_g_loss(total_gen_g_loss)
+                generator_f_loss(total_gen_f_loss)
+
+                discriminator_x_loss(disc_x_loss)
+                discriminator_y_loss(disc_y_loss)
 
                 steps += 1
+                pbar.update(1)
 
                 if(tensorboard):
                     with train_summary_writer.as_default():
@@ -444,6 +460,18 @@ class CycleGAN(Pix2Pix):
             if(epoch % save_img_per_epoch == 0):
                 for image in testA.take(1):
                     self._save_samples(self.gen_model_g, image, str(epoch))
+
+            if(verbose == 1):
+                print('Epoch:',
+                    epoch + 1,
+                    'Generator_G_loss:',
+                    generator_g_loss.result().numpy(),
+                    'Generator_F_loss:',
+                    generator_f_loss.result().numpy(),
+                    'Discriminator_X_loss:',
+                    discriminator_x_loss.result().numpy(),
+                    'Discriminator_Y_loss:',
+                    discriminator_y_loss.result().numpy())
 
         if(save_model is not None):
 

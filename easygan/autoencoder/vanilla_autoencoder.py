@@ -233,14 +233,15 @@ class VanillaAutoencoder():
 
         steps = 0
         train_loss = tf.keras.metrics.Mean()
+
+        try:
+            total = tf.data.experimental.cardinality(train_ds).numpy()
+        except:
+            total = 0
+
         for epoch in range(epochs):
 
             train_loss.reset_states()
-
-            try:
-                total = tf.data.experimental.cardinality(train_ds).numpy()
-            except:
-                total = 0
 
             pbar = tqdm(total = total, desc = 'Epoch - '+str(epoch+1))
             for data in train_ds:

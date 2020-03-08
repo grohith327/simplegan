@@ -12,7 +12,14 @@ import numpy as np
 import datetime
 import cv2
 import tensorflow as tf
+import imageio
+from tqdm.auto import tqdm
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
+
+def silence_imageio_warning(*args, **kwargs):
+    pass
+
+imageio.core.util._precision_warn = silence_imageio_warning
 
 '''
 vanilla gan imports from tensorflow Model class
@@ -67,6 +74,7 @@ class VanillaGAN():
         assert data is not None, "Data not provided"
 
         sample_images = []
+        data = data.unbatch()
         for img in data.take(n_samples):
 
             img = img.numpy()
@@ -176,7 +184,7 @@ class VanillaGAN():
                     kernel_regularizer=kernel_regularizer))
             model.add(Dropout(dropout_rate))
 
-        model.add(Dense(1, activation='sigmoid'))
+        model.add(Dense(1))
         return model
 
     '''
@@ -210,7 +218,7 @@ class VanillaGAN():
             epochs=100,
             gen_optimizer='Adam',
             disc_optimizer='Adam',
-            print_steps=100,
+            verbose=1,
             gen_learning_rate=0.0001,
             disc_learning_rate=0.0001,
             tensorboard=False,
@@ -232,8 +240,20 @@ class VanillaGAN():
             train_summary_writer = tf.summary.create_file_writer(train_log_dir)
 
         steps = 0
+        generator_loss = tf.keras.metrics.Mean()
+        discriminator_loss = tf.keras.metrics.Mean()
+
+        try:
+            total = tf.data.experimental.cardinality(train_ds).numpy()
+        except:
+            total = 0
 
         for epoch in range(epochs):
+            
+            generator_loss.reset_states()
+            discriminator_loss.reset_states()
+
+            pbar = tqdm(total = total, desc = 'Epoch - '+str(epoch+1))
             for data in train_ds:
 
                 with tf.GradientTape() as tape:
@@ -263,16 +283,11 @@ class VanillaGAN():
                 gen_optimizer.apply_gradients(
                     zip(gradients, self.gen_model.trainable_variables))
 
-                if(steps % print_steps == 0):
-                    print(
-                        'Step:',
-                        steps + 1,
-                        'D_loss:',
-                        D_loss.numpy(),
-                        'G_loss',
-                        G_loss.numpy())
+                generator_loss(G_loss)
+                discriminator_loss(D_loss)
 
                 steps += 1
+                pbar.update(1)
 
                 if(tensorboard):
                     with train_summary_writer.as_default():
@@ -280,6 +295,18 @@ class VanillaGAN():
                             'discr_loss', D_loss.numpy(), step=steps)
                         tf.summary.scalar(
                             'genr_loss', G_loss.numpy(), step=steps)
+
+
+            pbar.close()
+            del pbar
+
+            if(verbose == 1):
+                print('Epoch:',
+                    epoch + 1,
+                    'D_loss:',
+                    generator_loss.result().numpy(),
+                    'G_loss',
+                    discriminator_loss.result().numpy())
 
         if(save_model is not None):
 
@@ -308,7 +335,7 @@ class VanillaGAN():
 
         assert os.path.exists(save_dir), "Directory does not exist"
         for i, sample in enumerate(generated_samples):
-            cv2.imwrite(
+            imageio.imwrite(
                 os.path.join(
                     save_dir,
                     'sample_' +

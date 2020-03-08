@@ -386,16 +386,17 @@ class VQ_VAE():
         total_loss = tf.keras.metrics.Mean()
         VecQuant_loss = tf.keras.metrics.Mean()
         reconstruction_loss = tf.keras.metrics.Mean()
+
+        try:
+            total = tf.data.experimental.cardinality(train_ds).numpy()
+        except:
+            total = 0
+
         for epoch in range(epochs):
 
             total_loss.reset_states()
             reconstruction_loss.reset_states()
             VecQuant_loss.reset_states()
-
-            try:
-                total = tf.data.experimental.cardinality(train_ds).numpy()
-            except:
-                total = 0
 
             pbar = tqdm(total = total, desc = 'Epoch - '+str(epoch+1))
             for data in train_ds:
