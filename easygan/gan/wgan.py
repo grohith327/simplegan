@@ -29,8 +29,31 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
 class WGAN(DCGAN):
 
-    def __init__(self):
-        DCGAN.__init__(self)
+    def __init__(self,
+                config={
+                'noise_dim': 100,
+                'dropout_rate': 0.4,
+                'activation': 'relu',
+                'kernel_initializer': 'glorot_uniform',
+                'kernel_size': (
+                    5,
+                    5),
+                'gen_channels': [
+                    64,
+                    32,
+                    16],
+                'disc_channels': [
+                    16,
+                    32,
+                    64],
+                'kernel_regularizer': None}):
+
+        DCGAN.__init__(self, config)
+
+    def __load_model(self):
+
+        self.gen_model, self.disc_model = self.generator(
+            self.config), self.discriminator(self.config)
 
     def fit(self,
             train_ds=None,
@@ -45,6 +68,8 @@ class WGAN(DCGAN):
             save_model=None):
 
         assert train_ds is not None, 'Initialize training data through train_ds parameter'
+
+        self.__load_model()
 
         kwargs = {}
         kwargs['learning_rate'] = gen_learning_rate

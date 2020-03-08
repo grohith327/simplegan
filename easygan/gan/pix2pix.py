@@ -36,7 +36,58 @@ imageio.core.util._precision_warn = silence_imageio_warning
 
 class Pix2Pix:
 
-    def __init__(self):
+    def __init__(self,
+                config={
+                'kernel_initializer': tf.random_normal_initializer(0., 0.02),
+                'dropout_rate': 0.5,
+                'kernel_size': (
+                    4,
+                    4),
+                'gen_enc_channels': [
+                    128,
+                    256,
+                    512,
+                    512,
+                    512,
+                    512,
+                    512],
+                'gen_dec_channels': [
+                    512,
+                    512,
+                    512,
+                    512,
+                    256,
+                    128,
+                    64],
+                'disc_channels': [
+                    64,
+                    128,
+                    256,
+                    512]}):
+
+        
+        if('kernel_initializer' not in config):
+            config['kernel_initializer'] = tf.random_normal_initializer(0., 0.02)
+
+        if('dropout_rate' not in config):
+            config['dropout_rate'] = 0.5
+
+        if('kernel_size' not in config):
+            config['kernel_size'] = (4,4)
+
+        if('gen_enc_channels' not in config):
+            config['gen_enc_channels'] = [128,256,512,512,512,512,512]
+
+        if('gen_dec_channels' not in config):
+            config['gen_dec_channels'] = [512,512,512,512,256,128,64]
+
+        if('disc_channels' not in config):
+            config['disc_channels'] = [64, 128, 256, 512]
+
+        assert len(config['gen_enc_channels']) == len(config['gen_dec_channels']), "Dimension mismatch: length of gen_enc_channels should match length of gen_dec_channels"
+        test = config['gen_enc_channels'][:-1]
+        test.reverse()
+        assert test == config['gen_dec_channels'][:-1], "Number of channels in Enocder of generator should be equal to reverse of number of Decoder channels of generator"
 
         self.gen_model = None
         self.disc_model = None
@@ -44,6 +95,7 @@ class Pix2Pix:
         self.LAMBDA = None
         self.img_size = None
         self.save_img_dir = None
+        self.config = config
 
     def load_data(self, 
                 data_dir=None, 
@@ -169,28 +221,16 @@ class Pix2Pix:
 
         return model
 
-    def generator(self, params):
+    def generator(self, config):
 
-        kernel_initializer = params['kernel_initializer'] if 'kernel_initializer' in params else tf.random_normal_initializer(
-            0., 0.02)
-        dropout_rate = params['dropout_rate'] if 'dropout_rate' in params else 0.5
-        kernel_size = params['kernel_size'] if 'kernel_size' in params else (
-            4, 4)
-        gen_enc_layers = params['gen_enc_layers'] if 'gen_enc_layers' in params else 7
-        gen_dec_layers = params['gen_dec_layers'] if 'gen_dec_layers' in params else 7
-        gen_enc_channels = params['gen_enc_channels'] if 'gen_enc_channels' in params else [
-            128, 256, 512, 512, 512, 512, 512]
-        gen_dec_channels = params['gen_dec_channels'] if 'gen_dec_channels' in params else [
-            512, 512, 512, 512, 256, 128, 64]
-
-        assert len(gen_enc_channels) == gen_enc_layers, "Dimension mismatch: length of generator encoder channels should match number of generator encoder layers"
-        assert len(gen_dec_channels) == gen_dec_layers, "Dimension mismatch: length of generator decoder channels should match number of generator decoder layers"
-
-        assert len(gen_enc_channels) == len(gen_dec_channels), "Dimension mismatch: length of gen_enc_channels should match length of gen_dec_channels"
-        test = gen_enc_channels[:-1]
-        test.reverse()
-        assert test == gen_dec_channels[:-1], "Number of channels in Enocder of generator should be equal to reverse of number of Decoder channels of generator"
-
+        kernel_initializer = config['kernel_initializer']
+        dropout_rate = config['dropout_rate']
+        kernel_size = config['kernel_size']
+        gen_enc_channels = config['gen_enc_channels']
+        gen_dec_channels = config['gen_dec_channels']
+        gen_enc_layers = len(gen_enc_channels)
+        gen_dec_layers = len(gen_dec_channels)
+        
         inputs = Input(shape=self.img_size)
 
         down_stack = [
@@ -250,17 +290,12 @@ class Pix2Pix:
         model = Model(inputs=inputs, outputs=x)
         return model
 
-    def discriminator(self, params):
+    def discriminator(self, config):
 
-        kernel_initializer = params['kernel_initializer'] if 'kernel_initializer' in params else tf.random_normal_initializer(
-            0., 0.02)
-        kernel_size = params['kernel_size'] if 'kernel_size' in params else (
-            4, 4)
-        disc_layers = params['disc_layers'] if 'disc_layers' in params else 4
-        disc_channels = params['disc_channels'] if 'disc_channels' in params else [
-            64, 128, 256, 512]
-
-        assert len(disc_channels) == disc_layers, "Dimension mismatch: length of discriminator channels should match number of discriminator layers"
+        kernel_initializer = config['kernel_initializer']
+        kernel_size = config['kernel_size']
+        disc_channels = config['disc_channels']
+        disc_layers = len(disc_channels)
 
         inputs = Input(shape=self.img_size)
         target = Input(shape=self.img_size)
@@ -306,53 +341,17 @@ class Pix2Pix:
         model = Model(inputs=[inputs, target], outputs=out)
         return model
 
-    def build_model(
-        self,
-        params={
-            'kernel_initializer': tf.random_normal_initializer(0., 0.02),
-            'dropout_rate': 0.5,
-            'gen_enc_layers': 7,
-            'kernel_size': (
-            4,
-            4),
-            'gen_enc_channels': [
-                128,
-                256,
-                512,
-                512,
-                512,
-                512,
-                512],
-            'gen_dec_layers': 7,
-            'gen_dec_channels': [
-                512,
-                512,
-                512,
-                512,
-                256,
-                128,
-                64],
-            'disc_layers': 4,
-            'disc_channels': [
-                64,
-                128,
-                256,
-            512]}):
-        '''
-        Call build_model to initialize the generator and discriminator model
-
-        generator -> U-Net
-        discriminator -> PatchGAN
-
-        '''
+    def __load_model(self):
 
         self.gen_model, self.disc_model = self.generator(
-            params), self.discriminator(params)
+            self.config), self.discriminator(self.config)
 
     def _save_samples(self, model, ex_input, ex_target, count):
 
         assert os.path.exists(
             self.save_img_dir), "sample directory does not exist"
+
+        self.__load_model()
 
         prediction = model(ex_input, training=False)
 

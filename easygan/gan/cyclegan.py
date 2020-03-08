@@ -35,9 +35,36 @@ imageio.core.util._precision_warn = silence_imageio_warning
 
 class CycleGAN(Pix2Pix):
 
-    def __init__(self):
+    def __init__(self,
+                config={
+                'kernel_initializer': tf.random_normal_initializer(0., 0.02),
+                'dropout_rate': 0.5,
+                'kernel_size': (
+                    4,
+                    4),
+                'gen_enc_channels': [
+                    128,
+                    256,
+                    512,
+                    512,
+                    512,
+                    512,
+                    512],
+                'gen_dec_channels': [
+                    512,
+                    512,
+                    512,
+                    512,
+                    256,
+                    128,
+                    64],
+                'disc_channels': [
+                    64,
+                    128,
+                    256,
+                    512]}):
 
-        Pix2Pix.__init__(self)
+        Pix2Pix.__init__(self, config)
         self.gen_model_g = None
         self.gen_model_f = None
         self.disc_model_x = None
@@ -146,18 +173,13 @@ class CycleGAN(Pix2Pix):
                     '.jpg'),
                 sample)
 
-    def discriminator(self, params):
+    def discriminator(self, config):
 
-        kernel_initializer = params['kernel_initializer'] if 'kernel_initializer' in params else tf.random_normal_initializer(
-            0., 0.02)
-        kernel_size = params['kernel_size'] if 'kernel_size' in params else (
-            4, 4)
-        disc_layers = params['disc_layers'] if 'disc_layers' in params else 4
-        disc_channels = params['disc_channels'] if 'disc_channels' in params else [
-            64, 128, 256, 512]
-
-        assert len(disc_channels) == disc_layers, "Dimension mismatch: length of discriminator channels should match number of discriminator layers"
-
+        kernel_initializer = config['kernel_initializer']
+        kernel_size = config['kernel_size']
+        disc_channels = config['disc_channels']
+        disc_layers = len(disc_channels)
+        
         inputs = Input(shape=self.img_size)
         x = inputs
 
@@ -200,38 +222,7 @@ class CycleGAN(Pix2Pix):
         model = Model(inputs=inputs, outputs=out)
         return model
 
-    def build_model(
-        self,
-        params={
-            'kernel_initializer': tf.random_normal_initializer(0., 0.02),
-            'dropout_rate': 0.5,
-            'gen_enc_layers': 7,
-            'kernel_size': (
-            4,
-            4),
-            'gen_enc_channels': [
-                128,
-                256,
-                512,
-                512,
-                512,
-                512,
-                512],
-            'gen_dec_layers': 7,
-            'gen_dec_channels': [
-                512,
-                512,
-                512,
-                512,
-                256,
-                128,
-                64],
-            'disc_layers': 4,
-            'disc_channels': [
-                64,
-                128,
-                256,
-            512]}):
+    def __load_model(self):
         '''
         Call build model to initialize the two generators and discriminators
 
@@ -239,14 +230,16 @@ class CycleGAN(Pix2Pix):
         '''
 
         self.gen_model_g, self.gen_model_f = self.generator(
-            params), self.generator(params)
+            self.config), self.generator(self.config)
         self.disc_model_x, self.disc_model_y = self.discriminator(
-            params), self.discriminator(params)
+            self.config), self.discriminator(self.config)
 
     def _save_samples(self, model, image, count):
 
         assert os.path.exists(
             self.save_img_dir), "sample directory does not exist"
+
+        self.__load_model()
 
         pred = model(image, training=False)
         pred = pred.numpy()

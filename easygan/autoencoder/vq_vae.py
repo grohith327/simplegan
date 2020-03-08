@@ -140,12 +140,12 @@ class residual(Model):
 
 class encoder(Model):
 
-    def __init__(self, params):
+    def __init__(self, config):
         super(encoder, self).__init__()
 
-        self.num_hiddens = params['num_hiddens']
-        self.num_residual_hiddens = params['num_residual_hiddens']
-        self.num_residual_layers = params['num_residual_layers']
+        self.num_hiddens = config['num_hiddens']
+        self.num_residual_hiddens = config['num_residual_hiddens']
+        self.num_residual_layers = config['num_residual_layers']
 
         self.conv1 = Conv2D(
             self.num_hiddens // 2,
@@ -193,12 +193,12 @@ class encoder(Model):
 
 class decoder(Model):
 
-    def __init__(self, params, image_size):
+    def __init__(self, config, image_size):
         super(decoder, self).__init__()
 
-        self.num_hiddens = params['num_hiddens']
-        self.num_residual_hiddens = params['num_residual_hiddens']
-        self.num_residual_layers = params['num_residual_layers']
+        self.num_hiddens = config['num_hiddens']
+        self.num_residual_hiddens = config['num_residual_hiddens']
+        self.num_residual_layers = config['num_residual_layers']
 
         self.conv1 = Conv2D(
             self.num_hiddens, 
@@ -252,14 +252,14 @@ class decoder(Model):
 
 class nn_model(Model):
 
-    def __init__(self, params, image_size):
+    def __init__(self, config, image_size):
         super(nn_model, self).__init__()
 
-        embedding_dim = params['embedding_dim']
-        commiment_cost = params['commiment_cost']
-        num_embeddings = params['num_embeddings']
+        embedding_dim = config['embedding_dim']
+        commiment_cost = config['commiment_cost']
+        num_embeddings = config['num_embeddings']
 
-        self.encoder = encoder(params)
+        self.encoder = encoder(config)
         self.pre_vq_conv = Conv2D(
                             embedding_dim, 
                             kernel_size=(
@@ -268,7 +268,7 @@ class nn_model(Model):
                             strides=(
                                 1, 
                                 1))
-        self.decoder = decoder(params, image_size)
+        self.decoder = decoder(config, image_size)
         self.vq_vae = VectorQuantizer(
             num_embeddings,
             embedding_dim,
@@ -287,7 +287,7 @@ class nn_model(Model):
 class VQ_VAE:
 
     def __init__(self,
-                params={
+                config={
                 'num_hiddens': 128,
                 'num_residual_hiddens': 32,
                 'num_residual_layers': 2,
@@ -296,28 +296,28 @@ class VQ_VAE:
                 'commiment_cost': 0.25}):
 
         
-        if('num_hiddens' not in params):
-            params['num_hiddens'] = 128
+        if('num_hiddens' not in config):
+            config['num_hiddens'] = 128
 
-        if('num_residual_hiddens' not in params):
-            params['num_residual_hiddens'] = 32
+        if('num_residual_hiddens' not in config):
+            config['num_residual_hiddens'] = 32
 
-        if('num_residual_layers' not in params):
-            params['num_residual_layers'] = 2
+        if('num_residual_layers' not in config):
+            config['num_residual_layers'] = 2
 
-        if('num_embeddings' not in params):
-            params['num_embeddings'] = 512
+        if('num_embeddings' not in config):
+            config['num_embeddings'] = 512
 
-        if('embedding_dim' not in params):
-            params['embedding_dim'] = 64
+        if('embedding_dim' not in config):
+            config['embedding_dim'] = 64
 
-        if('commiment_cost' not in params):
-            params['commiment_cost'] = 0.25
+        if('commiment_cost' not in config):
+            config['commiment_cost'] = 0.25
 
         self.image_size = None
         self.model = None
         self.data_var = None
-        self.params = params
+        self.config = config
 
     def load_data(self, data_dir=None, use_mnist=False,
                   use_cifar10=False, batch_size=32, img_shape=(64, 64)):
@@ -375,7 +375,7 @@ class VQ_VAE:
 
     def __load_model(self):
 
-        self.model = nn_model(self.params, self.image_size)
+        self.model = nn_model(self.config, self.image_size)
 
     def fit(self, 
             train_ds=None, 

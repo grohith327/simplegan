@@ -34,7 +34,7 @@ use the fit function to train the model.
 class VAE:
 
     def __init__(self,
-                params={
+                config={
                 'enc_units': [
                     256,
                     128],
@@ -48,31 +48,31 @@ class VAE:
                 'kernel_regularizer': None}):
 
         
-        if('interm_dim' not in params):
-            params['interm_dim'] = 256
+        if('interm_dim' not in config):
+            config['interm_dim'] = 256
 
-        if('latent_dim' not in params):
-            params['latent_dim'] = 32
+        if('latent_dim' not in config):
+            config['latent_dim'] = 32
 
-        if('enc_units' not in params):
-            params['enc_units'] = [256, 128]
+        if('enc_units' not in config):
+            config['enc_units'] = [256, 128]
 
-        if('dec_units' not in params):
-            params['dec_units'] = [128, 256]
+        if('dec_units' not in config):
+            config['dec_units'] = [128, 256]
 
-        if('activation' not in params):
-            params['activation'] = 'relu'
+        if('activation' not in config):
+            config['activation'] = 'relu'
 
-        if('kernel_initializer' not in params):
-            params['kernel_initializer'] = 'glorot_uniform'
+        if('kernel_initializer' not in config):
+            config['kernel_initializer'] = 'glorot_uniform'
 
-        if('kernel_regularizer' not in params):
-            params['kernel_regularizer'] = None
+        if('kernel_regularizer' not in config):
+            config['kernel_regularizer'] = None
 
 
         self.model = None
         self.image_size = None
-        self.params = params
+        self.config = config
 
     def load_data(self, 
                 data_dir=None, 
@@ -156,17 +156,17 @@ class VAE:
     encoder and decoder layers for custom dataset can be reimplemented by inherting this class(vae)
     '''
 
-    def vae(self, params):
+    def vae(self, config):
 
-        enc_units = self.params['enc_units']
+        enc_units = config['enc_units']
         encoder_layers = len(enc_units)
-        dec_units = self.params['dec_units']
+        dec_units = config['dec_units']
         decoder_layers = len(dec_units)
-        interm_dim = self.params['interm_dim']
-        latent_dim = self.params['latent_dim']
-        activation = self.params['activation']
-        kernel_initializer = self.params['kernel_initializer']
-        kernel_regularizer = self.params['kernel_regularizer']
+        interm_dim = config['interm_dim']
+        latent_dim = config['latent_dim']
+        activation = config['activation']
+        kernel_initializer = config['kernel_initializer']
+        kernel_regularizer = config['kernel_regularizer']
 
         org_inputs = Input(
             shape=self.image_size[0] *
@@ -238,7 +238,7 @@ class VAE:
 
     def __load_model(self):
 
-        self.model = self.vae(self.params)
+        self.model = self.vae(self.config)
 
     def fit(self, 
         train_ds=None, 

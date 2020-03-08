@@ -23,11 +23,58 @@ imageio.core.util._precision_warn = silence_imageio_warning
 
 class CGAN:
 
-    def __init__(self):
+    def __init__(self,
+                config={
+                'noise_dim': 100,
+                'dropout_rate': 0.4,
+                'activation': 'relu',
+                'kernel_initializer': 'glorot_uniform',
+                'kernel_size': (
+                    5,
+                    5),
+                'gen_channels': [
+                    64,
+                    32,
+                    16],
+                'disc_channels': [
+                    16,
+                    32,
+                    64],
+                'kernel_regularizer': None,
+                'embed_dim': 100}):
+
+        if('noise_dim' not in config):
+            config['noise_dim'] = 64
+
+        if('dropout_rate' not in config):
+            config['dropout_rate'] = 0.4
+
+        if('activation' not in config):
+            config['activation'] = 'relu'
+
+        if('kernel_initializer' not in config):
+            config['kernel_initializer'] = 'glorot_uniform'
+
+        if('kernel_regularizer' not in config):
+            config['kernel_regularizer'] = None
+
+        if('kernel_size' not in config):
+            config['kernel_size'] = (5, 5)
+
+        if('gen_channels' not in config):
+            config['gen_channels'] = [64, 32, 16]
+
+        if('disc_channels' not in config):
+            config['disc_channels'] = [16, 32, 64]
+
+        if('embed_dim' not in config):
+            config['embed_dim'] = 100
 
         self.image_size = None
-        self.embed_dim = None
+        self.embed_dim = config['embed_dim']
+        self.noise_dim = config['noise_dim']
         self.n_classes = None
+        self.config = config
 
     def load_data(self, 
                 data_dir=None, 
@@ -85,21 +132,15 @@ class CGAN:
                     '.jpg'),
                 sample)
 
-    def generator(self, params):
+    def generator(self, config):
 
-        noise_dim = params['noise_dim'] if 'noise_dim' in params else 100
-        self.noise_dim = noise_dim
-        gen_channels = params['gen_channels'] if 'gen_channels' in params else [
-            128, 128]
-        gen_layers = params['gen_layers'] if 'gen_layers' in params else 2
-        activation = params['activation'] if 'activation' in params else 'relu'
-        kernel_initializer = params['kernel_initializer'] if 'kernel_initializer' in params else 'glorot_uniform'
-        kernel_regularizer = params['kernel_regularizer'] if 'kernel_regularizer' in params else None
-        kernel_size = params['kernel_size'] if 'kernel_size' in params else (
-            5, 5)
-        self.embed_dim = params['embed_dim'] if 'embed_dim' in params else 100
-
-        assert len(gen_channels) == gen_layers, "Dimension mismatch: length of generator channels should match number of generator layers"
+        noise_dim = config['noise_dim']
+        gen_channels = config['gen_channels']
+        gen_layers = len(gen_channels)
+        activation = config['activation']
+        kernel_initializer = config['kernel_initializer']
+        kernel_regularizer = config['kernel_regularizer']
+        kernel_size = config['kernel_size']
 
         z = layers.Input(shape=self.noise_dim)
         label = layers.Input(shape=1)
@@ -166,20 +207,16 @@ class CGAN:
         model = tf.keras.Model([z, label], output)
         return model
 
-    def discriminator(self, params):
+    def discriminator(self, config):
 
-        dropout_rate = params['dropout_rate'] if 'dropout_rate' in params else 0.4
-        disc_channels = params['disc_channels'] if 'disc_channels' in params else [
-            128, 128]
-        disc_layers = params['disc_layers'] if 'disc_layers' in params else 2
-        activation = params['activation'] if 'activation' in params else 'relu'
-        kernel_initializer = params['kernel_initializer'] if 'kernel_initializer' in params else 'glorot_uniform'
-        kernel_regularizer = params['kernel_regularizer'] if 'kernel_regularizer' in params else None
-        kernel_size = params['kernel_size'] if 'kernel_size' in params else (
-            5, 5)
-
-        assert len(disc_channels) == disc_layers, "Dimension mismatch: length of discriminator channels should match number of discriminator layers"
-
+        dropout_rate = config['dropout_rate']
+        disc_channels = config['disc_channels']
+        disc_layers = len(disc_channels)
+        activation = config['activation']
+        kernel_initializer = config['kernel_initializer']
+        kernel_regularizer = config['kernel_regularizer']
+        kernel_size = config['kernel_size']
+        
         input_image = layers.Input(shape=self.image_size)
         input_label = layers.Input(shape=1)
 
@@ -213,35 +250,11 @@ class CGAN:
             outputs=out_layer)
         return model
 
-    '''
-    call build_model() to get the generator and discriminator objects
-    '''
 
-    def build_model(
-        self,
-        params={
-            'gen_layers': 3,
-            'disc_layers': 3,
-            'noise_dim': 100,
-            'dropout_rate': 0.4,
-            'activation': 'relu',
-            'kernel_initializer': 'glorot_uniform',
-            'kernel_size': (
-            5,
-            5),
-            'gen_channels': [
-                64,
-                32,
-                16],
-            'disc_channels': [
-            16,
-            32,
-            64],
-            'kernel_regularizer': None,
-            'embed_dim': 100}):
+    def __load_model(self):
 
         self.gen_model, self.disc_model = self.generator(
-            params), self.discriminator(params)
+            self.config), self.discriminator(self.config)
 
     def fit(
             self,
@@ -257,6 +270,8 @@ class CGAN:
             save_model=None):
 
         assert train_ds is not None, 'Initialize training data through train_ds parameter'
+
+        self.__load_model()
 
         kwargs = {}
         kwargs['learning_rate'] = gen_learning_rate

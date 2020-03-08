@@ -101,8 +101,9 @@ def load_custom_data_with_labels(datadir=None, img_shape=(64, 64)):
             train_data.append(image)
             label_name = int(file.split('/')[-2])
             labels.append(label_name)
-        except BaseException:
-            print("Error: Unable to load an image from directory")
+        except ValueError:
+            print("Ensure Directory is of following structure: \n {} \n {} -label 1(int type) \n {} -*.jpg \n {} -label 2(int type) \n {} -*.jpg \n {} ...".format(
+                datadir, ' '*2, ' '*4, ' '*2, ' '*4, ' '*2))
             pass
 
     assert len(train_data) > 0, "No images to load from directory"

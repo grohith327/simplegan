@@ -37,7 +37,7 @@ use the fit function to train the model.
 class VanillaAutoencoder:
 
     def __init__(self,
-                params={
+                config={
             'interm_dim': 64,
             'enc_units': [
                 256,
@@ -50,28 +50,28 @@ class VanillaAutoencoder:
             'kernel_regularizer': None}):
 
 
-        if('interm_dim' not in params):
-            params['interm_dim'] = 64
+        if('interm_dim' not in config):
+            config['interm_dim'] = 64
 
-        if('enc_units' not in params):
-            params['enc_units'] = [256, 128]
+        if('enc_units' not in config):
+            config['enc_units'] = [256, 128]
 
-        if('dec_units' not in params):
-            params['dec_units'] = [128, 256]
+        if('dec_units' not in config):
+            config['dec_units'] = [128, 256]
 
-        if('activation' not in params):
-            params['activation'] = 'relu'
+        if('activation' not in config):
+            config['activation'] = 'relu'
 
-        if('kernel_initializer' not in params):
-            params['kernel_initializer'] = 'glorot_uniform'
+        if('kernel_initializer' not in config):
+            config['kernel_initializer'] = 'glorot_uniform'
 
-        if('kernel_regularizer' not in params):
-            params['kernel_regularizer'] = None
+        if('kernel_regularizer' not in config):
+            config['kernel_regularizer'] = None
 
 
         self.model = tf.keras.Sequential()
         self.image_size = None
-        self.params = params
+        self.config = config
 
     def load_data(self, 
                 data_dir=None, 
@@ -141,14 +141,14 @@ class VanillaAutoencoder:
                     '.jpg'),
                 sample)
 
-    def encoder(self, params):
+    def encoder(self, config):
 
-        enc_units = self.params['enc_units']
+        enc_units = config['enc_units']
         encoder_layers = len(enc_units)
-        interm_dim = self.params['interm_dim']
-        activation = self.params['activation']
-        kernel_initializer = self.params['kernel_initializer']
-        kernel_regularizer = self.params['kernel_regularizer']
+        interm_dim = config['interm_dim']
+        activation = config['activation']
+        kernel_initializer = config['kernel_initializer']
+        kernel_regularizer = config['kernel_regularizer']
 
         model = tf.keras.Sequential()
 
@@ -175,14 +175,14 @@ class VanillaAutoencoder:
 
         return model
 
-    def decoder(self, params):
+    def decoder(self, config):
 
-        dec_units = self.params['dec_units']
+        dec_units = config['dec_units']
         decoder_layers = len(dec_units)
-        interm_dim = self.params['interm_dim']
-        activation = self.params['activation']
-        kernel_initializer = self.params['kernel_initializer']
-        kernel_regularizer = self.params['kernel_regularizer']
+        interm_dim = config['interm_dim']
+        activation = config['activation']
+        kernel_initializer = config['kernel_initializer']
+        kernel_regularizer = config['kernel_regularizer']
 
         model = tf.keras.Sequential()
 
@@ -214,8 +214,8 @@ class VanillaAutoencoder:
 
     def __load_model(self):
 
-        self.model.add(self.encoder(self.params))
-        self.model.add(self.decoder(self.params))
+        self.model.add(self.encoder(self.config))
+        self.model.add(self.decoder(self.config))
 
     def fit(self,
             train_ds=None, 

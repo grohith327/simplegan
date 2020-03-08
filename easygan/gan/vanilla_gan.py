@@ -30,12 +30,49 @@ Original GAN paper: https://arxiv.org/abs/1406.2661
 
 class VanillaGAN():
 
-    def __init__(self):
+    def __init__(self,
+                config={
+                'noise_dim': 64,
+                'dropout_rate': 0.4,
+                'activation': 'relu',
+                'kernel_initializer': 'glorot_uniform',
+                'gen_units': [
+                    128,
+                    256,
+                    512],
+                'disc_units': [
+                    512,
+                    256,
+                    128],
+                'kernel_regularizer': None}):
+
+        
+        if('noise_dim' not in config):
+            config['noise_dim'] = 64
+
+        if('dropout_rate' not in config):
+            config['dropout_rate'] = 0.4
+
+        if('activation' not in config):
+            config['activation'] = 'relu'
+
+        if('kernel_initializer' not in config):
+            config['kernel_initializer'] = 'glorot_uniform'
+
+        if('kernel_regularizer' not in config):
+            config['kernel_regularizer'] = None
+
+        if('gen_units' not in config):
+            config['gen_units'] = [128, 256, 512]
+
+        if('disc_units' not in config):
+            config['disc_units'] = [512, 256, 128]
 
         self.image_size = None
-        self.noise_dim = None
+        self.noise_dim = config['noise_dim']
         self.gen_model = None
         self.disc_model = None
+        self.config = config
 
     def load_data(self, 
                 data_dir=None, 
@@ -104,19 +141,15 @@ class VanillaGAN():
     custom dataset
     '''
 
-    def generator(self, params):
+    def generator(self, config):
 
-        noise_dim = params['noise_dim'] if 'noise_dim' in params else 64
-        self.noise_dim = noise_dim
-        dropout_rate = params['dropout_rate'] if 'dropout_rate' in params else 0.4
-        gen_units = params['gen_units'] if 'gen_units' in params else [
-            128, 256, 512]
-        gen_layers = params['gen_layers'] if 'gen_layers' in params else 3
-        activation = params['activation'] if 'activation' in params else 'relu'
-        kernel_initializer = params['kernel_initializer'] if 'kernel_initializer' in params else 'glorot_uniform'
-        kernel_regularizer = params['kernel_regularizer'] if 'kernel_regularizer' in params else None
-
-        assert len(gen_units) == gen_layers, "Dimension mismatch: length of generator units should match number of generator layers"
+        noise_dim = config['noise_dim']
+        dropout_rate = config['dropout_rate']
+        gen_units = config['gen_units']
+        gen_layers = len(gen_units)
+        activation = config['activation']
+        kernel_initializer = config['kernel_initializer']
+        kernel_regularizer = config['kernel_regularizer']
 
         model = tf.keras.Sequential()
 
@@ -149,17 +182,15 @@ class VanillaGAN():
                 dtype=tf.float32))
         return model
 
-    def discriminator(self, params):
+    def discriminator(self, config):
 
-        dropout_rate = params['dropout_rate'] if 'dropout_rate' in params else 0.4
-        disc_units = params['disc_units'] if 'disc_units' in params else [
-            512, 256, 128]
-        disc_layers = params['disc_layers'] if 'disc_layers' in params else 3
-        activation = params['activation'] if 'activation' in params else 'relu'
-        kernel_initializer = params['kernel_initializer'] if 'kernel_initializer' in params else 'glorot_uniform'
-        kernel_regularizer = params['kernel_regularizer'] if 'kernel_regularizer' in params else None
+        dropout_rate = config['dropout_rate']
+        disc_units = config['disc_units']
+        disc_layers = len(disc_units)
+        activation = config['activation']
+        kernel_initializer = config['kernel_initializer']
+        kernel_regularizer = config['kernel_regularizer']
 
-        assert len(disc_units) == disc_layers, "Dimension mismatch: length of generator units should match number of generator layers"
 
         model = tf.keras.Sequential()
 
@@ -191,27 +222,10 @@ class VanillaGAN():
     call build_model() to get the generator and discriminator objects
     '''
 
-    def build_model(
-        self,
-        params={
-            'gen_layers': 3,
-            'disc_layers': 3,
-            'noise_dim': 64,
-            'dropout_rate': 0.4,
-            'activation': 'relu',
-            'kernel_initializer': 'glorot_uniform',
-            'gen_units': [
-            128,
-            256,
-            512],
-            'disc_units': [
-                512,
-                256,
-                128],
-            'kernel_regularizer': None}):
+    def __load_model(self):
 
         self.gen_model, self.disc_model = self.generator(
-            params), self.discriminator(params)
+            self.config), self.discriminator(self.config)
 
     def fit(self,
             train_ds=None,
@@ -225,6 +239,8 @@ class VanillaGAN():
             save_model=None):
 
         assert train_ds is not None, 'Initialize training data through train_ds parameter'
+
+        self.__load_model()
 
         kwargs = {}
         kwargs['learning_rate'] = gen_learning_rate
