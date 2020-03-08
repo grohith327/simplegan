@@ -1,5 +1,6 @@
 <div align="center">
-# EasyGAN ![Logo](./assets/logo.png)
+# EasyGAN 
+![Logo](./assets/logo.png)
 **Framework to ease training of generative models**
 [![License](http://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat)](LICENSE)
 </div>
