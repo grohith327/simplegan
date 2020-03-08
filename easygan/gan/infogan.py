@@ -38,7 +38,6 @@ class InfoGAN:
         
         self.image_size = None
         self.config=locals()
-        print(self.config)
         
     def load_data(self,
                   data_dir=None,
@@ -156,6 +155,7 @@ class InfoGAN:
             activation=activation,
             kernel_initializer=kernel_initializer,
             kernel_regularizer=kernel_regularizer)
+        
         for i in range(1, len(disc_channels)):
             img = self.conv_block(
                 img,
@@ -169,17 +169,7 @@ class InfoGAN:
                 kernel_regularizer=kernel_regularizer)
         flatten = layers.Flatten()(img)
         valid = layers.Dense(1)(flatten)
-
         conv_out = self.conv_block(img,
-                                   filters=disc_channels[-1],
-                                   kernel_size=5,
-                                   strides=(1,
-                                            1),
-                                   activation=activation,
-                                   kernel_initializer=kernel_initializer,
-                                   kernel_regularizer=kernel_regularizer)
-
-        conv_out = self.conv_block(conv_out,
                                    filters=disc_channels[-1],
                                    kernel_size=kernel_size,
                                    strides=(1,
@@ -191,7 +181,6 @@ class InfoGAN:
         discrete_out = layers.Dense(
             self.n_classes, activation="softmax")(conv_out)
         cont_out = layers.Dense(self.code_dim)(conv_out)
-
         disc_model = tf.keras.Model(inputs=image_input, outputs=[
                                     valid, discrete_out, cont_out])
 
@@ -240,7 +229,7 @@ class InfoGAN:
                 kernel_initializer=kernel_initializer,
                 kernel_regularizer=kernel_regularizer)
 
-        img = self.conv_block(img, filters=1, kernel_size=kernel_size, strides=(
+        img = self.conv_block(img, filters = self.image_size[-1], kernel_size=kernel_size, strides=(
             1, 1), use_batch_norm=False, activation="tanh", conv_type="transpose")
 
         gen_model = tf.keras.Model(input_noise, img)
