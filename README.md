@@ -1,6 +1,6 @@
 # EasyGAN
-[![License](http://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat)](LICENSE)
 **Framework to ease training of generative models**
+[![License](http://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat)](LICENSE)
 
 EasyGAN is a framework based on [TensorFlow](https://www.tensorflow.org/) to make training of generative models easier. EasyGAN provides high level APIs with customizability options to user which allows them to train a generative model with few lines of code.
 
