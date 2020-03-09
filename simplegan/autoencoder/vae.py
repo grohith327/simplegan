@@ -27,6 +27,7 @@ Reference: https://arxiv.org/abs/1312.6114
 use the fit function to train the model.
 '''
 
+__all__ = ['VAE']
 
 class VAE:
 

@@ -10,6 +10,8 @@ Dataset is loaded from tensorflow_datasets
 Function load_lsun returns a numpy array of shape (-1, 64, 64, 3)
 '''
 
+__all__ = ['load_lsun']
+
 
 def load_lsun(info=False, img_shape=(64, 64)):
 

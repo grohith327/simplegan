@@ -8,6 +8,8 @@ Paper: https://arxiv.org/abs/1703.10593
 Code source: https://www.tensorflow.org/tutorials/generative/cyclegan#import_and_reuse_the_pix2pix_models
 '''
 
+__all__ = ['cycle_loss',
+           'identity_loss']
 
 def cycle_loss(real_img, cycle_img, LAMBDA):
 

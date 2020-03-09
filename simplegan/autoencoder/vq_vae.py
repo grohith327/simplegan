@@ -32,6 +32,7 @@ The code is inspired by the following sources:
 -> https://github.com/zalandoresearch/pytorch-vq-vae/blob/master/vq-vae.ipynb
 '''
 
+__all__ = ['VQ_VAE']
 
 class VectorQuantizer(Model):
 

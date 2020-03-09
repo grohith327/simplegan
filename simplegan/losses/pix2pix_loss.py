@@ -4,6 +4,9 @@ import tensorflow as tf
 loss functions used in pix2pix model
 '''
 
+__all__ = ['pix2pix_generator_loss',
+           'pix2pix_discriminator_loss']
+
 cross_entropy = tf.keras.losses.BinaryCrossentropy(from_logits=True)
 
 

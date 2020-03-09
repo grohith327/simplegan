@@ -12,6 +12,7 @@ paper: https://arxiv.org/abs/1703.10593
 Code inspired from: https://www.tensorflow.org/tutorials/generative/cyclegan#import_and_reuse_the_pix2pix_models
 '''
 
+__all__ = ['cyclegan_dataloader']
 
 class cyclegan_dataloader:
 

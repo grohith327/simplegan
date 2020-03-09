@@ -1,6 +1,8 @@
 import tensorflow as tf
 
 
+__all__ = ['auxillary_loss']
+
 def auxillary_loss(disc_target, disc_preds, cont_trg, cont_pred):
 
     disc_loss = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(

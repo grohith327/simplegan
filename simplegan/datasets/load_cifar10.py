@@ -7,6 +7,10 @@ Dataset is loaded from tensorflow keras datasets
 Function load_cifar10 returns a numpy array of shape (-1, 32, 32, 3)
 '''
 
+__all__ = ['load_cifar10',
+           'load_cifar10_with_labels',
+           'load_cifar10_AE']
+
 
 def load_cifar10():
 

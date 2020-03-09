@@ -20,6 +20,8 @@ def silence_imageio_warning(*args, **kwargs):
 
 imageio.core.util._precision_warn = silence_imageio_warning
 
+__all__ = ['InfoGAN']
+
 
 class InfoGAN:
     def __init__(self,

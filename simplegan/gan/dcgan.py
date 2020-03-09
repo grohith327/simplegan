@@ -27,6 +27,7 @@ DCGAN imports from tensorflow Model class
 DCGAN paper: https://arxiv.org/abs/1511.06434
 '''
 
+__all__ = ['DCGAN']
 
 class DCGAN():
 

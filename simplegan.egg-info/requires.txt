@@ -1,0 +1,6 @@
+tensorflow==2.0.1
+tqdm
+numpy
+opencv-python
+imageio
+tensorflow-datasets

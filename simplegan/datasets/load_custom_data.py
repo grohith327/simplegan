@@ -11,6 +11,10 @@ Dataset is loaded from tensorflow keras datasets
 Function load_data returns a numpy array of shape (-1, 64, 64, 3) by default
 '''
 
+__all__ = ['load_custom_data',
+           'load_custom_data_AE',
+           'load_custom_data_with_labels']
+
 
 def load_custom_data(datadir=None, img_shape=(64, 64)):
 

@@ -1,18 +1,25 @@
-from distutils.core import setup
+import pathlib
+from setuptools import setup, find_packages
+
+HERE = pathlib.Path(__file__).parent
+
+README = (HERE / "README.md").read_text()
 
 setup(
   name = 'simplegan',         
-  packages = ['simplegan'],   
-  version = '0.1',    
+  packages = find_packages(),   
+  version = '0.2.6',    
   license='MIT',      
-  description = 'Framework to ease training of generative models based on TensorFlow',   
+  description = 'Framework to ease training of generative models based on TensorFlow',
+  long_description=README,
+  long_description_content_type="text/markdown",   
   author = 'Rohith Gandhi G',             
-  author_email = 'grohith327@gmail.com',  
-  url = 'https://github.com/grohith327',  
-  download_url = 'https://github.com/grohith327/simplegan/archive/v0.1.tar.gz',    # I explain this later on
+  author_email = 'grohith327@gmail.com', 
+  url = 'https://github.com/grohith327',
+  include_package_data=True,  
   keywords = ['GAN', 'Computer Vision', 'Deep Learning', 'TensorFlow', 'Generative Models', 'Neural Networks', 'AI'],
   install_requires=[            
-          'tensorflow',
+          'tensorflow==2.0.1',
           'tqdm',
           'numpy',
           'opencv-python',

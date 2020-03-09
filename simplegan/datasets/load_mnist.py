@@ -7,6 +7,10 @@ Dataset is loaded from tensorflow keras datasets
 Function load_mnist returns a numpy array of shape (-1, 28, 28, 1)
 '''
 
+__all__ = ['load_mnist',
+           'load_mnist_with_labels',
+           'load_mnist_AE']
+
 
 def load_mnist():
 

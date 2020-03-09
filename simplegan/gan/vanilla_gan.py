@@ -24,6 +24,8 @@ vanilla gan imports from tensorflow Model class
 Original GAN paper: https://arxiv.org/abs/1406.2661
 '''
 
+__all__ = ['VanillaGAN']
+
 
 class VanillaGAN():
 

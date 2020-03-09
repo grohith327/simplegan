@@ -23,6 +23,8 @@ imageio.core.util._precision_warn = silence_imageio_warning
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
+__all__ = ['WGAN']
+
 
 class WGAN(DCGAN):
 

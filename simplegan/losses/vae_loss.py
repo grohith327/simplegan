@@ -15,6 +15,8 @@ source: https://github.com/keras-team/keras/blob/master/examples/variational_aut
 Reference: https://arxiv.org/abs/1312.6114
 '''
 
+__all__ = ['vae_loss']
+
 cross_entropy = tf.keras.losses.BinaryCrossentropy(from_logits=True)
 
 

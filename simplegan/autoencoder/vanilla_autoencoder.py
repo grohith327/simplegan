@@ -30,6 +30,7 @@ use the fit function to train the model.
 
 '''
 
+__all__ = ['VanillaAutoencoder']
 
 class VanillaAutoencoder:
 

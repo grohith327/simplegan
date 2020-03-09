@@ -29,6 +29,7 @@ Create an instance of the class and compile it by using the loss from ../losses/
 use the fit function to train the model.
 '''
 
+__all__ = ['ConvolutionalAutoencoder']
 
 class ConvolutionalAutoencoder:
 
