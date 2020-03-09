@@ -1,4 +1,4 @@
-from easygan import *
+from simplegan import *
 
 __all__ = ['autoencoders',
            'gan',
