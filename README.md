@@ -1,4 +1,4 @@
-![Logo](./assets/logo.png | height=100)
+![Logo](./assets/logo.png)
 # EasyGAN
 [![License](http://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat)](LICENSE)
 **Framework to ease training of generative models**
