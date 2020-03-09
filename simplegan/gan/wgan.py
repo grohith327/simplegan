@@ -1,21 +1,18 @@
-import sys
-sys.path.append('..')
-
 import os
 import tensorflow as tf
 from tensorflow.keras.layers import Conv2D, Dropout, BatchNormalization
 from tensorflow.keras.layers import LeakyReLU, Conv2DTranspose, Dense, Reshape, Flatten
 from tensorflow.keras import Model
-from datasets.load_cifar10 import load_cifar10
-from datasets.load_mnist import load_mnist
-from datasets.load_custom_data import load_custom_data
-from datasets.load_cifar100 import load_cifar100
-from gan.dcgan import DCGAN
-from losses.wasserstein_loss import wgan_discriminator_loss, wgan_generator_loss
+from ..datasets.load_cifar10 import load_cifar10
+from ..datasets.load_mnist import load_mnist
+from ..datasets.load_custom_data import load_custom_data
+from ..datasets.load_cifar100 import load_cifar100
+from .dcgan import DCGAN
+from ..losses.wasserstein_loss import wgan_discriminator_loss, wgan_generator_loss
 import cv2
 import numpy as np
 import datetime
-from datasets.load_lsun import load_lsun
+from ..datasets.load_lsun import load_lsun
 import imageio
 from tqdm.auto import tqdm
 

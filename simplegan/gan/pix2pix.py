@@ -1,14 +1,11 @@
-import sys
-sys.path.append('..')
-
 import os
 from tensorflow.keras.layers import Dropout, Concatenate, BatchNormalization
 from tensorflow.keras.layers import LeakyReLU, Conv2DTranspose, ZeroPadding2D
 from tensorflow.keras.layers import Dense, Reshape, Flatten
 from tensorflow.keras.layers import Conv2D, ReLU, Input
 from tensorflow.keras import Model
-from datasets.load_pix2pix_datasets import pix2pix_dataloader
-from losses.pix2pix_loss import pix2pix_generator_loss, pix2pix_discriminator_loss
+from ..datasets.load_pix2pix_datasets import pix2pix_dataloader
+from ..losses.pix2pix_loss import pix2pix_generator_loss, pix2pix_discriminator_loss
 import imageio
 import cv2
 import tensorflow as tf

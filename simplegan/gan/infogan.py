@@ -1,18 +1,15 @@
-
 import os
 import numpy as np
 import cv2
 import tensorflow as tf
 from tensorflow.keras import layers
-from datasets.load_mnist import load_mnist
-from datasets.load_cifar10 import load_cifar10
-from datasets.load_custom_data import load_custom_data
-from losses.minmax_loss import gan_discriminator_loss, gan_generator_loss
-from losses.infogan_loss import auxillary_loss
+from ..datasets.load_mnist import load_mnist
+from ..datasets.load_cifar10 import load_cifar10
+from ..datasets.load_custom_data import load_custom_data
+from ..losses.minmax_loss import gan_discriminator_loss, gan_generator_loss
+from ..losses.infogan_loss import auxillary_loss
 import datetime
 from tqdm import tqdm
-import sys
-sys.path.append('..')
 import logging
 import imageio
 logging.getLogger("tensorflow").setLevel(logging.ERROR)

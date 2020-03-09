@@ -1,16 +1,13 @@
-import sys
-sys.path.append('..')
-
 import os
 from tensorflow.keras.layers import Dropout, Concatenate, BatchNormalization
 from tensorflow.keras.layers import LeakyReLU, Conv2DTranspose, ZeroPadding2D
 from tensorflow.keras.layers import Dense, Reshape, Flatten, ReLU
 from tensorflow.keras.layers import Input, Conv2D
 from tensorflow.keras import Model
-from losses.minmax_loss import gan_generator_loss, gan_discriminator_loss
-from losses.cyclegan_loss import cycle_loss, identity_loss
-from datasets.load_cyclegan_datasets import cyclegan_dataloader
-from gan.pix2pix import Pix2Pix
+from ..losses.minmax_loss import gan_generator_loss, gan_discriminator_loss
+from ..losses.cyclegan_loss import cycle_loss, identity_loss
+from ..datasets.load_cyclegan_datasets import cyclegan_dataloader
+from .pix2pix import Pix2Pix
 import tensorflow as tf
 import numpy as np
 import datetime

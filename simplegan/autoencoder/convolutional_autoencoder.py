@@ -1,6 +1,3 @@
-import sys
-sys.path.append('..')
-
 from tensorflow.keras.layers import Conv2D, Dropout, LeakyReLU
 from tensorflow.keras.layers import BatchNormalization, Conv2DTranspose
 from tensorflow.keras.layers import Dense, Reshape, Flatten, MaxPool2D
@@ -9,10 +6,10 @@ import imageio
 import os
 from tensorflow.keras import Model
 import numpy as np
-from datasets.load_cifar10 import load_cifar10_AE
-from datasets.load_mnist import load_mnist_AE
-from datasets.load_custom_data import load_custom_data_AE
-from losses.mse_loss import mse_loss
+from ..datasets.load_cifar10 import load_cifar10_AE
+from ..datasets.load_mnist import load_mnist_AE
+from ..datasets.load_custom_data import load_custom_data_AE
+from ..losses.mse_loss import mse_loss
 import tensorflow as tf
 import datetime
 from tqdm.auto import tqdm

@@ -1,6 +1,3 @@
-import sys
-sys.path.append('..')
-
 import cv2
 import os
 from tensorflow.keras.layers import Dropout, BatchNormalization
@@ -8,10 +5,10 @@ from tensorflow.keras.layers import Lambda, Dense, Reshape, Input
 from tensorflow.keras import Model
 import imageio
 import numpy as np
-from datasets.load_cifar10 import load_cifar10_AE
-from datasets.load_mnist import load_mnist_AE
-from datasets.load_custom_data import load_custom_data_AE
-from losses.mse_loss import mse_loss
+from ..datasets.load_cifar10 import load_cifar10_AE
+from ..datasets.load_mnist import load_mnist_AE
+from ..datasets.load_custom_data import load_custom_data_AE
+from ..losses.mse_loss import mse_loss
 import tensorflow as tf
 import datetime
 from tqdm.auto import tqdm
