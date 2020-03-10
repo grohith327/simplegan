@@ -78,12 +78,12 @@ class CycleGAN(Pix2Pix):
                 kernel_initializer = tf.random_normal_initializer(0., 0.02)):
 
         Pix2Pix.__init__(self,
-                        kernel_initializer,
                         dropout_rate,
-                        kernel_size,
                         gen_enc_channels,
                         gen_dec_channels,
-                        disc_channels)
+                        disc_channels,
+                        kernel_size,
+                        kernel_initializer)
 
         self.gen_model_g = None
         self.gen_model_f = None

@@ -8,7 +8,7 @@ README = (HERE / "README.md").read_text()
 setup(
   name = 'simplegan',         
   packages = find_packages(),   
-  version = '0.2.6',    
+  version = '0.2.8',    
   license='MIT',      
   description = 'Framework to ease training of generative models based on TensorFlow',
   long_description=README,
@@ -27,7 +27,7 @@ setup(
           'tensorflow-datasets'
       ],
   classifiers=[
-    'Development Status :: 4 - Beta',
+    'Development Status :: 5 - Production/Stable',
     'Intended Audience :: Developers',      
     'Topic :: Software Development :: Build Tools',
     'Topic :: Scientific/Engineering :: Artificial Intelligence',

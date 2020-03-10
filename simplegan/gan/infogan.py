@@ -35,7 +35,6 @@ class InfoGAN:
     Args:
         noise_dim (int, optional): represents the dimension of the prior to sample values. Defaults to ``100``
         code_dim (int, list, optional): dimension of the interpretable representation. Defaults to ``2``
-        n_classes (int, optional): number of output classes. Defaults to ``10``
         dropout_rate (float, optional): represents the amount of dropout regularization to be applied. Defaults to ``0.4``
         gen_channels (int, list, optional): represents the number of filters in the generator network. Defaults to ``[128, 64]``
         disc_channels (int, list, optional): represents the number of filters in the discriminator network. Defaults to ``[64, 128]```
@@ -48,7 +47,6 @@ class InfoGAN:
     def __init__(self,
                 noise_dim = 100,
                 code_dim = 2,
-                n_classes = 10,
                 dropout_rate = 0.4,
                 gen_channels = [
                     128,
@@ -66,7 +64,7 @@ class InfoGAN:
         
         self.image_size = None
         self.config=locals()
-        self.n_classes = n_classes
+        self.n_classes = None
         self.noise_dim = noise_dim
         self.code_dim = code_dim
         
@@ -93,14 +91,18 @@ class InfoGAN:
         if(use_mnist):
 
             train_data = load_mnist()
+            self.n_classes = 10
 
         elif(use_cifar10):
 
             train_data = load_cifar10()
+            self.n_classes = 10
 
         else:
 
-            train_data = load_custom_data(data_dir)
+            train_data, train_labels = load_custom_data_with_labels(data_dir, img_shape)
+            self.n_classes = np.unique(train_labels).shape[0]
+
 
         self.image_size = train_data.shape[1:]
 
@@ -130,7 +132,7 @@ class InfoGAN:
         for img in data.take(n_samples):
 
             img = img.numpy()
-            sample_images.append(img[0])
+            sample_images.append(img)
 
         sample_images = np.array(sample_images)
 
@@ -240,8 +242,7 @@ class InfoGAN:
         return disc_model
 
     def generator(self, config):
-
-        n_classes = config['n_classes'] 
+ 
         noise_dim = config['noise_dim'] 
         code_dim = config['code_dim'] 
 

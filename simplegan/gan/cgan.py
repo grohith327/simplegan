@@ -99,7 +99,7 @@ class CGAN:
 
         else:
 
-            train_data, train_labels = load_custom_data_with_labels(data_dir)
+            train_data, train_labels = load_custom_data_with_labels(data_dir, img_shape)
             self.n_classes = np.unique(train_labels).shape[0]
 
         self.image_size = train_data[0].shape
@@ -130,7 +130,7 @@ class CGAN:
         for img, label in data.take(n_samples):
 
             img = img.numpy()
-            sample_images.append(img[0])
+            sample_images.append(img)
 
         sample_images = np.array(sample_images)
 

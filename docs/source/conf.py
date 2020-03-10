@@ -24,7 +24,7 @@ copyright = '2020, Rohith Gandhi G'
 author = 'Rohith Gandhi G'
 
 # The full version, including alpha/beta/rc tags
-release = 'v0.2.6'
+release = 'v0.2.8'
 
 
 # -- General configuration ---------------------------------------------------

@@ -138,7 +138,7 @@ def load_custom_data_with_labels(datadir=None, img_shape=(64, 64)):
         except ValueError:
             print("Ensure Directory is of following structure: \n {} \n {} -label 1(int type) \n {} -*.jpg \n {} -label 2(int type) \n {} -*.jpg \n {} ...".format(
                 datadir, ' '*2, ' '*4, ' '*2, ' '*4, ' '*2))
-            pass
+            break
 
     assert len(train_data) > 0, "No images to load from directory"
 
