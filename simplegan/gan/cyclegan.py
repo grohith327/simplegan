@@ -205,10 +205,11 @@ class CycleGAN(Pix2Pix):
         assert data is not None, "Data not provided"
 
         sample_images = []
-        for img, label in data.take(n_samples):
+        data.unbatch()
+        for img in data.take(n_samples):
 
             img = img.numpy()
-            sample_images.append(img)
+            sample_images.append(img[0])
 
         sample_images = np.array(sample_images)
 

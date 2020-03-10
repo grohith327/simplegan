@@ -130,7 +130,7 @@ class CGAN:
         for img, label in data.take(n_samples):
 
             img = img.numpy()
-            sample_images.append(img)
+            sample_images.append(img[0])
 
         sample_images = np.array(sample_images)
 

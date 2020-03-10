@@ -122,7 +122,7 @@ class VanillaGAN:
         data = data.unbatch()
         for img in data.take(n_samples):
 
-            img = img.numpy()
+            img = img.numpy()[0]
             img = img.reshape(
                 (self.image_size[0],
                  self.image_size[1],

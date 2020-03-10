@@ -167,7 +167,7 @@ class Pix2Pix:
 
             input_img = input_img.numpy()
             target_img = target_img.numpy()
-            sample_images.append([input_img, target_img])
+            sample_images.append([input_img[0], target_img[0]])
 
         sample_images = np.array(sample_images)
 
