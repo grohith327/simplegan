@@ -3,18 +3,19 @@ import tensorflow_datasets as tfds
 import numpy as np
 import os
 
-'''
-returns train_dataA, train_dataB, test_dataA, test_dataB -> tensorflow dataset
-
-
-paper: https://arxiv.org/abs/1703.10593
-
-Code inspired from: https://www.tensorflow.org/tutorials/generative/cyclegan#import_and_reuse_the_pix2pix_models
-'''
-
 __all__ = ['cyclegan_dataloader']
 
 class cyclegan_dataloader:
+
+    r"""A dataloader class for `CycleGAN <https://github.com/grohith327/simplegan/blob/master/simplegan/gan/cyclegan.py>`_ network
+
+    Args:
+        dataset_name (str, optional): ``apple2orange`` ``summer2winter_yosemite`` ``horse2zebra`` ``monet2photo`` ``cezanne2photo`` 
+        ``ukiyoe2photo`` ``vangogh2photo`` ``maps`` ``cityscapes`` ``facades`` ``iphone2dslr_flower``. Defaults to ``None``
+        img_width (int, optional): width of the image. Defaults to ``256``
+        img_height (int, optional): height of the image. Defaults to ``256``
+        datadir (str, optional): Local directory to load data from. Defaults to ``None``
+    """
 
     def __init__(self, dataset_name=None, img_width=256, img_height=256,
                  datadir=None):
@@ -165,6 +166,12 @@ class cyclegan_dataloader:
         return trainA, trainB, testA, testB
 
     def load_dataset(self):
+
+        r"""Loads the data according to given parameters
+
+        Return:
+            tensorflow dataset object for ``trainA`` ``trainB`` ``testA`` ``testB``
+        """
 
         assert self.dataset_name is not None or self.datadir is not None, "Enter directory to load custom data or choose from exisisting data to load from"
 

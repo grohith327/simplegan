@@ -16,6 +16,7 @@ from ..datasets.load_lsun import load_lsun
 import imageio
 from tqdm.auto import tqdm
 
+### Silence Imageio warnings
 def silence_imageio_warning(*args, **kwargs):
     pass
 
@@ -25,17 +26,29 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
 __all__ = ['WGAN']
 
+'''
+References:
+-> https://arxiv.org/abs/1701.07875
+'''
 
 class WGAN(DCGAN):
+
+    r"""`WGAN <https://arxiv.org/abs/1701.07875>`_ model
+
+    Args:
+        noise_dim (int, optional): represents the dimension of the prior to sample values. Defaults to ``100``
+        dropout_rate (float, optional): represents the amount of dropout regularization to be applied. Defaults to ``0.4``
+        gen_channels (int, list, optional): represents the number of filters in the generator network. Defaults to ``[64, 32, 16]``
+        disc_channels (int, list, optional): represents the number of filters in the discriminator network. Defaults to ``[16, 32, 64]```
+        kernel_size (int, tuple, optional): repersents the size of the kernel to perform the convolution. Defaults to ``(5, 5)``
+        activation (str, optional): type of non-linearity to be applied. Defaults to ``relu``
+        kernel_initializer (str, optional): initialization of kernel weights. Defaults to ``glorot_uniform``
+        kernel_regularizer (str, optional): type of regularization to be applied to the weights. Defaults to ``None``
+    """
 
     def __init__(self,
                 noise_dim = 100,
                 dropout_rate = 0.4,
-                activation = 'relu',
-                kernel_initializer = 'glorot_uniform',
-                kernel_size = (
-                    5,
-                    5),
                 gen_channels = [
                     64,
                     32,
@@ -44,16 +57,21 @@ class WGAN(DCGAN):
                     16,
                     32,
                     64],
+                kernel_size = (
+                    5,
+                    5),
+                activation = 'relu',
+                kernel_initializer = 'glorot_uniform',
                 kernel_regularizer = None):
 
         DCGAN.__init__(self,
                     noise_dim,
                     dropout_rate,
-                    activation,
-                    kernel_initializer,
-                    kernel_size,
                     gen_channels,
                     disc_channels,
+                    kernel_size,
+                    activation,
+                    kernel_initializer,
                     kernel_regularizer)
 
     def __load_model(self):
@@ -72,6 +90,22 @@ class WGAN(DCGAN):
             beta_1=0.5,
             tensorboard=False,
             save_model=None):
+
+        r"""Function to train the model
+
+        Args:
+            train_ds (tf.data object): training data
+            epochs (int, optional): number of epochs to train the model. Defaults to ``100``
+            gen_optimizer (str, optional): optimizer used to train generator. Defaults to ``RMSprop``
+            disc_optimizer (str, optional): optimizer used to train discriminator. Defaults to ``RMSprop``
+            verbose (int, optional): 1 - prints training outputs, 0 - no outputs. Defaults to ``1``
+            gen_learning_rate (float, optional): learning rate of the generator optimizer. Defaults to ``5e-5``
+            disc_learning_rate (float, optional): learning rate of the discriminator optimizer. Defaults to ``5e-5``
+            beta_1 (float, optional): decay rate of the first momement. set if ``Adam`` optimizer is used. Defaults to ``0.5``
+            tensorboard (bool, optional): if true, writes loss values to ``logs/gradient_tape`` directory
+                which aids visualization. Defaults to ``False``
+            save_model (str, optional): Directory to save the trained model. Defaults to ``None``
+        """
 
         assert train_ds is not None, 'Initialize training data through train_ds parameter'
 

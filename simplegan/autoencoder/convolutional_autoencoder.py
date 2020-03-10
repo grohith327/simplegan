@@ -15,23 +15,28 @@ import datetime
 from tqdm.auto import tqdm
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
+### Silence Imageio warnings
 def silence_imageio_warning(*args, **kwargs):
     pass
 
 imageio.core.util._precision_warn = silence_imageio_warning
 
 
-'''
-vanilla_autoencoder imports from tensorflow Model class
-
-Create an instance of the class and compile it by using the loss from ../losses/mse_loss and use an optimizer and metric of your choice
-
-use the fit function to train the model.
-'''
-
 __all__ = ['ConvolutionalAutoencoder']
 
 class ConvolutionalAutoencoder:
+
+    r"""Convolutional Autoencoder model
+
+    Args:
+        interm_dim (int, optional): represents the dimension of the bottleneck layer. Defaults to ``128``
+        enc_channels (int, list, optional): represents the number of filters in the encoder part of the network. Defaults to ``[32, 64]``
+        dec_channels (int, list, optional): represents the number of filters in the decoder part of the network. Defaults to ``[64, 32]```
+        kernel_size (int, tuple, optional): repersents the size of the kernel to perform the convolution. Defaults to ``(5, 5)``
+        activation (str, optional): type of non-linearity to be applied. Defaults to ``relu``
+        kernel_initializer (str, optional): initialization of kernel weights. Defaults to ``glorot_uniform``
+        kernel_regularizer (str, optional): type of regularization to be applied to the weights. Defaults to ``None``
+    """
 
     def __init__(self,
                 interm_dim = 128,
@@ -58,10 +63,21 @@ class ConvolutionalAutoencoder:
                 use_cifar10=False, 
                 batch_size=32, 
                 img_shape=(64, 64)):
-        '''
-        choose the dataset, if None is provided returns an assertion error -> ../datasets/load_custom_data
-        returns a tensorflow dataset loader
-        '''
+        
+        r"""Load data to train the model
+
+        Args:
+            data_dir (str, optional): string representing the directory to load data from. Defaults to ``None``
+            use_mnist (bool, optional): use the MNIST dataset to train the model. Defaults to ``False``
+            use_cifar10 (bool, optional): use the CIFAR10 dataset to train the model. Defaults to ``False``
+            batch_size (int, optional): mini batch size for training the model. Defaults to ``32``
+            img_shape (int, tuple, optional): shape of the image when loading data from custom directory. Defaults to ``(64, 64)``
+
+        Return:
+            two tensorflow dataset objects representing the train and test datset
+        """
+
+
         if(use_mnist):
 
             train_data, test_data = load_mnist_AE()
@@ -88,6 +104,17 @@ class ConvolutionalAutoencoder:
 
     def get_sample(self, data=None, n_samples=1, save_dir=None):
 
+        r"""View sample of the data
+
+        Args:
+            data (tf.data object): dataset to load samples from
+            n_samples (int, optional): number of samples to load. Defaults to ``1``
+            save_dir (str, optional): directory to save the sample images. Defaults to ``None``
+
+        Return:
+            ``None`` if save_dir is ``not None``, otherwise returns numpy array of samples with shape (n_samples, img_shape)
+        """
+
         assert data is not None, "Data not provided"
 
         sample_images = []
@@ -112,9 +139,6 @@ class ConvolutionalAutoencoder:
                     '.jpg'),
                 sample)
 
-    '''
-    encoder and decoder layers for custom dataset can be reimplemented by inherting this class(vanilla_autoencoder)
-    '''
 
     def encoder(self, config):
 
@@ -233,9 +257,6 @@ class ConvolutionalAutoencoder:
 
         return model
 
-    '''
-    call build_model to intialize the layers before you train the model
-    '''
 
     def __load_model(self):
 
@@ -250,6 +271,20 @@ class ConvolutionalAutoencoder:
             learning_rate=0.001, 
             tensorboard=False, 
             save_model=None):
+
+
+        r"""Function to train the model
+
+        Args:
+            train_ds (tf.data object): training data
+            epochs (int, optional): number of epochs to train the model. Defaults to ``100``
+            optimizer (str, optional): optimizer used to train the model. Defaults to ``Adam``
+            verbose (int, optional): 1 - prints training outputs, 0 - no outputs. Defaults to ``1``
+            learning_rate (float, optional): learning rate of the optimizer. Defaults to ``0.001``
+            tensorboard (bool, optional): if true, writes loss values to ``logs/gradient_tape`` directory
+                which aids visualization. Defaults to ``False``
+            save_model (str, optional): Directory to save the trained model. Defaults to ``None``
+        """
 
         assert train_ds is not None, 'Initialize training data through train_ds parameter'
 
@@ -317,6 +352,16 @@ class ConvolutionalAutoencoder:
                     save_model + 'convolutional_autoencoder_autoencoder_checkpoint')
 
     def generate_samples(self, test_ds=None, save_dir=None):
+
+        r"""Generate samples using the trained model
+
+        Args:
+            test_ds (tf.data object): test data object used to generate samples
+            save_dir (str, optional): directory to save the generated images. Defaults to ``None``
+
+        Return:
+            returns ``None`` if save_dir is ``not None``, otherwise returns a numpy array with generated samples
+        """
 
         assert test_ds is not None, "Enter input test dataset"
 

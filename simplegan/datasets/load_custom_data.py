@@ -18,6 +18,16 @@ __all__ = ['load_custom_data',
 
 def load_custom_data(datadir=None, img_shape=(64, 64)):
 
+    r"""Loads data from specified directory and returns a numpy array - used in GANs
+
+    Args:
+        datadir (str): directory to load data from. Defaults to ``None``
+        img_shape (int, tuple, optional): shape of the image to be returned. Defaults to ``(64, 64)``
+
+    Return:
+        a numpy array of shape according to img_shape parameter
+    """
+
     error_message = "Enter a valid directory \n Directory structure: \n {} \n {} -*jpg".format(
         datadir, ' ' * 2)
     assert datadir is not None, error_message
@@ -42,6 +52,16 @@ def load_custom_data(datadir=None, img_shape=(64, 64)):
 
 
 def load_custom_data_AE(datadir=None, img_shape=(64, 64)):
+
+    r"""Loads train and test data from a specified directory and returns a numpy array of train and test images - used in Autoencoder
+
+    Args:
+        datadir (str): directory to load data from. Defaults to ``None``
+        img_shape (int, tuple, optional): shape of the image to be returned. Defaults to ``(64, 64)``
+
+    Return:
+        a numpy array of shape according to img_shape parameter
+    """
 
     assert datadir is not None, "Enter a valid directory"
 
@@ -90,6 +110,16 @@ def load_custom_data_AE(datadir=None, img_shape=(64, 64)):
 
 
 def load_custom_data_with_labels(datadir=None, img_shape=(64, 64)):
+
+    r"""Loads train with labels from a specified directory and returns a numpy array of train images and labels - used in CGAN
+
+    Args:
+        datadir (str): directory to load data from. Defaults to ``None``
+        img_shape (int, tuple, optional): shape of the image to be returned. Defaults to ``(64, 64)``
+
+    Return:
+        a numpy array of shape according to img_shape parameter
+    """
 
     assert datadir is not None, "Enter a valid directory"
     assert len(img_shape) == 2 and isinstance(img_shape, tuple), "img_shape must be a tuple of size 2"

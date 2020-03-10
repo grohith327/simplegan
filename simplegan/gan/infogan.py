@@ -14,33 +14,53 @@ import logging
 import imageio
 logging.getLogger("tensorflow").setLevel(logging.ERROR)
 
+### Silence Imageio warnings
 def silence_imageio_warning(*args, **kwargs):
     pass
-
 
 imageio.core.util._precision_warn = silence_imageio_warning
 
 __all__ = ['InfoGAN']
 
+'''
+References:
+-> https://arxiv.org/abs/1606.03657
+'''
+
 
 class InfoGAN:
+
+    r"""`InfoGAN <https://arxiv.org/abs/1606.03657>`_ model
+
+    Args:
+        noise_dim (int, optional): represents the dimension of the prior to sample values. Defaults to ``100``
+        code_dim (int, list, optional): dimension of the interpretable representation. Defaults to ``2``
+        n_classes (int, optional): number of output classes. Defaults to ``10``
+        dropout_rate (float, optional): represents the amount of dropout regularization to be applied. Defaults to ``0.4``
+        gen_channels (int, list, optional): represents the number of filters in the generator network. Defaults to ``[128, 64]``
+        disc_channels (int, list, optional): represents the number of filters in the discriminator network. Defaults to ``[64, 128]```
+        kernel_size (int, tuple, optional): repersents the size of the kernel to perform the convolution. Defaults to ``(5, 5)``
+        activation (str, optional): type of non-linearity to be applied. Defaults to ``leaky_relu``
+        kernel_initializer (str, optional): initialization of kernel weights. Defaults to ``glorot_uniform``
+        kernel_regularizer (str, optional): type of regularization to be applied to the weights. Defaults to ``None``
+    """
+
     def __init__(self,
                 noise_dim = 100,
                 code_dim = 2,
                 n_classes = 10,
                 dropout_rate = 0.4,
-                activation = 'leaky_relu',
-                kernel_initializer = 'glorot_uniform',
-                kernel_size = (
-                    5,
-                    5),
                 gen_channels = [
                     128,
-                    64
-                ],
+                    64],
                 disc_channels = [
                     64,
                     128],
+                kernel_size = (
+                    5,
+                    5),
+                activation = 'leaky_relu',
+                kernel_initializer = 'glorot_uniform',
                 kernel_regularizer = None):
         
         
@@ -54,13 +74,21 @@ class InfoGAN:
                   data_dir=None,
                   use_mnist=False,
                   use_cifar10=False,
-                  use_lsun=False,
                   batch_size=32, 
                   img_shape=(64, 64)):
-        '''
-        choose the dataset, if None is provided returns an assertion error -> ../datasets/load_custom_data
-        returns a tensorflow dataset loader
-        '''
+        
+        r"""Load data to train the model
+
+        Args:
+            data_dir (str, optional): string representing the directory to load data from. Defaults to ``None``
+            use_mnist (bool, optional): use the MNIST dataset to train the model. Defaults to ``False``
+            use_cifar10 (bool, optional): use the CIFAR10 dataset to train the model. Defaults to ``False``
+            batch_size (int, optional): mini batch size for training the model. Defaults to ``32``
+            img_shape (int, tuple, optional): shape of the image when loading data from custom directory. Defaults to ``(64, 64)``
+
+        Return:
+            a tensorflow dataset objects representing the training datset
+        """
 
         if(use_mnist):
 
@@ -83,6 +111,17 @@ class InfoGAN:
         return train_ds
 
     def get_sample(self, data=None, n_samples=1, save_dir=None):
+
+        r"""View sample of the data
+
+        Args:
+            data (tf.data object): dataset to load samples from
+            n_samples (int, optional): number of samples to load. Defaults to ``1``
+            save_dir (str, optional): directory to save the sample images. Defaults to ``None``
+
+        Return:
+            ``None`` if save_dir is ``not None``, otherwise returns numpy array of samples with shape (n_samples, img_shape)
+        """
 
         assert data is not None, "Data not provided"
 
@@ -265,6 +304,22 @@ class InfoGAN:
             tensorboard=False,
             save_model=None):
 
+        r"""Function to train the model
+
+        Args:
+            train_ds (tf.data object): training data
+            epochs (int, optional): number of epochs to train the model. Defaults to ``100``
+            gen_optimizer (str, optional): optimizer used to train generator. Defaults to ``Adam``
+            disc_optimizer (str, optional): optimizer used to train discriminator. Defaults to ``Adam``
+            verbose (int, optional): 1 - prints training outputs, 0 - no outputs. Defaults to ``1``
+            gen_learning_rate (float, optional): learning rate of the generator optimizer. Defaults to ``0.0001``
+            disc_learning_rate (float, optional): learning rate of the discriminator optimizer. Defaults to ``0.0002``
+            beta_1 (float, optional): decay rate of the first momement. set if ``Adam`` optimizer is used. Defaults to ``0.5``
+            tensorboard (bool, optional): if true, writes loss values to ``logs/gradient_tape`` directory
+                which aids visualization. Defaults to ``False``
+            save_model (str, optional): Directory to save the trained model. Defaults to ``None``
+        """
+
         assert train_ds is not None, 'No Input data found'
         
         self.__load_model()
@@ -366,6 +421,16 @@ class InfoGAN:
                     save_model + 'discriminator_checkpoint')
 
     def generate_samples(self, n_samples=1, save_dir=None):
+
+        r"""Generate samples using the trained model
+
+        Args:
+            n_samples (int, optional): number of samples to generate. Defaults to ``1``
+            save_dir (str, optional): directory to save the generated images. Defaults to ``None``
+
+        Return:
+            returns ``None`` if save_dir is ``not None``, otherwise returns a numpy array with generated samples
+        """
 
         Z = np.random.randn(n_samples, self.noise_dim)
         label_input = tf.keras.utils.to_categorical(

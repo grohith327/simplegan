@@ -16,29 +16,37 @@ import imageio
 from tqdm.auto import tqdm
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
+### Silence Imageio warnings
 def silence_imageio_warning(*args, **kwargs):
     pass
 
 imageio.core.util._precision_warn = silence_imageio_warning
 
 '''
-DCGAN imports from tensorflow Model class
-
-DCGAN paper: https://arxiv.org/abs/1511.06434
+References: 
+-> https://arxiv.org/abs/1511.06434
 '''
 
 __all__ = ['DCGAN']
 
-class DCGAN():
+class DCGAN:
+
+    r"""`DCGAN <https://arxiv.org/abs/1511.06434>`_ model
+
+    Args:
+        noise_dim (int, optional): represents the dimension of the prior to sample values. Defaults to ``100``
+        dropout_rate (float, optional): represents the amount of dropout regularization to be applied. Defaults to ``0.4``
+        gen_channels (int, list, optional): represents the number of filters in the generator network. Defaults to ``[64, 32, 16]``
+        disc_channels (int, list, optional): represents the number of filters in the discriminator network. Defaults to ``[16, 32, 64]```
+        kernel_size (int, tuple, optional): repersents the size of the kernel to perform the convolution. Defaults to ``(5, 5)``
+        activation (str, optional): type of non-linearity to be applied. Defaults to ``relu``
+        kernel_initializer (str, optional): initialization of kernel weights. Defaults to ``glorot_uniform``
+        kernel_regularizer (str, optional): type of regularization to be applied to the weights. Defaults to ``None``
+    """
 
     def __init__(self,
                 noise_dim = 100,
                 dropout_rate = 0.4,
-                activation = 'relu',
-                kernel_initializer = 'glorot_uniform',
-                kernel_size = (
-                    5,
-                    5),
                 gen_channels = [
                     64,
                     32,
@@ -47,6 +55,11 @@ class DCGAN():
                     16,
                     32,
                     64],
+                kernel_size = (
+                    5,
+                    5),
+                activation = 'relu',
+                kernel_initializer = 'glorot_uniform',
                 kernel_regularizer = None):
 
         self.image_size = None
@@ -63,10 +76,21 @@ class DCGAN():
                 use_lsun=False,
                 batch_size=32, 
                 img_shape=(64, 64)):
-        '''
-        choose the dataset, if None is provided returns an assertion error -> ../datasets/load_custom_data
-        returns a tensorflow dataset loader
-        '''
+        
+        r"""Load data to train the model
+
+        Args:
+            data_dir (str, optional): string representing the directory to load data from. Defaults to ``None``
+            use_mnist (bool, optional): use the MNIST dataset to train the model. Defaults to ``False``
+            use_cifar10 (bool, optional): use the CIFAR10 dataset to train the model. Defaults to ``False``
+            use_cifar100 (bool, optional): use the CIFAR100 dataset to train the model. Defaults to ``False``
+            use_lsun (bool, optional): use the LSUN dataset to train the model. Defaults to ``False``
+            batch_size (int, optional): mini batch size for training the model. Defaults to ``32``
+            img_shape (int, tuple, optional): shape of the image when loading data from custom directory. Defaults to ``(64, 64)``
+
+        Return:
+            a tensorflow dataset objects representing the training datset
+        """
 
         if(use_mnist):
 
@@ -98,6 +122,17 @@ class DCGAN():
 
     def get_sample(self, data=None, n_samples=1, save_dir=None):
 
+        r"""View sample of the data
+
+        Args:
+            data (tf.data object): dataset to load samples from
+            n_samples (int, optional): number of samples to load. Defaults to ``1``
+            save_dir (str, optional): directory to save the sample images. Defaults to ``None``
+
+        Return:
+            ``None`` if save_dir is ``not None``, otherwise returns numpy array of samples with shape (n_samples, img_shape)
+        """
+
         assert data is not None, "Data not provided"
 
         sample_images = []
@@ -122,10 +157,6 @@ class DCGAN():
                     '.jpg'),
                 sample)
 
-    '''
-    Create a child class to modify generator and discriminator architecture for
-    custom dataset
-    '''
 
     def generator(self, config):
 
@@ -271,9 +302,6 @@ class DCGAN():
 
         return model
 
-    '''
-    call build_model() to get the generator and discriminator objects
-    '''
 
     def __load_model(self):
 
@@ -291,6 +319,22 @@ class DCGAN():
             beta_1=0.5,
             tensorboard=False,
             save_model=None):
+
+        r"""Function to train the model
+
+        Args:
+            train_ds (tf.data object): training data
+            epochs (int, optional): number of epochs to train the model. Defaults to ``100``
+            gen_optimizer (str, optional): optimizer used to train generator. Defaults to ``Adam``
+            disc_optimizer (str, optional): optimizer used to train discriminator. Defaults to ``Adam``
+            verbose (int, optional): 1 - prints training outputs, 0 - no outputs. Defaults to ``1``
+            gen_learning_rate (float, optional): learning rate of the generator optimizer. Defaults to ``0.0001``
+            disc_learning_rate (float, optional): learning rate of the discriminator optimizer. Defaults to ``0.0002``
+            beta_1 (float, optional): decay rate of the first momement. set if ``Adam`` optimizer is used. Defaults to ``0.5``
+            tensorboard (bool, optional): if true, writes loss values to ``logs/gradient_tape`` directory
+                which aids visualization. Defaults to ``False``
+            save_model (str, optional): Directory to save the trained model. Defaults to ``None``
+        """
 
         assert train_ds is not None, 'Initialize training data through train_ds parameter'
 
@@ -395,6 +439,16 @@ class DCGAN():
                     save_model + 'discriminator_checkpoint')
 
     def generate_samples(self, n_samples=1, save_dir=None):
+
+        r"""Generate samples using the trained model
+
+        Args:
+            n_samples (int, optional): number of samples to generate. Defaults to ``1``
+            save_dir (str, optional): directory to save the generated images. Defaults to ``None``
+
+        Return:
+            returns ``None`` if save_dir is ``not None``, otherwise returns a numpy array with generated samples
+        """
 
         Z = tf.random.normal([n_samples, self.noise_dim])
         generated_samples = self.gen_model(Z).numpy()

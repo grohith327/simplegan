@@ -6,20 +6,21 @@ import glob
 from tqdm import tqdm
 
 '''
-returns datasets used in Pix2Pix paper and custom dataset
-
-datasets used in paper are available at: https://people.eecs.berkeley.edu/~tinghuiz/projects/pix2pix/datasets/
-
-The following code is inspired from: https://www.tensorflow.org/tutorials/generative/pix2pix#load_the_dataset
-
-Note:
--> if using custom dataset, ensure it is organized into train and test directory
--> The see how the custom image should be, load a dataset used in pix2pix and visualize it
+Datasets are retrieved from: https://people.eecs.berkeley.edu/~tinghuiz/projects/pix2pix/datasets/
 '''
 
 __all__ = ['pix2pix_dataloader']
 
 class pix2pix_dataloader:
+
+    r"""A dataloader class for `Pix2Pix <https://github.com/grohith327/simplegan/blob/master/simplegan/gan/pix2pix.py>`_ network
+
+    Args:
+        dataset_name (str, optional): ``cityscapes`` ``edges2handbags`` ``edges2shoes`` ``facades`` ``maps``. Defaults to ``None``
+        img_width (int, optional): width of the image. Defaults to ``256``
+        img_height (int, optional): height of the image. Defaults to ``256``
+        datadir (str, optional): Local directory to load data from. Defaults to ``None``
+    """
 
     def __init__(self, dataset_name=None, img_width=256, img_height=256,
                  datadir=None):
@@ -175,6 +176,12 @@ class pix2pix_dataloader:
         return train_ds, test_ds
 
     def load_dataset(self):
+
+        r"""Loads the data according to given parameters
+
+        Return:
+            tensorflow dataset object for training and testing data
+        """
 
         assert self.dataset_name is not None or self.datadir is not None, "Enter directory to load custom data or choose from existing datasets"
 

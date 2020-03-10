@@ -16,13 +16,7 @@ import imageio
 from tqdm.auto import tqdm
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
-'''
-Paper: https://arxiv.org/abs/1703.10593
-
-Code inspired from: https://www.tensorflow.org/tutorials/generative/cyclegan#import_and_reuse_the_pix2pix_models
-'''
-
-
+### Silence Imageio warnings
 def silence_imageio_warning(*args, **kwargs):
     pass
 
@@ -31,15 +25,32 @@ imageio.core.util._precision_warn = silence_imageio_warning
 
 __all__ = ['CycleGAN']
 
+'''
+
+References:
+-> https://arxiv.org/abs/1703.10593
+-> https://www.tensorflow.org/tutorials/generative/cyclegan
+
+'''
+
 
 class CycleGAN(Pix2Pix):
 
+    r"""`CycleGAN <https://arxiv.org/abs/1703.10593>`_ model. During training, samples are saved at ./samples and rate specified by save_img_per_epoch
+
+    Args:
+        dropout_rate (float, optional): represents the amount of dropout regularization to be applied. Defaults to ``0.5``
+        gen_enc_channels (int, list, optional): represents the number of filters in the encoder part of Unet generator network. Defaults to ``[128, 256, 512,
+            512, 512, 512, 512]``
+        gen_dec_channels (int, list, optional): represents the number of filters in the decoder part of Unet generator network. Defaults to ``[512, 512, 512, 512,
+            256, 128, 64]``
+        disc_channels (int, list, optional): represents the number of filters in the discriminator network. Defaults to ``[64, 128, 256, 512]```
+        kernel_size (int, tuple, optional): repersents the size of the kernel to perform the convolution. Defaults to ``(4, 4)``
+        kernel_initializer (str, optional): initialization of kernel weights. Defaults to ``tf.random_normal_initializer(0., 0.02)``
+    """
+
     def __init__(self,
-                kernel_initializer = tf.random_normal_initializer(0., 0.02),
                 dropout_rate = 0.5,
-                kernel_size = (
-                    4,
-                    4),
                 gen_enc_channels = [
                     128,
                     256,
@@ -60,7 +71,11 @@ class CycleGAN(Pix2Pix):
                     64,
                     128,
                     256,
-                    512]):
+                    512],
+                kernel_size = (
+                    4,
+                    4),
+                kernel_initializer = tf.random_normal_initializer(0., 0.02)):
 
         Pix2Pix.__init__(self,
                         kernel_initializer,
@@ -78,7 +93,6 @@ class CycleGAN(Pix2Pix):
     def load_data(
             self,
             data_dir=None,
-            batch_size=32,
             use_apple2orange=False,
             use_summer2winter_yosemite=False,
             use_horse2zebra=False,
@@ -89,7 +103,29 @@ class CycleGAN(Pix2Pix):
             use_maps=False,
             use_cityscapes=False,
             use_facades=False,
-            use_iphone2dslr_flower=False):
+            use_iphone2dslr_flower=False,
+            batch_size=32):
+
+        r"""Load data to train the model
+
+        Args:
+            data_dir (str, optional): string representing the directory to load data from. Defaults to ``None``
+            use_apple2orange (bool, optional): use the apple2orange dataset to train the model. Defaults to ``False``
+            use_summer2winter_yosemite (bool, optional): use the summer2winter_yosemite dataset to train the model. Defaults to ``False``
+            use_horse2zebra (bool, optional): use the horse2zebra dataset to train the model. Defaults to ``False``
+            use_monet2photo (bool, optional): use the monet2photo dataset to train the model. Defaults to ``False``
+            use_cezanne2photo (bool, optional): use the cezanne2photo dataset to train the model. Defaults to ``False``
+            use_ukiyoe2photo (bool, optional): use the ukiyoe2photo dataset to train the model. Defaults to ``False``
+            use_vangogh2photo (bool, optional): use the vangogh2photo dataset to train the model. Defaults to ``False``
+            use_maps (bool, optional): use the maps dataset to train the model. Defaults to ``False``
+            use_cityscapes (bool, optional): use the cityscapes dataset to train the model. Defaults to ``False``
+            use_facades (bool, optional): use the facades dataset to train the model. Defaults to ``False``
+            use_iphone2dslr_flower (bool, optional): use the iphone2dslr_flower dataset to train the model. Defaults to ``False``
+            batch_size (int, optional): mini batch size for training the model. Defaults to ``32``
+
+        Return:
+            four tensorflow dataset objects representing trainA, trainB, testA, testB 
+        """
 
         if(use_apple2orange):
 
@@ -154,6 +190,17 @@ class CycleGAN(Pix2Pix):
         return trainA, trainB, testA, testB
 
     def get_sample(self, data=None, n_samples=1, save_dir=None):
+
+        r"""View sample of the data
+
+        Args:
+            data (tf.data object): dataset to load samples from
+            n_samples (int, optional): number of samples to load. Defaults to ``1``
+            save_dir (str, optional): directory to save the sample images. Defaults to ``None``
+
+        Return:
+            ``None`` if save_dir is ``not None``, otherwise returns numpy array of samples with shape (n_samples, img_shape)
+        """
 
         assert data is not None, "Data not provided"
 
@@ -296,6 +343,31 @@ class CycleGAN(Pix2Pix):
             save_model=None,
             LAMBDA=100,
             save_img_per_epoch=30):
+
+        r"""Function to train the model
+
+        Args:
+            trainA (tf.data object): training data A
+            trainB (tf.data object): training data B
+            testA (tf.data object): testing data A
+            testB (tf.data object): testing data B
+            epochs (int, optional): number of epochs to train the model. Defaults to ``150``
+            gen_g_optimizer (str, optional): optimizer used to train generator `G`. Defaults to ``Adam``
+            gen_F_optimizer (str, optional): optimizer used to train generator `F`. Defaults to ``Adam``
+            disc_x_optimizer (str, optional): optimizer used to train discriminator `X`. Defaults to ``Adam``
+            disc_y_optimizer (str, optional): optimizer used to train discriminator `Y`. Defaults to ``Adam``
+            verbose (int, optional): 1 - prints training outputs, 0 - no outputs. Defaults to ``1``
+            gen_g_learning_rate (float, optional): learning rate of the generator `G` optimizer. Defaults to ``2e-4``
+            gen_f_learning_rate (float, optional): learning rate of the generator `F` optimizer. Defaults to ``2e-4``
+            disc_x_learning_rate (float, optional): learning rate of the discriminator `X` optimizer. Defaults to ``2e-4``
+            disc_y_learning_rate (float, optional): learning rate of the discriminator `Y` optimizer. Defaults to ``2e-4``
+            beta_1 (float, optional): decay rate of the first momement. set if ``Adam`` optimizer is used. Defaults to ``0.5``
+            tensorboard (bool, optional): if true, writes loss values to ``logs/gradient_tape`` directory
+                which aids visualization. Defaults to ``False``
+            save_model (str, optional): Directory to save the trained model. Defaults to ``None``
+            LAMBDA (int, optional): used to calculate generator loss. Defaults to ``100``
+            save_img_per_epoch (int, optional): frequency of saving images during training. Defaults to ``30``
+        """
 
         assert trainA is not None, 'Initialize training data A through trainA parameter'
         assert trainB is not None, 'Initialize training data B through trainB parameter'
@@ -482,6 +554,16 @@ class CycleGAN(Pix2Pix):
                     save_model + 'generator_g_checkpoint')
 
     def generate_samples(self, test_ds=None, save_dir=None):
+
+        r"""Generate samples using the trained model
+
+        Args:
+            test_ds (tf.data object): test data object used to generate samples`
+            save_dir (str, optional): directory to save the generated images. Defaults to ``None``
+
+        Return:
+            returns ``None`` if save_dir is ``not None``, otherwise returns a numpy array with generated samples
+        """
 
         assert test_ds is not None, "Enter input test dataset"
 

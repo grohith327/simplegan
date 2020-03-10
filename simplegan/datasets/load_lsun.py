@@ -4,16 +4,22 @@ from tqdm import tqdm
 import tensorflow_datasets as tfds
 import numpy as np
 
-'''
-Dataset is loaded from tensorflow_datasets
-
-Function load_lsun returns a numpy array of shape (-1, 64, 64, 3)
-'''
 
 __all__ = ['load_lsun']
 
 
 def load_lsun(info=False, img_shape=(64, 64)):
+
+    r"""Loads the `LSUN <https://www.yf.io/p/lsun>`_ training data without labels - used in DCGAN
+
+    Args:
+        info (bool, optional): to get info of the dataset loaded. Defaults to ``False``
+        img_shape (int, tuple, optional): shape of the image to be returned. Defaults to ``(64, 64)``
+
+    Return:
+        a numpy array of shape according to img_shape parameter
+
+    """
 
     assert len(img_shape) == 2 and isinstance(img_shape, tuple), "img_shape must be a tuple of size 2"
 

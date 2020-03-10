@@ -12,24 +12,39 @@ import imageio
 from tqdm.auto import tqdm
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
+### Silence Imageio warnings
 def silence_imageio_warning(*args, **kwargs):
     pass
 
 imageio.core.util._precision_warn = silence_imageio_warning
 
-__all__ = ['CGAN']
+'''
+References:
+-> https://arxiv.org/abs/1411.1784
+'''
 
+__all__ = ['CGAN']
 
 class CGAN:
 
+    r"""`CGAN <https://arxiv.org/abs/1411.1784>`_ model
+
+    Args:
+        noise_dim (int, optional): represents the dimension of the prior to sample values. Defaults to ``100``
+        embed_dim (int, optional): represents the dimension of the embedding layer to convert classes to dense features. Defaults to ``100``
+        dropout_rate (float, optional): represents the amount of dropout regularization to be applied. Defaults to ``0.4``
+        gen_channels (int, list, optional): represents the number of filters in the generator network. Defaults to ``[64, 32, 16]``
+        disc_channels (int, list, optional): represents the number of filters in the discriminator network. Defaults to ``[16, 32, 64]```
+        kernel_size (int, tuple, optional): repersents the size of the kernel to perform the convolution. Defaults to ``(5, 5)``
+        activation (str, optional): type of non-linearity to be applied. Defaults to ``relu``
+        kernel_initializer (str, optional): initialization of kernel weights. Defaults to ``glorot_uniform``
+        kernel_regularizer (str, optional): type of regularization to be applied to the weights. Defaults to ``None``
+    """
+
     def __init__(self,
                 noise_dim = 100,
+                embed_dim = 100,
                 dropout_rate = 0.4,
-                activation = 'relu',
-                kernel_initializer = 'glorot_uniform',
-                kernel_size = (
-                    5,
-                    5),
                 gen_channels = [
                     64,
                     32,
@@ -38,8 +53,12 @@ class CGAN:
                     16,
                     32,
                     64],
-                kernel_regularizer = None,
-                embed_dim = 100):
+                kernel_size = (
+                    5,
+                    5),
+                activation = 'relu',
+                kernel_initializer = 'glorot_uniform',
+                kernel_regularizer = None):
 
         self.image_size = None
         self.embed_dim = embed_dim
@@ -53,6 +72,20 @@ class CGAN:
                 use_cifar10=False,
                 batch_size=32, 
                 img_shape=(64, 64)):
+
+        r"""Load data to train the model
+
+        Args:
+            data_dir (str, optional): string representing the directory to load data from. Defaults to ``None``
+            use_mnist (bool, optional): use the MNIST dataset to train the model. Defaults to ``False``
+            use_cifar10 (bool, optional): use the CIFAR10 dataset to train the model. Defaults to ``False``
+            use_lsun (bool, optional): use the LSUN dataset to train the model. Defaults to ``False``
+            batch_size (int, optional): mini batch size for training the model. Defaults to ``32``
+            img_shape (int, tuple, optional): shape of the image when loading data from custom directory. Defaults to ``(64, 64)``
+
+        Return:
+            a tensorflow dataset objects representing the training datset
+        """
 
         if(use_mnist):
 
@@ -78,6 +111,17 @@ class CGAN:
         return train_ds
 
     def get_sample(self, data=None, n_samples=1, save_dir=None):
+
+        r"""View sample of the data
+
+        Args:
+            data (tf.data object): dataset to load samples from
+            n_samples (int, optional): number of samples to load. Defaults to ``1``
+            save_dir (str, optional): directory to save the sample images. Defaults to ``None``
+
+        Return:
+            ``None`` if save_dir is ``not None``, otherwise returns numpy array of samples with shape (n_samples, img_shape)
+        """
 
         assert data is not None, "Data not provided"
 
@@ -118,7 +162,7 @@ class CGAN:
 
         start_image_size = (self.image_size[0] // 4, self.image_size[1] // 4)
 
-        embedded_label = layers.Embedding(input_dim=10, output_dim=self.embed_dim)(label)
+        embedded_label = layers.Embedding(input_dim=self.n_classes, output_dim=self.embed_dim)(label)
         embedded_label = layers.Dense(
                                     units=start_image_size[0] * start_image_size[1],
                                     activation=activation,
@@ -240,6 +284,23 @@ class CGAN:
             tensorboard=False,
             save_model=None):
 
+
+        r"""Function to train the model
+
+        Args:
+            train_ds (tf.data object): training data
+            epochs (int, optional): number of epochs to train the model. Defaults to ``100``
+            gen_optimizer (str, optional): optimizer used to train generator. Defaults to ``Adam``
+            disc_optimizer (str, optional): optimizer used to train discriminator. Defaults to ``Adam``
+            verbose (int, optional): 1 - prints training outputs, 0 - no outputs. Defaults to ``1``
+            gen_learning_rate (float, optional): learning rate of the generator optimizer. Defaults to ``0.0001``
+            disc_learning_rate (float, optional): learning rate of the discriminator optimizer. Defaults to ``0.0002``
+            beta_1 (float, optional): decay rate of the first momement. set if ``Adam`` optimizer is used. Defaults to ``0.5``
+            tensorboard (bool, optional): if true, writes loss values to ``logs/gradient_tape`` directory
+                which aids visualization. Defaults to ``False``
+            save_model (str, optional): Directory to save the trained model. Defaults to ``None``
+        """
+
         assert train_ds is not None, 'Initialize training data through train_ds parameter'
 
         self.__load_model()
@@ -343,6 +404,17 @@ class CGAN:
                     save_model + 'discriminator_checkpoint')
 
     def generate_samples(self, n_samples=1, labels_list=None, save_dir=None):
+
+        r"""Generate samples using the trained model
+
+        Args:
+            n_samples (int, optional): number of samples to generate. Defaults to ``1``
+            labels_list (int, list): list of labels representing the class of sample to generate
+            save_dir (str, optional): directory to save the generated images. Defaults to ``None``
+
+        Return:
+            returns ``None`` if save_dir is ``not None``, otherwise returns a numpy array with generated samples
+        """
 
         assert labels_list is not None, "Enter list of labels to condition the generator"
         assert len(labels_list) == n_samples, "Number of samples does not match length of labels list"

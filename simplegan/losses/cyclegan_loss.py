@@ -1,17 +1,19 @@
 import tensorflow as tf
 
-'''
-Returns a cycle consistency loss and a identity loss
-
-Paper: https://arxiv.org/abs/1703.10593
-
-Code source: https://www.tensorflow.org/tutorials/generative/cyclegan#import_and_reuse_the_pix2pix_models
-'''
-
 __all__ = ['cycle_loss',
            'identity_loss']
 
 def cycle_loss(real_img, cycle_img, LAMBDA):
+
+    r"""
+    Args:
+        real_img (tensor): A tensor representing the real image
+        cycle_img (tensor): A tensor representing the generated image
+        LAMBDA (int): An integer to scale the loss
+
+    Return:
+        a tensor representing the loss
+    """
 
     loss = tf.math.reduce_mean(tf.math.abs(real_img - cycle_img))
     loss *= LAMBDA
@@ -19,6 +21,16 @@ def cycle_loss(real_img, cycle_img, LAMBDA):
 
 
 def identity_loss(real_img, same_img, LAMBDA):
+
+    r"""
+    Args:
+        real_img (tensor): A tensor representing the real image
+        cycle_img (tensor): A tensor representing the generated image
+        LAMBDA (int): An integer to scale the loss
+    
+    Return:
+        a tensor representing the loss
+    """
 
     loss = tf.reduce_mean(tf.math.abs(real_img - same_img))
     loss *= LAMBDA
