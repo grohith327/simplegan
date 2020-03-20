@@ -1,6 +1,6 @@
 # SimpleGAN
 
-[![License](http://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat)](LICENSE) [![Documentation Status](https://readthedocs.org/projects/simplegan/badge/?version=latest)](https://simplegan.readthedocs.io/en/latest/?badge=latest)
+[![License](http://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat)](LICENSE) [![Documentation Status](https://readthedocs.org/projects/simplegan/badge/?version=latest)](https://simplegan.readthedocs.io/en/latest/?badge=latest) [![Downloads](https://pepy.tech/badge/simplegan)](https://pepy.tech/project/simplegan) [![Downloads](https://pepy.tech/badge/simplegan/month)](https://pepy.tech/project/simplegan/month) [![Downloads](https://pepy.tech/badge/simplegan/week)](https://pepy.tech/project/simplegan/week)
 
 **Framework to ease training of generative models**
 
@@ -19,7 +19,7 @@ Latest stable release:
 ```
 Latest Development release:
 ```bash
-  $ pip install git+https://github.com/grohith327/EasyGAN.git
+  $ pip install git+https://github.com/grohith327/simplegan.git
 ```
 ### Getting Started
 ##### DCGAN
