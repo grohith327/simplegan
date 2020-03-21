@@ -12,8 +12,8 @@
 #
 import os
 import sys
-sys.path.insert(0, os.path.abspath('../..'))
-# sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
+# sys.path.insert(0, os.path.abspath('../..'))
 # sys.path.insert(0, os.path.abspath('.'))
 # sys.path.insert(0, os.path.abspath('../'))
 
@@ -32,8 +32,23 @@ release = 'v0.2.8'
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
-extensions = ['sphinx.ext.autodoc', 'sphinx.ext.coverage', 'sphinx.ext.napoleon'
+extensions = ['sphinx.ext.autodoc', 'sphinx.ext.coverage', 'sphinx.ext.napoleon',
+            'sphinx.ext.doctest','sphinx.ext.intersphinx', 'sphinx.ext.ifconfig',
+            'sphinx.ext.viewcode', 'sphinx.ext.githubpages'
 ]
+
+# Napoleon settings
+napoleon_google_docstring = True
+napoleon_numpy_docstring = True
+napoleon_include_init_with_doc = False
+napoleon_include_private_with_doc = False
+napoleon_include_special_with_doc = True
+napoleon_use_admonition_for_examples = False
+napoleon_use_admonition_for_notes = False
+napoleon_use_admonition_for_references = False
+napoleon_use_ivar = False
+napoleon_use_param = True
+napoleon_use_rtype = True
 
 master_doc = 'index'
 
@@ -41,7 +56,25 @@ on_rtd = os.environ.get('READTHEDOCS') == 'True'
 if on_rtd:
     html_theme = 'default'
 else:
-    html_theme = 'nature'
+    import sphinx_rtd_theme
+
+    html_theme = 'sphinx_rtd_theme'
+    html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
+
+# if not on_rtd:  # only import and set the theme if we're building docs locally
+#     import sphinx_rtd_theme
+
+#     html_theme = "sphinx_rtd_theme"
+    
+
+# else:
+#     # Override default css to get a larger width for ReadTheDoc build
+#     html_context = {
+#         "css_files": [
+#             "https://media.readthedocs.org/css/sphinx_rtd_theme.css",
+#             "https://media.readthedocs.org/css/readthedocs-doc-embed.css"
+#         ]
+#     }
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -50,6 +83,10 @@ templates_path = ['_templates']
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
 exclude_patterns = []
+
+source_suffix = [".rst", ".md"]
+
+pygments_style = "sphinx"
 
 
 # -- Options for HTML output -------------------------------------------------
