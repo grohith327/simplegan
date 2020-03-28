@@ -67,3 +67,9 @@ CycleGAN Dataloader
 
 .. autoclass:: cyclegan_dataloader()
 	:members:
+
+Voxels Dataloader
+-----------------
+
+.. autoclass:: load_vox_from_off()
+	:members:

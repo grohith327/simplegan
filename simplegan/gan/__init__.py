@@ -5,3 +5,4 @@ from .pix2pix import *
 from .cyclegan import *
 from .cgan import *
 from .infogan import *
+from .voxelgan import *

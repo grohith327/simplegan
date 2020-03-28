@@ -51,3 +51,9 @@ CycleGAN
 .. autoclass:: CycleGAN
     :members: 
     :inherited-members:
+
+VoxelGAN(3DGAN)
+---------------
+
+.. autoclass:: VoxelGAN
+    :members: 
