@@ -3,17 +3,13 @@ import numpy as np
 from scipy import ndimage
 from tqdm.auto import tqdm
 import glob
-try:
-    import trimesh
-except ModuleNotFoundError:
-    print('module trimesh not found. install using \'pip install trimesh\' command')
 
 
 __all__ = ['load_vox_from_off']
 
 
 class load_vox_from_off:
-    
+
     r"""A dataloader classes that loads .off files and renders them into voxels
 
     Args:
@@ -52,6 +48,10 @@ class load_vox_from_off:
         Return:
             rendered voxels of shape ``(-1, side_length, side_length, side_length, 1)``
         """
+        try:
+            import trimesh
+        except ModuleNotFoundError:
+            print('module trimesh not found. install using \'pip install trimesh\' command')
 
         if(self.datadir is None):
 
