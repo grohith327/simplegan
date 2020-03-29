@@ -1,8 +1,10 @@
-numpy
 tqdm
 tensorflow==2.0.1
 opencv-python
 tensorflow-datasets
 imageio
-# Install tensorflow_io (uncomment following line) if you are planning to use LSUN dataset which is implemented in WGAN and DCGAN
-# tensorflow_io
+numpy
+plotly
+matplotlib
+trimesh
+scipy
