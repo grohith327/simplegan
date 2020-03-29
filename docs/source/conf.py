@@ -29,7 +29,17 @@ release = 'v0.2.8'
 
 # -- General configuration ---------------------------------------------------
 
-autodoc_mock_imports = ["cv2", "tensorflow", "tensorflow_datasets", "imagio", "numpy", "tqdm", "trimesh"]
+# Mock imports
+autodoc_mock_imports = ["cv2", 
+                        "tensorflow", 
+                        "tensorflow_datasets", 
+                        "imagio", 
+                        "numpy", 
+                        "tqdm", 
+                        "trimesh", 
+                        "scipy", 
+                        "plotly", 
+                        "matplotlib"]
 
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
