@@ -58,7 +58,7 @@ Check out the [docs page](https://simplegan.readthedocs.io/en/latest/)
     * InfoGAN [[Paper](https://arxiv.org/abs/1606.03657)]
     * Pix2Pix [[Paper](https://arxiv.org/abs/1611.07004)]
     * CycleGAN [[Paper](https://arxiv.org/abs/1703.10593)]
-    * 3DGAN [[Paper](http://3dgan.csail.mit.edu/papers/3dgan_nips.pdf)]
+    * 3DGAN(VoxelGAN) [[Paper](http://3dgan.csail.mit.edu/papers/3dgan_nips.pdf)]
 ### Contributing
 We appreciate all contributions. If you are planning to perform bug-fixes, add new features or models, please file an issue and discuss before making a pull request.
 ### Citation
