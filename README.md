@@ -45,21 +45,6 @@ To have a look at more examples in detail, check [here](examples)
 ### Documentation
 Check out the [docs page](https://simplegan.readthedocs.io/en/latest/)
 ### Provided models
-<!-- * Autoencoders
-    * Vanilla Autoencoder
-    * Convolutional Autoencoder
-    * Variational Autoencoder [[Paper](https://arxiv.org/abs/1312.6114)]
-    * Vector Quantized - Variational Autoencoder [[Paper](https://arxiv.org/abs/1711.00937)]
-* Generative Adversarial Networks(GANs)
-    * Vanilla GAN [[Paper](https://arxiv.org/abs/1406.2661)]
-    * DCGAN [[Paper](https://arxiv.org/abs/1511.06434)]
-    * WGAN [[Paper](https://arxiv.org/abs/1701.07875)]
-    * CGAN [[Paper](https://arxiv.org/abs/1411.1784)]
-    * InfoGAN [[Paper](https://arxiv.org/abs/1606.03657)]
-    * Pix2Pix [[Paper](https://arxiv.org/abs/1611.07004)]
-    * CycleGAN [[Paper](https://arxiv.org/abs/1703.10593)]
-    * 3DGAN(VoxelGAN) [[Paper](http://3dgan.csail.mit.edu/papers/3dgan_nips.pdf)] -->
-
 | Model | Generated Images |
 |:---------:|:--------------:|
 | Vanilla Autoencoder | None |
