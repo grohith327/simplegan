@@ -48,7 +48,7 @@ Check out the [docs page](https://simplegan.readthedocs.io/en/latest/)
 | Model | Generated Images |
 |:---------:|:--------------:|
 | Vanilla Autoencoder | None |
-| Convolutional Autoencoder | ![](https://github.com/grohith327/simplegan/blob/master/assets/mnist_conv_ae.png =250x250) |
+| Convolutional Autoencoder | ![](https://github.com/grohith327/simplegan/blob/master/assets/mnist_conv_ae.png) |
 | Variational Autoencoder [[Paper](https://arxiv.org/abs/1312.6114)] | ![](https://github.com/grohith327/simplegan/blob/master/assets/vae.jpeg) |
 | Vector Quantized - Variational Autoencoder [[Paper](https://arxiv.org/abs/1711.00937)] | ![](https://github.com/grohith327/simplegan/blob/master/assets/vq_vae.png) |
 | Vanilla GAN [[Paper](https://arxiv.org/abs/1406.2661)] | ![](https://github.com/grohith327/simplegan/blob/master/assets/GAN.png) |
