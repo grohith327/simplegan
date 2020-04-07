@@ -45,7 +45,7 @@ To have a look at more examples in detail, check [here](examples)
 ### Documentation
 Check out the [docs page](https://simplegan.readthedocs.io/en/latest/)
 ### Provided models
-* Autoencoders
+<!-- * Autoencoders
     * Vanilla Autoencoder
     * Convolutional Autoencoder
     * Variational Autoencoder [[Paper](https://arxiv.org/abs/1312.6114)]
@@ -58,7 +58,24 @@ Check out the [docs page](https://simplegan.readthedocs.io/en/latest/)
     * InfoGAN [[Paper](https://arxiv.org/abs/1606.03657)]
     * Pix2Pix [[Paper](https://arxiv.org/abs/1611.07004)]
     * CycleGAN [[Paper](https://arxiv.org/abs/1703.10593)]
-    * 3DGAN(VoxelGAN) [[Paper](http://3dgan.csail.mit.edu/papers/3dgan_nips.pdf)]
+    * 3DGAN(VoxelGAN) [[Paper](http://3dgan.csail.mit.edu/papers/3dgan_nips.pdf)] -->
+
+| Model | Generated Images |
+|:---------:|:--------------:|
+| Vanilla Autoencoder | None |
+| Convolutional Autoencoder | ![](https://github.com/grohith327/simplegan/blob/master/assets/mnist_conv_ae.png) |
+| Variational Autoencoder [[Paper](https://arxiv.org/abs/1312.6114)] | ![](https://github.com/grohith327/simplegan/blob/master/assets/vae.jpeg) |
+| Vector Quantized - Variational Autoencoder [[Paper](https://arxiv.org/abs/1711.00937)] | ![](https://github.com/grohith327/simplegan/blob/master/assets/vq_vae.png) |
+| Vanilla GAN [[Paper](https://arxiv.org/abs/1406.2661)] | ![](https://github.com/grohith327/simplegan/blob/master/assets/GAN.png) |
+| DCGAN [[Paper](https://arxiv.org/abs/1511.06434)] | ![](https://github.com/grohith327/simplegan/blob/master/assets/DCGAN.png) |
+| WGAN [[Paper](https://arxiv.org/abs/1701.07875)] | ![](https://github.com/grohith327/simplegan/blob/master/assets/WGAN.png) |
+| CGAN [[Paper](https://arxiv.org/abs/1411.1784)] | ![](https://github.com/grohith327/simplegan/blob/master/assets/CGAN.png) |
+| InfoGAN [[Paper](https://arxiv.org/abs/1606.03657)] | ![](https://github.com/grohith327/simplegan/blob/master/assets/InfoGAN.png) |
+| Pix2Pix [[Paper](https://arxiv.org/abs/1611.07004)] | ![](https://github.com/grohith327/simplegan/blob/master/assets/Pix2Pix.png) |
+| CycleGAN [[Paper](https://arxiv.org/abs/1703.10593)] | ![](https://github.com/grohith327/simplegan/blob/master/assets/CycleGAN.png) |
+| 3DGAN(VoxelGAN) [[Paper](http://3dgan.csail.mit.edu/papers/3dgan_nips.pdf)] | ![](https://github.com/grohith327/simplegan/blob/master/assets/3DGAN.png) |
+
+
 ### Contributing
 We appreciate all contributions. If you are planning to perform bug-fixes, add new features or models, please file an issue and discuss before making a pull request.
 ### Citation
