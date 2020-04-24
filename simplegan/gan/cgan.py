@@ -338,14 +338,13 @@ class CGAN:
 
             pbar = tqdm(total = total, desc = 'Epoch - '+str(epoch+1))
             for data, labels in train_ds:
-
+                sampled_labels = np.random.randint(
+                    0, 10, data.shape[0]).reshape(-1, 1)
                 with tf.GradientTape() as gen_tape, tf.GradientTape() as disc_tape:
 
                     noise = tf.random.normal([data.shape[0], self.noise_dim])
-                    fake_imgs = self.gen_model([noise, labels])
-                    sampled_labels = np.random.randint(
-                        0, 10, data.shape[0]).reshape(-1, 1)
-
+                    fake_imgs = self.gen_model([noise, sampled_labels])
+                    
                     real_output = self.disc_model(
                         [data, labels], training=True)
                     fake_output = self.disc_model(
