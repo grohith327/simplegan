@@ -7,7 +7,6 @@ __all__ = ['load_cifar10',
 
 
 def load_cifar10():
-
     r"""Loads the Cifar10 training data without labels - used in GANs
 
     Args:
@@ -26,7 +25,6 @@ def load_cifar10():
 
 
 def load_cifar10_AE():
-
     r"""Loads the Cifar10 training and testing data without labels - used in Autoencoder
 
     Args:
@@ -46,7 +44,6 @@ def load_cifar10_AE():
 
 
 def load_cifar10_with_labels():
-
     r"""Loads the Cifar10 train and test data along with labels and concatenates them - used in CGAN
 
     Args:
@@ -58,9 +55,9 @@ def load_cifar10_with_labels():
 
     (x_train, y_train), (x_test, y_test) = tf.keras.datasets.cifar10.load_data()
 
-    train_data = np.concatenate((x_train, x_test), 0)
+    train_images = np.concatenate((x_train, x_test), 0)
     train_labels = np.concatenate((y_train, y_test), 0)
 
-    train_data = train_data.astype('float32')
-
-    return train_data, train_labels
+    train_images = train_images.astype('float32')
+    train_labels = train_labels.astype('int32')
+    return train_images, train_labels

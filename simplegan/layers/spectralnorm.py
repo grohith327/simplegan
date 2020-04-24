@@ -1,5 +1,7 @@
 import tensorflow as tf
 
+__all__ = ['SpectralNormalization']
+
 
 class SpectralNormalization(tf.keras.layers.Wrapper):
     r"""
@@ -13,7 +15,7 @@ class SpectralNormalization(tf.keras.layers.Wrapper):
         power_iternations (int): Number of power iterations to approximate the values"
     """
 
-    def __init__(self, layer, power_iterations: int = 1, **kwargs):
+    def __init__(self, layer, power_iterations=5, **kwargs):
         super(SpectralNormalization, self).__init__(layer, **kwargs)
         if power_iterations <= 0:
             raise ValueError(

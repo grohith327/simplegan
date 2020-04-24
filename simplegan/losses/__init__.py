@@ -5,3 +5,4 @@ from .vae_loss import *
 from .pix2pix_loss import *
 from .cyclegan_loss import *
 from .infogan_loss import *
+from .hinge_loss import *

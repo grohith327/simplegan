@@ -1,5 +1,7 @@
 import tensorflow as tf
 
+__all__ = ['ConditionalBatchNorm']
+
 
 class ConditionalBatchNorm(tf.keras.layers.Layer):
     r"""
@@ -26,9 +28,15 @@ class ConditionalBatchNorm(tf.keras.layers.Layer):
         self.moving_params_shape = tf.TensorShape(
             [1, 1, 1]).concatenate(channels_shape)
         self.moving_mean = self.add_weight(
-            shape=self.moving_params_shape, initializer='zeros', trainable=False, name='moving_mean')
+            shape=self.moving_params_shape,
+            initializer='zeros',
+            trainable=False,
+            name='moving_mean')
         self.moving_var = self.add_weight(
-            shape=self.moving_params_shape, initializer='ones', trainable=False, name='moving_var')
+            shape=self.moving_params_shape,
+            initializer='ones',
+            trainable=False,
+            name='moving_var')
 
     def call(self, inputs, labels, is_training=True):
         inputs_shape = tf.TensorShape(inputs.shape)
