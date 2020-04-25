@@ -96,10 +96,10 @@ class Discriminator(tf.keras.Model):
 
 
 class SAGAN:
-    r"""`Paper: https://arxiv.org/abs/1805.08318
+    r"""`Self-Attention GAN <https://arxiv.org/abs/1805.08318>`_ model 
 
     Args:
-        noise_dim (int, optional): represents the dimension of the prior to sample values. Defaults to ``100``
+        noise_dim (int, optional): represents the dimension of the prior to sample values. Defaults to ``128``
     """
 
     def __init__(self,

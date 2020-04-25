@@ -119,7 +119,6 @@ class DiscResBlock(tf.keras.Model):
 
 
 class DiscOptResBlock(tf.keras.Model):
-    r""" Optimized block downsamples the input vector spatial dimension by 4"""
 
     def __init__(
             self,

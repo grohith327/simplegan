@@ -5,7 +5,7 @@ __all__ = ['hinge_loss_generator',
 
 
 def hinge_loss_generator(generated_output):
-    r"""
+    r"""Generator Hinge Loss - used in SAGAN
     Args:
         generated_output (tensor): A tensor of the generated image.
 
@@ -16,7 +16,7 @@ def hinge_loss_generator(generated_output):
 
 
 def hinge_loss_discriminator(real_output, generated_output):
-    r"""
+    r"""Discriminator Hinge Loss - used in SAGAN
     Args:
         real_output (tensor): A tensor of real output.
         generated_output (tensor): A tensor of predictions made by discriminator.

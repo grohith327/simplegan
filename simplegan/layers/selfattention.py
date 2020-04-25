@@ -6,9 +6,6 @@ __all__ = ['SelfAttention']
 
 
 class SelfAttention(tf.keras.Model):
-    r"""
-    Self Attention layer
-    """
 
     def __init__(self, spectral_norm=True):
         super(SelfAttention, self).__init__()
