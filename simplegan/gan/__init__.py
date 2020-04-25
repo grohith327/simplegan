@@ -6,4 +6,4 @@ from .cyclegan import *
 from .cgan import *
 from .infogan import *
 from .voxelgan import *
-from .sagan import SAGAN
+from .sagan import *
