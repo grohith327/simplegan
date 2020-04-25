@@ -55,3 +55,12 @@ Wasserstein losses
 
 .. autoclass:: wgan_generator_loss()
     :members:
+
+Hinge losses
+------------
+
+.. autoclass:: hinge_loss_generator()
+    :members:
+
+.. autoclass:: hinge_loss_discriminator()
+    :members:

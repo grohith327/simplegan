@@ -57,3 +57,9 @@ VoxelGAN(3DGAN)
 
 .. autoclass:: VoxelGAN
     :members: 
+
+Self-Attention GAN
+------------------
+
+.. autoclass:: SAGAN
+    :members: 
