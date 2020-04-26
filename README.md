@@ -59,7 +59,7 @@ Check out the [docs page](https://simplegan.readthedocs.io/en/latest/)
 | Pix2Pix [[Paper](https://arxiv.org/abs/1611.07004)] | ![](https://github.com/grohith327/simplegan/blob/master/assets/Pix2Pix.png) |
 | CycleGAN [[Paper](https://arxiv.org/abs/1703.10593)] | ![](https://github.com/grohith327/simplegan/blob/master/assets/CycleGAN.png) |
 | 3DGAN(VoxelGAN) [[Paper](http://3dgan.csail.mit.edu/papers/3dgan_nips.pdf)] | ![](https://github.com/grohith327/simplegan/blob/master/assets/3DGAN.png) |
-| Self-Attention GAN(SAGAN) [Paper](https://arxiv.org/pdf/1805.08318.pdf) | ![](https://github.com/grohith327/simplegan/blob/master/assets/SAGAN.png) |
+| Self-Attention GAN(SAGAN) [[Paper](https://arxiv.org/pdf/1805.08318.pdf)] | ![](https://github.com/grohith327/simplegan/blob/master/assets/SAGAN.png) |
 
 
 ### Contributing
