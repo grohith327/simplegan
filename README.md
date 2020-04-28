@@ -4,7 +4,7 @@
 
 **Framework to ease training of generative models**
 
-SimpleGAN is a framework based on [TensorFlow](https://www.tensorflow.org/) to make training of generative models easier. SimpleGAN provides high level APIs with customizability options to user which allows them to train a generative model with few lines of code.
+SimpleGAN is a framework based on [TensorFlow](https://www.tensorflow.org/) to make training of generative models easier. SimpleGAN provides high level APIs with customizability options to user which allows them to train a generative models with few lines of code or the user can reuse modules from the exisiting architectures to run custom training loops and experiments.
 ### Requirements
 Make sure you have the following packages installed
 * [tensorflow](https://www.tensorflow.org/install)
@@ -24,31 +24,59 @@ Latest Development release:
 ### Getting Started
 ##### DCGAN
 ```python
->>> from simplegan.gan import DCGAN
->>> gan = DCGAN()
->>> train_ds = gan.load_data(use_mnist = True)
->>> samples = gan.get_sample(train_ds, n_samples = 5)
->>> gan.fit(train_ds = train_ds)
->>> generated_samples = gan.generate_samples(n_samples = 5)
+from simplegan.gan import DCGAN
+
+## initialize model
+gan = DCGAN() 
+
+## load train data
+train_ds = gan.load_data(use_mnist = True)
+
+## get samples from the data object
+samples = gan.get_sample(train_ds, n_samples = 5)
+
+## train the model
+gan.fit(train_ds = train_ds)
+
+## get generated samples from model
+generated_samples = gan.generate_samples(n_samples = 5)
 ```
 ##### Custom training loops for GANs
 ```python
->>> from simplegan.gan import Pix2Pix
->>> gan = Pix2Pix()
->>> generator = gan.generator() ## A tf.keras model
->>> discriminator = gan.discriminator() ## A tf.keras model
->>> with tf.GradientTape() as tape:
->>>     """ Custom training loops """
+from simplegan.gan import Pix2Pix
+
+## initialize model
+gan = Pix2Pix()
+
+## get generator module of Pix2Pix
+generator = gan.generator() ## A tf.keras model
+
+## get discriminator module of Pix2Pix
+discriminator = gan.discriminator() ## A tf.keras model
+
+## training loop
+with tf.GradientTape() as tape:
+""" Custom training loops """
 ```
 ##### Convolutional Autoencoder
 ```python
->>> from simplegan.autoencoder import ConvolutionalAutoencoder
->>> autoenc = ConvolutionalAutoencoder()
->>> train_ds, test_ds = autoenc.load_data(use_cifar10 = True)
->>> train_sample = autoenc.get_sample(data = train_ds, n_samples = 5)
->>> test_sample = autoenc.get_sample(data = test_ds, n_samples = 1)
->>> autoenc.fit(train_ds = train_ds, epochs = 5, optimizer = 'RMSprop', learning_rate = 0.002)
->>> generated_samples = autoenc.generate_samples(test_ds = test_ds.take(1))
+from simplegan.autoencoder import ConvolutionalAutoencoder
+
+## initialize autoencoder
+autoenc = ConvolutionalAutoencoder()
+
+## load train and test data
+train_ds, test_ds = autoenc.load_data(use_cifar10 = True)
+
+## get sample from data object
+train_sample = autoenc.get_sample(data = train_ds, n_samples = 5)
+test_sample = autoenc.get_sample(data = test_ds, n_samples = 1)
+
+## train the autoencoder
+autoenc.fit(train_ds = train_ds, epochs = 5, optimizer = 'RMSprop', learning_rate = 0.002)
+
+## get generated test samples from model
+generated_samples = autoenc.generate_samples(test_ds = test_ds.take(1))
 ```
 To have a look at more examples in detail, check [here](examples)
 ### Documentation
