@@ -144,10 +144,6 @@ class VanillaGAN:
                     '.jpg'),
                 sample)
 
-    '''
-    Create a child class to modify generator and discriminator architecture for
-    custom dataset
-    '''
 
     def generator(self):
 
@@ -225,10 +221,6 @@ class VanillaGAN:
 
         model.add(Dense(1))
         return model
-
-    '''
-    call build_model() to get the generator and discriminator objects
-    '''
 
     def __load_model(self):
 
