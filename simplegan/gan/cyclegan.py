@@ -226,12 +226,11 @@ class CycleGAN(Pix2Pix):
                     '.jpg'),
                 sample)
 
-    def discriminator(self, config):
+    def discriminator(self):
 
-        kernel_initializer = config['kernel_initializer']
-        kernel_size = config['kernel_size']
-        disc_channels = config['disc_channels']
-        disc_layers = len(disc_channels)
+        kernel_initializer = self.config['kernel_initializer']
+        kernel_size = self.config['kernel_size']
+        disc_channels = self.config['disc_channels']
         
         inputs = Input(shape=self.img_size)
         x = inputs
@@ -282,10 +281,8 @@ class CycleGAN(Pix2Pix):
         Note: Forward and backward GANs have the same architecture
         '''
 
-        self.gen_model_g, self.gen_model_f = self.generator(
-            self.config), self.generator(self.config)
-        self.disc_model_x, self.disc_model_y = self.discriminator(
-            self.config), self.discriminator(self.config)
+        self.gen_model_g, self.gen_model_f = self.generator(), self.generator()
+        self.disc_model_x, self.disc_model_y = self.discriminator(), self.discriminator()
 
     def _save_samples(self, model, image, count):
 

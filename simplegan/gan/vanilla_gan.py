@@ -149,15 +149,15 @@ class VanillaGAN:
     custom dataset
     '''
 
-    def generator(self, config):
+    def generator(self):
 
-        noise_dim = config['noise_dim']
-        dropout_rate = config['dropout_rate']
-        gen_units = config['gen_units']
+        noise_dim = self.config['noise_dim']
+        dropout_rate = self.config['dropout_rate']
+        gen_units = self.config['gen_units']
         gen_layers = len(gen_units)
-        activation = config['activation']
-        kernel_initializer = config['kernel_initializer']
-        kernel_regularizer = config['kernel_regularizer']
+        activation = self.config['activation']
+        kernel_initializer = self.config['kernel_initializer']
+        kernel_regularizer = self.config['kernel_regularizer']
 
         model = tf.keras.Sequential()
 
@@ -190,14 +190,14 @@ class VanillaGAN:
                 dtype=tf.float32))
         return model
 
-    def discriminator(self, config):
+    def discriminator(self):
 
-        dropout_rate = config['dropout_rate']
-        disc_units = config['disc_units']
+        dropout_rate = self.config['dropout_rate']
+        disc_units = self.config['disc_units']
         disc_layers = len(disc_units)
-        activation = config['activation']
-        kernel_initializer = config['kernel_initializer']
-        kernel_regularizer = config['kernel_regularizer']
+        activation = self.config['activation']
+        kernel_initializer = self.config['kernel_initializer']
+        kernel_regularizer = self.config['kernel_regularizer']
 
 
         model = tf.keras.Sequential()
@@ -232,8 +232,7 @@ class VanillaGAN:
 
     def __load_model(self):
 
-        self.gen_model, self.disc_model = self.generator(
-            self.config), self.discriminator(self.config)
+        self.gen_model, self.disc_model = self.generator(), self.discriminator()
 
     def fit(self,
             train_ds=None,

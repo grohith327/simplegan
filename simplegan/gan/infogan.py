@@ -190,14 +190,13 @@ class InfoGAN:
             x = tf.keras.activations.tanh(x)
         return x
 
-    def discriminator(self, config):
+    def discriminator(self):
 
-        dropout_rate = config['dropout_rate'] 
-        disc_channels = config['disc_channels'] 
+        disc_channels = self.config['disc_channels'] 
         activation = self.config['activation'] 
-        kernel_initializer = config['kernel_initializer'] 
-        kernel_regularizer = config['kernel_regularizer']
-        kernel_size = config['kernel_size']
+        kernel_initializer = self.config['kernel_initializer'] 
+        kernel_regularizer = self.config['kernel_regularizer']
+        kernel_size = self.config['kernel_size']
 
         image_input = layers.Input(self.image_size)
         img = self.conv_block(
@@ -241,18 +240,13 @@ class InfoGAN:
 
         return disc_model
 
-    def generator(self, config):
+    def generator(self):
  
-        noise_dim = config['noise_dim'] 
-        code_dim = config['code_dim'] 
-
-        
-        dropout_rate = config['dropout_rate'] 
-        gen_channels = config['gen_channels'] 
-        activation = config['activation'] 
-        kernel_initializer = config['kernel_initializer'] 
-        kernel_regularizer = config['kernel_regularizer']
-        kernel_size = config['kernel_size']
+        gen_channels = self.config['gen_channels'] 
+        activation = self.config['activation'] 
+        kernel_initializer = self.config['kernel_initializer'] 
+        kernel_regularizer = self.config['kernel_regularizer']
+        kernel_size = self.config['kernel_size']
 
         input_shape = self.noise_dim + self.n_classes + self.code_dim
         input_noise = layers.Input(shape=input_shape)
@@ -291,7 +285,7 @@ class InfoGAN:
     
     def __load_model(self):
 
-        self.gen_model, self.disc_model = self.generator(self.config), self.discriminator(self.config)
+        self.gen_model, self.disc_model = self.generator(), self.discriminator()
 
     def fit(self,
             train_ds=None,

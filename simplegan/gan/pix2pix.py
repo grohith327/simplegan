@@ -237,15 +237,13 @@ class Pix2Pix:
 
         return model
 
-    def generator(self, config):
+    def generator(self):
 
-        kernel_initializer = config['kernel_initializer']
-        dropout_rate = config['dropout_rate']
-        kernel_size = config['kernel_size']
-        gen_enc_channels = config['gen_enc_channels']
-        gen_dec_channels = config['gen_dec_channels']
-        gen_enc_layers = len(gen_enc_channels)
-        gen_dec_layers = len(gen_dec_channels)
+        kernel_initializer = self.config['kernel_initializer']
+        dropout_rate = self.config['dropout_rate']
+        kernel_size = self.config['kernel_size']
+        gen_enc_channels = self.config['gen_enc_channels']
+        gen_dec_channels = self.config['gen_dec_channels']
         
         inputs = Input(shape=self.img_size)
 
@@ -306,12 +304,11 @@ class Pix2Pix:
         model = Model(inputs=inputs, outputs=x)
         return model
 
-    def discriminator(self, config):
+    def discriminator(self):
 
-        kernel_initializer = config['kernel_initializer']
-        kernel_size = config['kernel_size']
-        disc_channels = config['disc_channels']
-        disc_layers = len(disc_channels)
+        kernel_initializer = self.config['kernel_initializer']
+        kernel_size = self.config['kernel_size']
+        disc_channels = self.config['disc_channels']
 
         inputs = Input(shape=self.img_size)
         target = Input(shape=self.img_size)
@@ -359,8 +356,7 @@ class Pix2Pix:
 
     def __load_model(self):
 
-        self.gen_model, self.disc_model = self.generator(
-            self.config), self.discriminator(self.config)
+        self.gen_model, self.disc_model = self.generator(), self.discriminator()
 
     def _save_samples(self, model, ex_input, ex_target, count):
 

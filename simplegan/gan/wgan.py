@@ -76,8 +76,7 @@ class WGAN(DCGAN):
 
     def __load_model(self):
 
-        self.gen_model, self.disc_model = self.generator(
-            self.config), self.discriminator(self.config)
+        self.gen_model, self.disc_model = self.generator(), self.discriminator()
 
     def fit(self,
             train_ds=None,

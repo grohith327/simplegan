@@ -158,15 +158,15 @@ class VoxelGAN:
 
             fig.show()
 
-    def generator(self, config):
+    def generator(self):
 
-        noise_dim = config['noise_dim']
-        gen_channels = config['gen_channels']
+        noise_dim = self.config['noise_dim']
+        gen_channels = self.config['gen_channels']
         gen_layers = len(gen_channels)
-        activation = config['activation']
-        kernel_initializer = config['kernel_initializer']
-        kernel_size = config['kernel_size']
-        kernel_regularizer = config['kernel_regularizer']
+        activation = self.config['activation']
+        kernel_initializer = self.config['kernel_initializer']
+        kernel_size = self.config['kernel_size']
+        kernel_regularizer = self.config['kernel_regularizer']
 
         assert 2**(gen_layers + 2) == self.side_length, "2^(Number of generator channels) must be equal to side_length / 4"
 
@@ -203,13 +203,13 @@ class VoxelGAN:
 
         return model
 
-    def discriminator(self, config):
+    def discriminator(self):
 
-        disc_channels = config['disc_channels']
+        disc_channels = self.config['disc_channels']
         disc_layers = len(disc_channels)
-        kernel_initializer = config['kernel_initializer']
-        kernel_regularizer = config['kernel_regularizer']
-        kernel_size = config['kernel_size']
+        kernel_initializer = self.config['kernel_initializer']
+        kernel_regularizer = self.config['kernel_regularizer']
+        kernel_size = self.config['kernel_size']
 
         assert 2**(disc_layers + 2) == self.side_length, "2^(Number of discriminator channels) must be equal to side_length / 4"
 
@@ -247,8 +247,7 @@ class VoxelGAN:
 
     def __load_model(self):
 
-        self.gen_model, self.disc_model = self.generator(
-            self.config), self.discriminator(self.config)
+        self.gen_model, self.disc_model = self.generator(), self.discriminator()
 
     def fit(self,
             train_ds=None,

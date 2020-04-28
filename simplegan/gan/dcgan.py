@@ -158,15 +158,15 @@ class DCGAN:
                 sample)
 
 
-    def generator(self, config):
+    def generator(self):
 
-        noise_dim = config['noise_dim']
-        gen_channels = config['gen_channels']
+        noise_dim = self.config['noise_dim']
+        gen_channels = self.config['gen_channels']
         gen_layers = len(gen_channels)
-        activation = config['activation']
-        kernel_initializer = config['kernel_initializer']
-        kernel_regularizer = config['kernel_regularizer']
-        kernel_size = config['kernel_size']
+        activation = self.config['activation']
+        kernel_initializer = self.config['kernel_initializer']
+        kernel_regularizer = self.config['kernel_regularizer']
+        kernel_size = self.config['kernel_size']
 
         model = tf.keras.Sequential()
         model.add(
@@ -247,15 +247,14 @@ class DCGAN:
 
         return model
 
-    def discriminator(self, config):
+    def discriminator(self):
 
-        dropout_rate = config['dropout_rate']
-        disc_channels = config['disc_channels']
+        dropout_rate = self.config['dropout_rate']
+        disc_channels = self.config['disc_channels']
         disc_layers = len(disc_channels)
-        activation = config['activation']
-        kernel_initializer = config['kernel_initializer']
-        kernel_regularizer = config['kernel_regularizer']
-        kernel_size = config['kernel_size']
+        kernel_initializer = self.config['kernel_initializer']
+        kernel_regularizer = self.config['kernel_regularizer']
+        kernel_size = self.config['kernel_size']
         
         model = tf.keras.Sequential()
 
@@ -305,8 +304,7 @@ class DCGAN:
 
     def __load_model(self):
 
-        self.gen_model, self.disc_model = self.generator(
-            self.config), self.discriminator(self.config)
+        self.gen_model, self.disc_model = self.generator(), self.discriminator()
 
     def fit(self,
             train_ds=None,

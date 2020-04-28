@@ -147,15 +147,15 @@ class CGAN:
                     '.jpg'),
                 sample)
 
-    def generator(self, config):
+    def generator(self):
 
-        noise_dim = config['noise_dim']
-        gen_channels = config['gen_channels']
+        noise_dim = self.config['noise_dim']
+        gen_channels = self.config['gen_channels']
         gen_layers = len(gen_channels)
-        activation = config['activation']
-        kernel_initializer = config['kernel_initializer']
-        kernel_regularizer = config['kernel_regularizer']
-        kernel_size = config['kernel_size']
+        activation = self.config['activation']
+        kernel_initializer = self.config['kernel_initializer']
+        kernel_regularizer = self.config['kernel_regularizer']
+        kernel_size = self.config['kernel_size']
 
         z = layers.Input(shape=self.noise_dim)
         label = layers.Input(shape=1)
@@ -222,21 +222,21 @@ class CGAN:
         model = tf.keras.Model([z, label], output)
         return model
 
-    def discriminator(self, config):
+    def discriminator(self):
 
-        dropout_rate = config['dropout_rate']
-        disc_channels = config['disc_channels']
+        dropout_rate = self.config['dropout_rate']
+        disc_channels = self.config['disc_channels']
         disc_layers = len(disc_channels)
-        activation = config['activation']
-        kernel_initializer = config['kernel_initializer']
-        kernel_regularizer = config['kernel_regularizer']
-        kernel_size = config['kernel_size']
+        activation = self.config['activation']
+        kernel_initializer = self.config['kernel_initializer']
+        kernel_regularizer = self.config['kernel_regularizer']
+        kernel_size = self.config['kernel_size']
         
         input_image = layers.Input(shape=self.image_size)
         input_label = layers.Input(shape=1)
 
         embedded_label = layers.Embedding(input_dim=self.n_classes,output_dim=self.embed_dim)(input_label)
-        embedded_label = layers.Dense(units=self.image_size[0] * self.image_size[1])(embedded_label)
+        embedded_label = layers.Dense(units=self.image_size[0] * self.image_size[1], activation = activation)(embedded_label)
         embedded_label = layers.Reshape((self.image_size[0], self.image_size[1], 1))(embedded_label)
 
         x = layers.Concatenate()([input_image, embedded_label])
@@ -268,8 +268,7 @@ class CGAN:
 
     def __load_model(self):
 
-        self.gen_model, self.disc_model = self.generator(
-            self.config), self.discriminator(self.config)
+        self.gen_model, self.disc_model = self.generator(), self.discriminator()
 
     def fit(
             self,
