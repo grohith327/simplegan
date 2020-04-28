@@ -228,6 +228,12 @@ class CycleGAN(Pix2Pix):
 
     def discriminator(self):
 
+        r"""Discriminator module for CycleGAN. Use it as a regular TensorFlow 2.0 Keras Model.
+
+        Return:
+            A tf.keras model  
+        """
+
         kernel_initializer = self.config['kernel_initializer']
         kernel_size = self.config['kernel_size']
         disc_channels = self.config['disc_channels']

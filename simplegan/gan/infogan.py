@@ -192,6 +192,12 @@ class InfoGAN:
 
     def discriminator(self):
 
+        r"""Discriminator module for InfoGAN. Use it as a regular TensorFlow 2.0 Keras Model.
+
+        Return:
+            A tf.keras model  
+        """
+
         disc_channels = self.config['disc_channels'] 
         activation = self.config['activation'] 
         kernel_initializer = self.config['kernel_initializer'] 
@@ -241,6 +247,12 @@ class InfoGAN:
         return disc_model
 
     def generator(self):
+
+        r"""Generator module for InfoGAN. Use it as a regular TensorFlow 2.0 Keras Model.
+
+        Return:
+            A tf.keras model  
+        """
  
         gen_channels = self.config['gen_channels'] 
         activation = self.config['activation'] 

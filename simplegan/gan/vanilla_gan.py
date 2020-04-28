@@ -147,6 +147,12 @@ class VanillaGAN:
 
     def generator(self):
 
+        r"""Generator module for Vanilla GAN. Use it as a regular TensorFlow 2.0 Keras Model.
+
+        Return:
+            A tf.keras model  
+        """
+
         noise_dim = self.config['noise_dim']
         dropout_rate = self.config['dropout_rate']
         gen_units = self.config['gen_units']
@@ -187,6 +193,12 @@ class VanillaGAN:
         return model
 
     def discriminator(self):
+
+        r"""Discriminator module for Vanilla GAN. Use it as a regular TensorFlow 2.0 Keras Model.
+
+        Return:
+            A tf.keras model  
+        """
 
         dropout_rate = self.config['dropout_rate']
         disc_units = self.config['disc_units']

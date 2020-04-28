@@ -239,6 +239,12 @@ class Pix2Pix:
 
     def generator(self):
 
+        r"""Generator module for Pix2Pix and CycleGAN(both models use a U-Net as generator). Use it as a regular TensorFlow 2.0 Keras Model.
+
+        Return:
+            A tf.keras model  
+        """
+
         kernel_initializer = self.config['kernel_initializer']
         dropout_rate = self.config['dropout_rate']
         kernel_size = self.config['kernel_size']
@@ -305,6 +311,12 @@ class Pix2Pix:
         return model
 
     def discriminator(self):
+
+        r"""Discriminator module for Pix2Pix. Use it as a regular TensorFlow 2.0 Keras Model.
+
+        Return:
+            A tf.keras model  
+        """
 
         kernel_initializer = self.config['kernel_initializer']
         kernel_size = self.config['kernel_size']

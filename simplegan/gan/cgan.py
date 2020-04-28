@@ -149,7 +149,12 @@ class CGAN:
 
     def generator(self):
 
-        noise_dim = self.config['noise_dim']
+        r"""Generator module for Conditional GAN. Use it as a regular TensorFlow 2.0 Keras Model.
+
+        Return:
+            A tf.keras model  
+        """
+
         gen_channels = self.config['gen_channels']
         gen_layers = len(gen_channels)
         activation = self.config['activation']
@@ -223,6 +228,12 @@ class CGAN:
         return model
 
     def discriminator(self):
+
+        r"""Discriminator module for Conditional GAN. Use it as a regular TensorFlow 2.0 Keras Model.
+
+        Return:
+            A tf.keras model  
+        """
 
         dropout_rate = self.config['dropout_rate']
         disc_channels = self.config['disc_channels']

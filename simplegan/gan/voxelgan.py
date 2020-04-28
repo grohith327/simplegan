@@ -160,6 +160,12 @@ class VoxelGAN:
 
     def generator(self):
 
+        r"""Generator module for VoxelGAN(3DGAN). Use it as a regular TensorFlow 2.0 Keras Model.
+
+        Return:
+            A tf.keras model  
+        """
+
         noise_dim = self.config['noise_dim']
         gen_channels = self.config['gen_channels']
         gen_layers = len(gen_channels)
@@ -204,6 +210,12 @@ class VoxelGAN:
         return model
 
     def discriminator(self):
+
+        r"""Discriminator module for VoxelGAN(3DGAN). Use it as a regular TensorFlow 2.0 Keras Model.
+
+        Return:
+            A tf.keras model  
+        """
 
         disc_channels = self.config['disc_channels']
         disc_layers = len(disc_channels)

@@ -180,9 +180,23 @@ class SAGAN:
 
     
     def generator(self):
+
+        r"""Generator module for Self-Attention GAN. Use it as a regular TensorFlow 2.0 Keras Model.
+
+        Return:
+            A tf.keras model  
+        """
+
         return Generator(self.n_classes)
     
     def discriminator(self):
+
+        r"""Discriminator module for Self-Attention GAN. Use it as a regular TensorFlow 2.0 Keras Model.
+
+        Return:
+            A tf.keras model  
+        """
+
         return Discriminator(self.n_classes)
     
     def __load_model(self):
