@@ -1,7 +1,7 @@
 import tensorflow as tf
 
-__all__ = ['cycle_loss',
-           'identity_loss']
+__all__ = ["cycle_loss", "identity_loss"]
+
 
 def cycle_loss(real_img, cycle_img, LAMBDA):
 

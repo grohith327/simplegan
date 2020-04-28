@@ -11,20 +11,22 @@ import cv2
 import tensorflow as tf
 import imageio
 from tqdm.auto import tqdm
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
+
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 
 ### Silence Imageio warnings
 def silence_imageio_warning(*args, **kwargs):
     pass
 
+
 imageio.core.util._precision_warn = silence_imageio_warning
 
-'''
+"""
 References: 
 -> https://arxiv.org/abs/1406.2661
-'''
+"""
 
-__all__ = ['VanillaGAN']
+__all__ = ["VanillaGAN"]
 
 
 class VanillaGAN:
@@ -41,20 +43,16 @@ class VanillaGAN:
         kernel_regularizer (str, optional): type of regularization to be applied to the weights. Defaults to ``None``
     """
 
-    def __init__(self,
-                noise_dim = 64,
-                dropout_rate = 0.4,
-                gen_units = [
-                    128,
-                    256,
-                    512],
-                disc_units = [
-                    512,
-                    256,
-                    128],
-                activation = 'relu',
-                kernel_initializer = 'glorot_uniform',
-                kernel_regularizer = None):
+    def __init__(
+        self,
+        noise_dim=64,
+        dropout_rate=0.4,
+        gen_units=[128, 256, 512],
+        disc_units=[512, 256, 128],
+        activation="relu",
+        kernel_initializer="glorot_uniform",
+        kernel_regularizer=None,
+    ):
 
         self.image_size = None
         self.noise_dim = noise_dim
@@ -62,13 +60,15 @@ class VanillaGAN:
         self.disc_model = None
         self.config = locals()
 
-    def load_data(self, 
-                data_dir=None, 
-                use_mnist=False,
-                use_cifar10=False, 
-                batch_size=32, 
-                img_shape=(64, 64)):
-        
+    def load_data(
+        self,
+        data_dir=None,
+        use_mnist=False,
+        use_cifar10=False,
+        batch_size=32,
+        img_shape=(64, 64),
+    ):
+
         r"""Load data to train the model
 
         Args:
@@ -82,11 +82,11 @@ class VanillaGAN:
             a tensorflow dataset objects representing the training datset
         """
 
-        if(use_mnist):
+        if use_mnist:
 
             train_data = load_mnist()
 
-        elif(use_cifar10):
+        elif use_cifar10:
 
             train_data = load_cifar10()
 
@@ -96,10 +96,15 @@ class VanillaGAN:
 
         self.image_size = train_data.shape[1:]
 
-        train_data = train_data.reshape(
-            (-1, self.image_size[0] * self.image_size[1] * self.image_size[2])) / 255
-        train_ds = tf.data.Dataset.from_tensor_slices(
-            train_data).shuffle(10000).batch(batch_size)
+        train_data = (
+            train_data.reshape(
+                (-1, self.image_size[0] * self.image_size[1] * self.image_size[2])
+            )
+            / 255
+        )
+        train_ds = (
+            tf.data.Dataset.from_tensor_slices(train_data).shuffle(10000).batch(batch_size)
+        )
 
         return train_ds
 
@@ -123,27 +128,17 @@ class VanillaGAN:
         for img in data.take(n_samples):
 
             img = img.numpy()
-            img = img.reshape(
-                (self.image_size[0],
-                 self.image_size[1],
-                 self.image_size[2]))
+            img = img.reshape((self.image_size[0], self.image_size[1], self.image_size[2]))
             sample_images.append(img)
 
         sample_images = np.array(sample_images)
 
-        if(save_dir is None):
+        if save_dir is None:
             return sample_images
 
         assert os.path.exists(save_dir), "Directory does not exist"
         for i, sample in enumerate(sample_images):
-            imageio.imwrite(
-                os.path.join(
-                    save_dir,
-                    'sample_' +
-                    str(i) +
-                    '.jpg'),
-                sample)
-
+            imageio.imwrite(os.path.join(save_dir, "sample_" + str(i) + ".jpg"), sample)
 
     def generator(self):
 
@@ -153,13 +148,13 @@ class VanillaGAN:
             A tf.keras model  
         """
 
-        noise_dim = self.config['noise_dim']
-        dropout_rate = self.config['dropout_rate']
-        gen_units = self.config['gen_units']
+        noise_dim = self.config["noise_dim"]
+        dropout_rate = self.config["dropout_rate"]
+        gen_units = self.config["gen_units"]
         gen_layers = len(gen_units)
-        activation = self.config['activation']
-        kernel_initializer = self.config['kernel_initializer']
-        kernel_regularizer = self.config['kernel_regularizer']
+        activation = self.config["activation"]
+        kernel_initializer = self.config["kernel_initializer"]
+        kernel_regularizer = self.config["kernel_regularizer"]
 
         model = tf.keras.Sequential()
 
@@ -170,7 +165,9 @@ class VanillaGAN:
                 kernel_initializer=kernel_initializer,
                 kernel_regularizer=kernel_regularizer,
                 input_dim=noise_dim,
-                dtype=tf.float32))
+                dtype=tf.float32,
+            )
+        )
         model.add(Dropout(dropout_rate))
 
         for i in range(gen_layers):
@@ -180,16 +177,18 @@ class VanillaGAN:
                     activation=activation,
                     kernel_initializer=kernel_initializer,
                     kernel_regularizer=kernel_regularizer,
-                    dtype=tf.float32))
+                    dtype=tf.float32,
+                )
+            )
             model.add(Dropout(dropout_rate))
 
         model.add(
             Dense(
-                self.image_size[0] *
-                self.image_size[1] *
-                self.image_size[2],
-                activation='sigmoid',
-                dtype=tf.float32))
+                self.image_size[0] * self.image_size[1] * self.image_size[2],
+                activation="sigmoid",
+                dtype=tf.float32,
+            )
+        )
         return model
 
     def discriminator(self):
@@ -200,26 +199,24 @@ class VanillaGAN:
             A tf.keras model  
         """
 
-        dropout_rate = self.config['dropout_rate']
-        disc_units = self.config['disc_units']
+        dropout_rate = self.config["dropout_rate"]
+        disc_units = self.config["disc_units"]
         disc_layers = len(disc_units)
-        activation = self.config['activation']
-        kernel_initializer = self.config['kernel_initializer']
-        kernel_regularizer = self.config['kernel_regularizer']
-
+        activation = self.config["activation"]
+        kernel_initializer = self.config["kernel_initializer"]
+        kernel_regularizer = self.config["kernel_regularizer"]
 
         model = tf.keras.Sequential()
 
         model.add(
             Dense(
-                disc_units[0] *
-                2,
+                disc_units[0] * 2,
                 activation=activation,
                 kernel_initializer=kernel_initializer,
                 kernel_regularizer=kernel_regularizer,
-                input_dim=self.image_size[0] *
-                self.image_size[1] *
-                self.image_size[2]))
+                input_dim=self.image_size[0] * self.image_size[1] * self.image_size[2],
+            )
+        )
         model.add(Dropout(dropout_rate))
 
         for i in range(disc_layers):
@@ -228,7 +225,9 @@ class VanillaGAN:
                     disc_units[i],
                     activation=activation,
                     kernel_initializer=kernel_initializer,
-                    kernel_regularizer=kernel_regularizer))
+                    kernel_regularizer=kernel_regularizer,
+                )
+            )
             model.add(Dropout(dropout_rate))
 
         model.add(Dense(1))
@@ -238,16 +237,18 @@ class VanillaGAN:
 
         self.gen_model, self.disc_model = self.generator(), self.discriminator()
 
-    def fit(self,
-            train_ds=None,
-            epochs=100,
-            gen_optimizer='Adam',
-            disc_optimizer='Adam',
-            verbose=1,
-            gen_learning_rate=0.0001,
-            disc_learning_rate=0.0001,
-            tensorboard=False,
-            save_model=None):
+    def fit(
+        self,
+        train_ds=None,
+        epochs=100,
+        gen_optimizer="Adam",
+        disc_optimizer="Adam",
+        verbose=1,
+        gen_learning_rate=0.0001,
+        disc_learning_rate=0.0001,
+        tensorboard=False,
+        save_model=None,
+    ):
 
         r"""Function to train the model
 
@@ -264,21 +265,21 @@ class VanillaGAN:
             save_model (str, optional): Directory to save the trained model. Defaults to ``None``
         """
 
-        assert train_ds is not None, 'Initialize training data through train_ds parameter'
+        assert train_ds is not None, "Initialize training data through train_ds parameter"
 
         self.__load_model()
 
         kwargs = {}
-        kwargs['learning_rate'] = gen_learning_rate
+        kwargs["learning_rate"] = gen_learning_rate
         gen_optimizer = getattr(tf.keras.optimizers, gen_optimizer)(**kwargs)
 
         kwargs = {}
-        kwargs['learning_rate'] = disc_learning_rate
+        kwargs["learning_rate"] = disc_learning_rate
         disc_optimizer = getattr(tf.keras.optimizers, disc_optimizer)(**kwargs)
 
-        if(tensorboard):
+        if tensorboard:
             current_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-            train_log_dir = 'logs/gradient_tape/' + current_time + '/train'
+            train_log_dir = "logs/gradient_tape/" + current_time + "/train"
             train_summary_writer = tf.summary.create_file_writer(train_log_dir)
 
         steps = 0
@@ -291,39 +292,37 @@ class VanillaGAN:
             total = 0
 
         for epoch in range(epochs):
-            
+
             generator_loss.reset_states()
             discriminator_loss.reset_states()
 
-            pbar = tqdm(total = total, desc = 'Epoch - '+str(epoch+1))
+            pbar = tqdm(total=total, desc="Epoch - " + str(epoch + 1))
             for data in train_ds:
 
                 with tf.GradientTape() as tape:
 
-                    Z = np.random.uniform(-1, 1,
-                                          (data.shape[0], self.noise_dim))
+                    Z = np.random.uniform(-1, 1, (data.shape[0], self.noise_dim))
                     fake = self.gen_model(Z)
                     fake_logits = self.disc_model(fake)
                     real_logits = self.disc_model(data)
                     D_loss = gan_discriminator_loss(real_logits, fake_logits)
 
-                gradients = tape.gradient(
-                    D_loss, self.disc_model.trainable_variables)
+                gradients = tape.gradient(D_loss, self.disc_model.trainable_variables)
                 disc_optimizer.apply_gradients(
-                    zip(gradients, self.disc_model.trainable_variables))
+                    zip(gradients, self.disc_model.trainable_variables)
+                )
 
                 with tf.GradientTape() as tape:
 
-                    Z = np.random.uniform(-1, 1,
-                                          (data.shape[0], self.noise_dim))
+                    Z = np.random.uniform(-1, 1, (data.shape[0], self.noise_dim))
                     fake = self.gen_model(Z)
                     fake_logits = self.disc_model(fake)
                     G_loss = gan_generator_loss(fake_logits)
 
-                gradients = tape.gradient(
-                    G_loss, self.gen_model.trainable_variables)
+                gradients = tape.gradient(G_loss, self.gen_model.trainable_variables)
                 gen_optimizer.apply_gradients(
-                    zip(gradients, self.gen_model.trainable_variables))
+                    zip(gradients, self.gen_model.trainable_variables)
+                )
 
                 generator_loss(G_loss)
                 discriminator_loss(D_loss)
@@ -331,38 +330,33 @@ class VanillaGAN:
                 steps += 1
                 pbar.update(1)
 
-                if(tensorboard):
+                if tensorboard:
                     with train_summary_writer.as_default():
-                        tf.summary.scalar(
-                            'discr_loss', D_loss.numpy(), step=steps)
-                        tf.summary.scalar(
-                            'genr_loss', G_loss.numpy(), step=steps)
-
+                        tf.summary.scalar("discr_loss", D_loss.numpy(), step=steps)
+                        tf.summary.scalar("genr_loss", G_loss.numpy(), step=steps)
 
             pbar.close()
             del pbar
 
-            if(verbose == 1):
-                print('Epoch:',
+            if verbose == 1:
+                print(
+                    "Epoch:",
                     epoch + 1,
-                    'D_loss:',
+                    "D_loss:",
                     generator_loss.result().numpy(),
-                    'G_loss',
-                    discriminator_loss.result().numpy())
+                    "G_loss",
+                    discriminator_loss.result().numpy(),
+                )
 
-        if(save_model is not None):
+        if save_model is not None:
 
             assert isinstance(save_model, str), "Not a valid directory"
-            if(save_model[-1] != '/'):
-                self.gen_model.save_weights(
-                    save_model + '/generator_checkpoint')
-                self.disc_model.save_weights(
-                    save_model + '/discriminator_checkpoint')
+            if save_model[-1] != "/":
+                self.gen_model.save_weights(save_model + "/generator_checkpoint")
+                self.disc_model.save_weights(save_model + "/discriminator_checkpoint")
             else:
-                self.gen_model.save_weights(
-                    save_model + 'generator_checkpoint')
-                self.disc_model.save_weights(
-                    save_model + 'discriminator_checkpoint')
+                self.gen_model.save_weights(save_model + "generator_checkpoint")
+                self.disc_model.save_weights(save_model + "discriminator_checkpoint")
 
     def generate_samples(self, n_samples=1, save_dir=None):
 
@@ -379,18 +373,13 @@ class VanillaGAN:
         Z = np.random.uniform(-1, 1, (n_samples, self.noise_dim))
         generated_samples = self.gen_model(Z)
         generated_samples = tf.reshape(
-            generated_samples, [
-                n_samples, self.image_size[0], self.image_size[1], self.image_size[2]]).numpy()
+            generated_samples,
+            [n_samples, self.image_size[0], self.image_size[1], self.image_size[2]],
+        ).numpy()
 
-        if(save_dir is None):
+        if save_dir is None:
             return generated_samples
 
         assert os.path.exists(save_dir), "Directory does not exist"
         for i, sample in enumerate(generated_samples):
-            imageio.imwrite(
-                os.path.join(
-                    save_dir,
-                    'sample_' +
-                    str(i) +
-                    '.jpg'),
-                sample)
+            imageio.imwrite(os.path.join(save_dir, "sample_" + str(i) + ".jpg"), sample)

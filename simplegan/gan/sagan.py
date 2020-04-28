@@ -1,5 +1,10 @@
-
-from ..layers import SpectralNormalization, GenResBlock, SelfAttention, DiscResBlock, DiscOptResBlock
+from ..layers import (
+    SpectralNormalization,
+    GenResBlock,
+    SelfAttention,
+    DiscResBlock,
+    DiscOptResBlock,
+)
 import os
 import numpy as np
 import cv2
@@ -12,6 +17,7 @@ import datetime
 from tqdm import tqdm
 import logging
 import imageio
+
 logging.getLogger("tensorflow").setLevel(logging.ERROR)
 # Silence Imageio warnings
 
@@ -22,30 +28,33 @@ def silence_imageio_warning(*args, **kwargs):
 
 imageio.core.util._precision_warn = silence_imageio_warning
 
-__all__ = ['SAGAN']
+__all__ = ["SAGAN"]
 
 
 class Generator(tf.keras.Model):
     def __init__(self, n_classes, filters=64):
         super(Generator, self).__init__()
         self.filters = filters
-        self.sn_linear = SpectralNormalization(
-            tf.keras.layers.Dense(filters * 16 * 4 * 4))
+        self.sn_linear = SpectralNormalization(tf.keras.layers.Dense(filters * 16 * 4 * 4))
         self.rs = tf.keras.layers.Reshape((4, 4, 16 * filters))
         self.res_block1 = GenResBlock(
-            n_classes=n_classes, filters=filters * 16, spectral_norm=True)
+            n_classes=n_classes, filters=filters * 16, spectral_norm=True
+        )
         self.res_block2 = GenResBlock(
-            n_classes=n_classes, filters=filters * 8, spectral_norm=True)
+            n_classes=n_classes, filters=filters * 8, spectral_norm=True
+        )
         self.res_block3 = GenResBlock(
-            n_classes=n_classes, filters=filters * 4, spectral_norm=True)
+            n_classes=n_classes, filters=filters * 4, spectral_norm=True
+        )
         self.attn = SelfAttention(spectral_norm=True)
         self.res_block4 = GenResBlock(
-            n_classes=n_classes, filters=filters * 2, spectral_norm=True)
-        self.res_block5 = GenResBlock(
-            n_classes=n_classes, filters=filters, spectral_norm=True)
+            n_classes=n_classes, filters=filters * 2, spectral_norm=True
+        )
+        self.res_block5 = GenResBlock(n_classes=n_classes, filters=filters, spectral_norm=True)
         self.bn1 = tf.keras.layers.BatchNormalization()
-        self.snconv2d1 = SpectralNormalization(tf.keras.layers.Conv2D(
-            kernel_size=3, filters=3, strides=1, padding="same"))
+        self.snconv2d1 = SpectralNormalization(
+            tf.keras.layers.Conv2D(kernel_size=3, filters=3, strides=1, padding="same")
+        )
 
     def call(self, inp, labels):
         x = self.sn_linear(inp)
@@ -71,10 +80,10 @@ class Discriminator(tf.keras.Model):
         self.attn = SelfAttention(spectral_norm=True)
         self.res_block2 = DiscResBlock(filters=filters * 4, spectral_norm=True)
         self.res_block3 = DiscResBlock(filters=filters * 8, spectral_norm=True)
-        self.res_block4 = DiscResBlock(
-            filters=filters * 16, spectral_norm=True)
+        self.res_block4 = DiscResBlock(filters=filters * 16, spectral_norm=True)
         self.res_block5 = DiscResBlock(
-            filters=filters * 16, downsample=False, spectral_norm=True)
+            filters=filters * 16, downsample=False, spectral_norm=True
+        )
 
         self.sn_dense1 = SpectralNormalization(tf.keras.layers.Dense(1))
         self.sn_embedding = tf.keras.layers.Embedding(n_classes, filters * 16)
@@ -102,30 +111,31 @@ class SAGAN:
         noise_dim (int, optional): represents the dimension of the prior to sample values. Defaults to ``128``
     """
 
-    def __init__(self,
-                 noise_dim=128,
-                 ):
+    def __init__(
+        self, noise_dim=128,
+    ):
 
         self.image_size = None
         self.noise_dim = noise_dim
         self.n_classes = None
         self.config = locals()
 
-    def load_data(self,
-                  data_dir=None,
-                  use_mnist=False,
-                  use_cifar10=False,
-                  batch_size=32,
-                  img_shape=(64, 64)):
+    def load_data(
+        self,
+        data_dir=None,
+        use_mnist=False,
+        use_cifar10=False,
+        batch_size=32,
+        img_shape=(64, 64),
+    ):
 
-        if(use_cifar10):
+        if use_cifar10:
 
             train_data, train_labels = load_cifar10_with_labels()
             self.n_classes = 10
 
         else:
-            train_data, train_labels = load_custom_data_with_labels(
-                data_dir, img_shape)
+            train_data, train_labels = load_custom_data_with_labels(data_dir, img_shape)
             self.n_classes = np.unique(train_labels).shape[0]
 
         # Resize images tp 128x128
@@ -134,8 +144,7 @@ class SAGAN:
             return image, label
 
         train_data = (train_data / 255) * 2 - 1
-        train_ds = tf.data.Dataset.from_tensor_slices(
-            (train_data, train_labels))
+        train_ds = tf.data.Dataset.from_tensor_slices((train_data, train_labels))
         self.image_size = (128, 128, train_data[0].shape[-1])
         train_ds = train_ds.map(resize)
         train_ds = train_ds.shuffle(10000).batch(batch_size)
@@ -165,20 +174,13 @@ class SAGAN:
 
         sample_images = np.array(sample_images)
 
-        if(save_dir is None):
+        if save_dir is None:
             return sample_images
 
         assert os.path.exists(save_dir), "Directory does not exist"
         for i, sample in enumerate(sample_images):
-            imageio.imwrite(
-                os.path.join(
-                    save_dir,
-                    'sample_' +
-                    str(i) +
-                    '.jpg'),
-                sample)
+            imageio.imwrite(os.path.join(save_dir, "sample_" + str(i) + ".jpg"), sample)
 
-    
     def generator(self):
 
         r"""Generator module for Self-Attention GAN. Use it as a regular TensorFlow 2.0 Keras Model.
@@ -188,7 +190,7 @@ class SAGAN:
         """
 
         return Generator(self.n_classes)
-    
+
     def discriminator(self):
 
         r"""Discriminator module for Self-Attention GAN. Use it as a regular TensorFlow 2.0 Keras Model.
@@ -198,10 +200,12 @@ class SAGAN:
         """
 
         return Discriminator(self.n_classes)
-    
+
     def __load_model(self):
-        self.gen_model, self.disc_model = Generator(
-            self.n_classes), Discriminator(self.n_classes)
+        self.gen_model, self.disc_model = (
+            Generator(self.n_classes),
+            Discriminator(self.n_classes),
+        )
 
     @tf.function
     def train_step(self, images, labels):
@@ -209,53 +213,55 @@ class SAGAN:
         with tf.GradientTape() as disc_tape:
             bs = images.shape[0]
             noise = tf.random.normal([bs, self.noise_dim])
-            fake_labels = tf.convert_to_tensor(
-                np.random.randint(0, self.n_classes, bs))
+            fake_labels = tf.convert_to_tensor(np.random.randint(0, self.n_classes, bs))
 
             generated_images = self.gen_model(noise, labels)
 
             real_output = self.disc_model(images, labels, training=True)
-            fake_output = self.disc_model(
-                generated_images, fake_labels, training=True)
+            fake_output = self.disc_model(generated_images, fake_labels, training=True)
             disc_loss = hinge_loss_discriminator(real_output, fake_output)
             gradients_of_discriminator = disc_tape.gradient(
-                disc_loss, self.disc_model.trainable_variables)
+                disc_loss, self.disc_model.trainable_variables
+            )
             self.discriminator_optimizer.apply_gradients(
-                zip(gradients_of_discriminator, self.disc_model.trainable_variables))
+                zip(gradients_of_discriminator, self.disc_model.trainable_variables)
+            )
 
         with tf.GradientTape() as gen_tape:
             noise = tf.random.normal([bs, self.noise_dim])
             fake_labels = tf.random.uniform((bs,), 0, 10, dtype=tf.int32)
             generated_images = self.gen_model(noise, fake_labels)
 
-            fake_output = self.disc_model(
-                generated_images, fake_labels, training=False)
+            fake_output = self.disc_model(generated_images, fake_labels, training=False)
             gen_loss = hinge_loss_generator(fake_output)
             gradients_of_generator = gen_tape.gradient(
-                gen_loss, self.gen_model.trainable_variables)
+                gen_loss, self.gen_model.trainable_variables
+            )
             self.generator_optimizer.apply_gradients(
-                zip(gradients_of_generator, self.gen_model.trainable_variables))
+                zip(gradients_of_generator, self.gen_model.trainable_variables)
+            )
             train_stats = {
-                'd_loss': disc_loss,
+                "d_loss": disc_loss,
                 "g_loss": gen_loss,
-                'd_grads': gradients_of_discriminator,
-                'g_grads': gradients_of_generator,
+                "d_grads": gradients_of_discriminator,
+                "g_grads": gradients_of_generator,
             }
             return train_stats
 
     def fit(
-            self,
-            train_ds=None,
-            epochs=100,
-            gen_optimizer='Adam',
-            disc_optimizer='Adam',
-            verbose=1,
-            gen_learning_rate=1e-4,
-            disc_learning_rate=4e-4,
-            beta_1=0,
-            beta_2=0.9,
-            tensorboard=False,
-            save_model=None):
+        self,
+        train_ds=None,
+        epochs=100,
+        gen_optimizer="Adam",
+        disc_optimizer="Adam",
+        verbose=1,
+        gen_learning_rate=1e-4,
+        disc_learning_rate=4e-4,
+        beta_1=0,
+        beta_2=0.9,
+        tensorboard=False,
+        save_model=None,
+    ):
         r"""Function to train the model
 
         Args:
@@ -275,22 +281,20 @@ class SAGAN:
         self.__load_model()
 
         kwargs = {}
-        kwargs['learning_rate'] = gen_learning_rate
-        if(gen_optimizer == 'Adam'):
-            kwargs['beta_1'] = beta_1
-        self.generator_optimizer = getattr(
-            tf.keras.optimizers, gen_optimizer)(**kwargs)
+        kwargs["learning_rate"] = gen_learning_rate
+        if gen_optimizer == "Adam":
+            kwargs["beta_1"] = beta_1
+        self.generator_optimizer = getattr(tf.keras.optimizers, gen_optimizer)(**kwargs)
 
         kwargs = {}
-        kwargs['learning_rate'] = disc_learning_rate
-        if(disc_optimizer == 'Adam'):
-            kwargs['beta_1'] = beta_1
-        self.discriminator_optimizer = getattr(
-            tf.keras.optimizers, disc_optimizer)(**kwargs)
+        kwargs["learning_rate"] = disc_learning_rate
+        if disc_optimizer == "Adam":
+            kwargs["beta_1"] = beta_1
+        self.discriminator_optimizer = getattr(tf.keras.optimizers, disc_optimizer)(**kwargs)
 
-        if(tensorboard):
+        if tensorboard:
             current_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-            train_log_dir = 'logs/gradient_tape/' + current_time + '/train'
+            train_log_dir = "logs/gradient_tape/" + current_time + "/train"
             train_summary_writer = tf.summary.create_file_writer(train_log_dir)
 
         steps = 0
@@ -306,51 +310,47 @@ class SAGAN:
 
             average_generator_loss.reset_states()
             average_discriminator_loss.reset_states()
-            pbar = tqdm(total=total, desc='Epoch - ' + str(epoch + 1))
+            pbar = tqdm(total=total, desc="Epoch - " + str(epoch + 1))
 
             for i, batch in enumerate(train_ds):
                 image_batch, label_batch = batch
                 label_batch = tf.squeeze(label_batch)
                 train_stats = self.train_step(image_batch, label_batch)
 
-                G_loss = train_stats['g_loss']
-                D_loss = train_stats['d_loss']
+                G_loss = train_stats["g_loss"]
+                D_loss = train_stats["d_loss"]
                 average_generator_loss(G_loss)
                 average_discriminator_loss(D_loss)
 
                 steps += 1
                 pbar.update(1)
 
-                if(tensorboard):
+                if tensorboard:
                     with train_summary_writer.as_default():
-                        tf.summary.scalar(
-                            'discr_loss', D_loss.numpy(), step=steps)
-                        tf.summary.scalar(
-                            'genr_loss', G_loss.numpy(), step=steps)
+                        tf.summary.scalar("discr_loss", D_loss.numpy(), step=steps)
+                        tf.summary.scalar("genr_loss", G_loss.numpy(), step=steps)
 
             pbar.close()
             del pbar
 
-            if(verbose == 1):
-                print('Epoch:',
-                      epoch + 1,
-                      'D_loss:',
-                      average_generator_loss.result().numpy(),
-                      'G_loss',
-                      average_discriminator_loss.result().numpy())
+            if verbose == 1:
+                print(
+                    "Epoch:",
+                    epoch + 1,
+                    "D_loss:",
+                    average_generator_loss.result().numpy(),
+                    "G_loss",
+                    average_discriminator_loss.result().numpy(),
+                )
 
-        if(save_model is not None):
+        if save_model is not None:
             assert isinstance(save_model, str), "Not a valid directory"
-            if(save_model[-1] != '/'):
-                self.gen_model.save_weights(
-                    save_model + '/generator_checkpoint')
-                self.disc_model.save_weights(
-                    save_model + '/discriminator_checkpoint')
+            if save_model[-1] != "/":
+                self.gen_model.save_weights(save_model + "/generator_checkpoint")
+                self.disc_model.save_weights(save_model + "/discriminator_checkpoint")
             else:
-                self.gen_model.save_weights(
-                    save_model + 'generator_checkpoint')
-                self.disc_model.save_weights(
-                    save_model + 'discriminator_checkpoint')
+                self.gen_model.save_weights(save_model + "generator_checkpoint")
+                self.disc_model.save_weights(save_model + "discriminator_checkpoint")
 
     def generate_samples(self, n_samples=1, labels_list=None, save_dir=None):
         r"""Generate samples using the trained model
@@ -365,22 +365,17 @@ class SAGAN:
         """
 
         assert labels_list is not None, "Enter list of labels to condition the generator"
-        assert len(
-            labels_list) == n_samples, "Number of samples does not match length of labels list"
+        assert (
+            len(labels_list) == n_samples
+        ), "Number of samples does not match length of labels list"
 
         Z = np.random.uniform(-1, 1, (n_samples, self.noise_dim))
         labels_list = np.array(labels_list)
         generated_samples = self.gen_model([Z, labels_list]).numpy()
 
-        if(save_dir is None):
+        if save_dir is None:
             return generated_samples
 
         assert os.path.exists(save_dir), "Directory does not exist"
         for i, sample in enumerate(generated_samples):
-            imageio.imwrite(
-                os.path.join(
-                    save_dir,
-                    'sample_' +
-                    str(i) +
-                    '.jpg'),
-                sample)
+            imageio.imwrite(os.path.join(save_dir, "sample_" + str(i) + ".jpg"), sample)

@@ -1,15 +1,13 @@
-
 import tensorflow as tf
 from ..layers.spectralnorm import SpectralNormalization
 
-__all__ = ['SelfAttention']
+__all__ = ["SelfAttention"]
 
 
 class SelfAttention(tf.keras.Model):
-
     def __init__(self, spectral_norm=True):
         super(SelfAttention, self).__init__()
-        self.scaling_factor = tf.Variable(0.)
+        self.scaling_factor = tf.Variable(0.0)
         self.spectral_norm = spectral_norm
 
     def build(self, input):
@@ -18,76 +16,45 @@ class SelfAttention(tf.keras.Model):
         if self.spectral_norm:
             self.conv1x1_f = SpectralNormalization(
                 tf.keras.layers.Conv2D(
-                    filters=n_channels // 8,
-                    kernel_size=(
-                        1,
-                        1),
-                    padding="same",
-                    strides=(
-                        1,
-                        1)))
+                    filters=n_channels // 8, kernel_size=(1, 1), padding="same", strides=(1, 1)
+                )
+            )
             self.conv1x1_g = SpectralNormalization(
                 tf.keras.layers.Conv2D(
-                    filters=n_channels // 8,
-                    kernel_size=(
-                        1,
-                        1),
-                    padding="same",
-                    strides=(
-                        1,
-                        1)))
+                    filters=n_channels // 8, kernel_size=(1, 1), padding="same", strides=(1, 1)
+                )
+            )
             self.conv1x1_h = SpectralNormalization(
                 tf.keras.layers.Conv2D(
-                    filters=n_channels // 2,
-                    kernel_size=(
-                        1,
-                        1),
-                    padding="same",
-                    strides=(
-                        1,
-                        1)))
+                    filters=n_channels // 2, kernel_size=(1, 1), padding="same", strides=(1, 1)
+                )
+            )
 
             self.conv1x1_attn = SpectralNormalization(
                 tf.keras.layers.Conv2D(
-                    filters=n_channels, kernel_size=(
-                        1, 1), padding="same", strides=(
-                        1, 1)))
+                    filters=n_channels, kernel_size=(1, 1), padding="same", strides=(1, 1)
+                )
+            )
         else:
             self.conv1x1_f = tf.keras.layers.Conv2D(
-                filters=n_channels // 8,
-                kernel_size=(
-                    1,
-                    1),
-                padding="same",
-                strides=(
-                    1,
-                    1))
+                filters=n_channels // 8, kernel_size=(1, 1), padding="same", strides=(1, 1)
+            )
             self.conv1x1_g = SpectralNormalization(
                 tf.keras.layers.Conv2D(
-                    filters=n_channels // 8,
-                    kernel_size=(
-                        1,
-                        1),
-                    padding="same",
-                    strides=(
-                        1,
-                        1)))
+                    filters=n_channels // 8, kernel_size=(1, 1), padding="same", strides=(1, 1)
+                )
+            )
             self.conv1x1_h = SpectralNormalization(
                 tf.keras.layers.Conv2D(
-                    filters=n_channels // 2,
-                    kernel_size=(
-                        1,
-                        1),
-                    padding="same",
-                    strides=(
-                        1,
-                        1)))
+                    filters=n_channels // 2, kernel_size=(1, 1), padding="same", strides=(1, 1)
+                )
+            )
 
             self.conv1x1_attn = SpectralNormalization(
                 tf.keras.layers.Conv2D(
-                    filters=n_channels, kernel_size=(
-                        1, 1), padding="same", strides=(
-                        1, 1)))
+                    filters=n_channels, kernel_size=(1, 1), padding="same", strides=(1, 1)
+                )
+            )
 
         self.g_maxpool = tf.keras.layers.MaxPool2D(pool_size=(2, 2), strides=2)
         self.h_maxpool = tf.keras.layers.MaxPool2D(pool_size=(2, 2), strides=2)
@@ -106,8 +73,7 @@ class SelfAttention(tf.keras.Model):
         h = self.h_maxpool(h)
         h = tf.reshape(h, (batch_size, (height * width) // 4, n_channels // 2))
         attn_h = tf.matmul(attn_map, h)
-        attn_h = tf.reshape(
-            attn_h, (batch_size, width, height, n_channels // 2))
+        attn_h = tf.reshape(attn_h, (batch_size, width, height, n_channels // 2))
         attn_h = self.conv1x1_attn(attn_h)
 
         out = x + (attn_h * self.scaling_factor)

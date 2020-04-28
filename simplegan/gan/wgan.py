@@ -20,16 +20,18 @@ from tqdm.auto import tqdm
 def silence_imageio_warning(*args, **kwargs):
     pass
 
+
 imageio.core.util._precision_warn = silence_imageio_warning
 
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 
-__all__ = ['WGAN']
+__all__ = ["WGAN"]
 
-'''
+"""
 References:
 -> https://arxiv.org/abs/1701.07875
-'''
+"""
+
 
 class WGAN(DCGAN):
 
@@ -46,49 +48,47 @@ class WGAN(DCGAN):
         kernel_regularizer (str, optional): type of regularization to be applied to the weights. Defaults to ``None``
     """
 
-    def __init__(self,
-                noise_dim = 100,
-                dropout_rate = 0.4,
-                gen_channels = [
-                    64,
-                    32,
-                    16],
-                disc_channels = [
-                    16,
-                    32,
-                    64],
-                kernel_size = (
-                    5,
-                    5),
-                activation = 'relu',
-                kernel_initializer = 'glorot_uniform',
-                kernel_regularizer = None):
+    def __init__(
+        self,
+        noise_dim=100,
+        dropout_rate=0.4,
+        gen_channels=[64, 32, 16],
+        disc_channels=[16, 32, 64],
+        kernel_size=(5, 5),
+        activation="relu",
+        kernel_initializer="glorot_uniform",
+        kernel_regularizer=None,
+    ):
 
-        DCGAN.__init__(self,
-                    noise_dim,
-                    dropout_rate,
-                    gen_channels,
-                    disc_channels,
-                    kernel_size,
-                    activation,
-                    kernel_initializer,
-                    kernel_regularizer)
+        DCGAN.__init__(
+            self,
+            noise_dim,
+            dropout_rate,
+            gen_channels,
+            disc_channels,
+            kernel_size,
+            activation,
+            kernel_initializer,
+            kernel_regularizer,
+        )
 
     def __load_model(self):
 
         self.gen_model, self.disc_model = self.generator(), self.discriminator()
 
-    def fit(self,
-            train_ds=None,
-            epochs=100,
-            gen_optimizer='RMSprop',
-            disc_optimizer='RMSprop',
-            verbose=1,
-            gen_learning_rate=5e-5,
-            disc_learning_rate=5e-5,
-            beta_1=0.5,
-            tensorboard=False,
-            save_model=None):
+    def fit(
+        self,
+        train_ds=None,
+        epochs=100,
+        gen_optimizer="RMSprop",
+        disc_optimizer="RMSprop",
+        verbose=1,
+        gen_learning_rate=5e-5,
+        disc_learning_rate=5e-5,
+        beta_1=0.5,
+        tensorboard=False,
+        save_model=None,
+    ):
 
         r"""Function to train the model
 
@@ -106,25 +106,25 @@ class WGAN(DCGAN):
             save_model (str, optional): Directory to save the trained model. Defaults to ``None``
         """
 
-        assert train_ds is not None, 'Initialize training data through train_ds parameter'
+        assert train_ds is not None, "Initialize training data through train_ds parameter"
 
         self.__load_model()
 
         kwargs = {}
-        kwargs['learning_rate'] = gen_learning_rate
-        if(gen_optimizer == 'Adam'):
-            kwargs['beta_1'] = beta_1
+        kwargs["learning_rate"] = gen_learning_rate
+        if gen_optimizer == "Adam":
+            kwargs["beta_1"] = beta_1
         gen_optimizer = getattr(tf.keras.optimizers, gen_optimizer)(**kwargs)
 
         kwargs = {}
-        kwargs['learning_rate'] = disc_learning_rate
-        if(disc_optimizer == 'Adam'):
-            kwargs['beta_1'] = beta_1
+        kwargs["learning_rate"] = disc_learning_rate
+        if disc_optimizer == "Adam":
+            kwargs["beta_1"] = beta_1
         disc_optimizer = getattr(tf.keras.optimizers, disc_optimizer)(**kwargs)
 
-        if(tensorboard):
+        if tensorboard:
             current_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-            train_log_dir = 'logs/gradient_tape/' + current_time + '/train'
+            train_log_dir = "logs/gradient_tape/" + current_time + "/train"
             train_summary_writer = tf.summary.create_file_writer(train_log_dir)
 
         steps = 0
@@ -137,11 +137,11 @@ class WGAN(DCGAN):
             total = 0
 
         for epoch in range(epochs):
-            
+
             generator_loss.reset_states()
             discriminator_loss.reset_states()
 
-            pbar = tqdm(total = total, desc = 'Epoch - '+str(epoch+1))
+            pbar = tqdm(total=total, desc="Epoch - " + str(epoch + 1))
             for data in train_ds:
 
                 for _ in range(5):
@@ -152,15 +152,15 @@ class WGAN(DCGAN):
                         fake = self.gen_model(Z)
                         fake_logits = self.disc_model(fake)
                         real_logits = self.disc_model(data)
-                        D_loss = wgan_discriminator_loss(
-                            real_logits, fake_logits)
+                        D_loss = wgan_discriminator_loss(real_logits, fake_logits)
 
-                    gradients = tape.gradient(
-                        D_loss, self.disc_model.trainable_variables)
+                    gradients = tape.gradient(D_loss, self.disc_model.trainable_variables)
                     clipped_gradients = [
-                        (tf.clip_by_value(grad, -0.01, 0.01)) for grad in gradients]
+                        (tf.clip_by_value(grad, -0.01, 0.01)) for grad in gradients
+                    ]
                     disc_optimizer.apply_gradients(
-                        zip(clipped_gradients, self.disc_model.trainable_variables))
+                        zip(clipped_gradients, self.disc_model.trainable_variables)
+                    )
 
                     discriminator_loss(D_loss)
 
@@ -171,45 +171,40 @@ class WGAN(DCGAN):
                     fake_logits = self.disc_model(fake)
                     G_loss = wgan_generator_loss(fake_logits)
 
-                gradients = tape.gradient(
-                    G_loss, self.gen_model.trainable_variables)
+                gradients = tape.gradient(G_loss, self.gen_model.trainable_variables)
                 gen_optimizer.apply_gradients(
-                    zip(gradients, self.gen_model.trainable_variables))
+                    zip(gradients, self.gen_model.trainable_variables)
+                )
 
                 generator_loss(G_loss)
 
                 steps += 1
                 pbar.update(1)
 
-                if(tensorboard):
+                if tensorboard:
                     with train_summary_writer.as_default():
-                        tf.summary.scalar(
-                            'discr_loss', D_loss.numpy(), step=steps)
-                        tf.summary.scalar(
-                            'genr_loss', G_loss.numpy(), step=steps)
-
+                        tf.summary.scalar("discr_loss", D_loss.numpy(), step=steps)
+                        tf.summary.scalar("genr_loss", G_loss.numpy(), step=steps)
 
             pbar.close()
             del pbar
 
-            if(verbose == 1):
-                print('Epoch:',
+            if verbose == 1:
+                print(
+                    "Epoch:",
                     epoch + 1,
-                    'D_loss:',
+                    "D_loss:",
                     generator_loss.result().numpy(),
-                    'G_loss',
-                    discriminator_loss.result().numpy())
+                    "G_loss",
+                    discriminator_loss.result().numpy(),
+                )
 
-        if(save_model is not None):
+        if save_model is not None:
 
             assert isinstance(save_model, str), "Not a valid directory"
-            if(save_model[-1] != '/'):
-                self.gen_model.save_weights(
-                    save_model + '/generator_checkpoint')
-                self.disc_model.save_weights(
-                    save_model + '/discriminator_checkpoint')
+            if save_model[-1] != "/":
+                self.gen_model.save_weights(save_model + "/generator_checkpoint")
+                self.disc_model.save_weights(save_model + "/discriminator_checkpoint")
             else:
-                self.gen_model.save_weights(
-                    save_model + 'generator_checkpoint')
-                self.disc_model.save_weights(
-                    save_model + 'discriminator_checkpoint')
+                self.gen_model.save_weights(save_model + "generator_checkpoint")
+                self.disc_model.save_weights(save_model + "discriminator_checkpoint")

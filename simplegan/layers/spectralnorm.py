@@ -1,6 +1,6 @@
 import tensorflow as tf
 
-__all__ = ['SpectralNormalization']
+__all__ = ["SpectralNormalization"]
 
 
 class SpectralNormalization(tf.keras.layers.Wrapper):
@@ -46,7 +46,7 @@ class SpectralNormalization(tf.keras.layers.Wrapper):
             initializer=tf.initializers.TruncatedNormal(stddev=0.02),
             trainable=False,
             name="sn_u",
-            dtype=self.layer.kernel.dtype
+            dtype=self.layer.kernel.dtype,
         )
 
         super(SpectralNormalization, self).build()

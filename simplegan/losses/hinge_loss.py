@@ -1,7 +1,6 @@
 import tensorflow as tf
 
-__all__ = ['hinge_loss_generator',
-           'hinge_loss_discriminator']
+__all__ = ["hinge_loss_generator", "hinge_loss_discriminator"]
 
 
 def hinge_loss_generator(generated_output):

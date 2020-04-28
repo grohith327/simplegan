@@ -1,8 +1,7 @@
 import tensorflow as tf
 
 
-__all__ = ['gan_discriminator_loss',
-           'gan_generator_loss']
+__all__ = ["gan_discriminator_loss", "gan_generator_loss"]
 
 cross_entropy = tf.keras.losses.BinaryCrossentropy(from_logits=True)
 
@@ -32,5 +31,5 @@ def gan_generator_loss(fake_output):
     Return:
         a tensor representing the generator loss
     """
-    
+
     return cross_entropy(tf.ones_like(fake_output), fake_output)

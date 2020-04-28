@@ -1,6 +1,6 @@
 import tensorflow as tf
 
-__all__ = ['ConditionalBatchNorm']
+__all__ = ["ConditionalBatchNorm"]
 
 
 class ConditionalBatchNorm(tf.keras.layers.Layer):
@@ -18,25 +18,23 @@ class ConditionalBatchNorm(tf.keras.layers.Layer):
 
     def build(self, input_shape):
         channels_shape = input_shape[-1:]
-        self.params_shape = tf.TensorShape(
-            [self.n_classes]).concatenate(channels_shape)
-        self.gamma = self.add_weight(
-            shape=self.params_shape, initializer='ones', name='gamma')
-        self.beta = self.add_weight(
-            shape=self.params_shape, initializer='zeros', name='beta')
+        self.params_shape = tf.TensorShape([self.n_classes]).concatenate(channels_shape)
+        self.gamma = self.add_weight(shape=self.params_shape, initializer="ones", name="gamma")
+        self.beta = self.add_weight(shape=self.params_shape, initializer="zeros", name="beta")
 
-        self.moving_params_shape = tf.TensorShape(
-            [1, 1, 1]).concatenate(channels_shape)
+        self.moving_params_shape = tf.TensorShape([1, 1, 1]).concatenate(channels_shape)
         self.moving_mean = self.add_weight(
             shape=self.moving_params_shape,
-            initializer='zeros',
+            initializer="zeros",
             trainable=False,
-            name='moving_mean')
+            name="moving_mean",
+        )
         self.moving_var = self.add_weight(
             shape=self.moving_params_shape,
-            initializer='ones',
+            initializer="ones",
             trainable=False,
-            name='moving_var')
+            name="moving_var",
+        )
 
     def call(self, inputs, labels, is_training=True):
         inputs_shape = tf.TensorShape(inputs.shape)
@@ -47,17 +45,19 @@ class ConditionalBatchNorm(tf.keras.layers.Layer):
         variance_epsilon = 1e-5
 
         if is_training:
-            mean, variance = tf.nn.moments(
-                inputs, axes=[0, 1, 2], keepdims=False)
+            mean, variance = tf.nn.moments(inputs, axes=[0, 1, 2], keepdims=False)
             self.moving_mean.assign(
-                self.moving_mean * self.decay_rate + mean * (1 - self.decay_rate))
+                self.moving_mean * self.decay_rate + mean * (1 - self.decay_rate)
+            )
             self.moving_var.assign(
-                self.moving_var * self.decay_rate + variance * (1 - self.decay_rate))
+                self.moving_var * self.decay_rate + variance * (1 - self.decay_rate)
+            )
             outputs = tf.nn.batch_normalization(
-                inputs, mean, variance, beta, gamma, variance_epsilon)
+                inputs, mean, variance, beta, gamma, variance_epsilon
+            )
         else:
             outputs = tf.nn.batch_normalization(
-                inputs, self.moving_mean, self.moving_var,
-                beta, gamma, variance_epsilon)
+                inputs, self.moving_mean, self.moving_var, beta, gamma, variance_epsilon
+            )
         outputs.set_shape(inputs_shape)
         return outputs

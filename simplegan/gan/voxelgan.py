@@ -9,14 +9,15 @@ from tensorflow.keras import Model
 from tqdm.auto import tqdm
 from ..datasets.load_off import load_vox_from_off
 from ..losses.minmax_loss import gan_discriminator_loss, gan_generator_loss
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
-__all__ = ['VoxelGAN']
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 
-'''
+__all__ = ["VoxelGAN"]
+
+"""
 Reference:
 -> http://3dgan.csail.mit.edu/papers/3dgan_nips.pdf
-'''
+"""
 
 
 class VoxelGAN:
@@ -33,25 +34,16 @@ class VoxelGAN:
         kernel_regularizer (str, optional): type of regularization to be applied to the weights. Defaults to ``None`` 
     """
 
-    def __init__(self,
-                 noise_dim=200,
-                 gen_channels=[
-                     512,
-                     256,
-                     128,
-                     64],
-                 disc_channels=[
-                     64,
-                     128,
-                     256,
-                     512],
-                 kernel_size=(
-                     4,
-                     4,
-                     4),
-                 activation='relu',
-                 kernel_initializer='glorot_uniform',
-                 kernel_regularizer=None):
+    def __init__(
+        self,
+        noise_dim=200,
+        gen_channels=[512, 256, 128, 64],
+        disc_channels=[64, 128, 256, 512],
+        kernel_size=(4, 4, 4),
+        activation="relu",
+        kernel_initializer="glorot_uniform",
+        kernel_regularizer=None,
+    ):
 
         self.noise_dim = noise_dim
         self.gen_model = None
@@ -61,13 +53,9 @@ class VoxelGAN:
 
     def __is_power_of_two(self, x):
 
-        return x and (not(x & (x - 1)))
+        return x and (not (x & (x - 1)))
 
-    def load_data(self,
-                  data_dir=None,
-                  use_modelnet=False,
-                  batch_size=100,
-                  side_length=64):
+    def load_data(self, data_dir=None, use_modelnet=False, batch_size=100, side_length=64):
 
         r"""Load data to train the voxelgan model
 
@@ -81,22 +69,21 @@ class VoxelGAN:
             a tensorflow dataset objects representing the training datset
         """
 
-        assert self.__is_power_of_two(
-            side_length), "side_length must be a power of 2"
+        assert self.__is_power_of_two(side_length), "side_length must be a power of 2"
 
-        if(use_modelnet):
+        if use_modelnet:
 
             data_obj = load_vox_from_off(side_length=side_length)
 
         else:
 
-            data_obj = load_vox_from_off(
-                datadir=data_dir, side_length=side_length)
+            data_obj = load_vox_from_off(datadir=data_dir, side_length=side_length)
 
         self.side_length = side_length
         data_voxels = data_obj.load_data()
-        voxel_ds = tf.data.Dataset.from_tensor_slices(
-            data_voxels).shuffle(10000).batch(batch_size)
+        voxel_ds = (
+            tf.data.Dataset.from_tensor_slices(data_voxels).shuffle(10000).batch(batch_size)
+        )
         return voxel_ds
 
     def get_sample(self, data, n_samples=1, plot=False):
@@ -121,17 +108,18 @@ class VoxelGAN:
 
         sample_data = np.array(sample_data)
 
-        if(not plot):
+        if not plot:
             return sample_data
 
         flag = -1
         try:
             import plotly.graph_objects as go
+
             flag = 1
         except ModuleNotFoundError:
             pass
 
-        if(flag == -1 or n_samples > 1):
+        if flag == -1 or n_samples > 1:
 
             fig, axs = plt.subplots(n_samples)
             for i in range(n_samples):
@@ -140,7 +128,7 @@ class VoxelGAN:
                 y = sample_data[i].nonzero()[1]
                 z = sample_data[i].nonzero()[2]
 
-                axs[i].scatter(x, y, z, c='black')
+                axs[i].scatter(x, y, z, c="black")
 
         else:
 
@@ -148,13 +136,9 @@ class VoxelGAN:
             y = sample_data[0].nonzero()[1]
             z = sample_data[0].nonzero()[2]
 
-            fig = go.Figure(data=[go.Scatter3d(
-                x=x,
-                y=y,
-                z=z,
-                mode='markers',
-                marker=dict(size=3)
-            )])
+            fig = go.Figure(
+                data=[go.Scatter3d(x=x, y=y, z=z, mode="markers", marker=dict(size=3))]
+            )
 
             fig.show()
 
@@ -166,15 +150,17 @@ class VoxelGAN:
             A tf.keras model  
         """
 
-        noise_dim = self.config['noise_dim']
-        gen_channels = self.config['gen_channels']
+        noise_dim = self.config["noise_dim"]
+        gen_channels = self.config["gen_channels"]
         gen_layers = len(gen_channels)
-        activation = self.config['activation']
-        kernel_initializer = self.config['kernel_initializer']
-        kernel_size = self.config['kernel_size']
-        kernel_regularizer = self.config['kernel_regularizer']
+        activation = self.config["activation"]
+        kernel_initializer = self.config["kernel_initializer"]
+        kernel_size = self.config["kernel_size"]
+        kernel_regularizer = self.config["kernel_regularizer"]
 
-        assert 2**(gen_layers + 2) == self.side_length, "2^(Number of generator channels) must be equal to side_length / 4"
+        assert (
+            2 ** (gen_layers + 2) == self.side_length
+        ), "2^(Number of generator channels) must be equal to side_length / 4"
 
         model = tf.keras.Sequential()
 
@@ -183,7 +169,9 @@ class VoxelGAN:
                 2 * 2 * 2,
                 activation=activation,
                 kernel_initializer=kernel_initializer,
-                input_dim=noise_dim))
+                input_dim=noise_dim,
+            )
+        )
         model.add(BatchNormalization())
         model.add(Reshape((2, 2, 2, 1)))
 
@@ -193,19 +181,17 @@ class VoxelGAN:
                     channel,
                     kernel_size,
                     strides=2,
-                    padding='same',
+                    padding="same",
                     activation=activation,
                     kernel_initializer=kernel_initializer,
-                    kernel_regularizer=kernel_regularizer))
+                    kernel_regularizer=kernel_regularizer,
+                )
+            )
             model.add(BatchNormalization())
 
         model.add(
-            Conv3DTranspose(
-                1,
-                kernel_size,
-                strides=2,
-                padding='same',
-                activation='sigmoid'))
+            Conv3DTranspose(1, kernel_size, strides=2, padding="same", activation="sigmoid")
+        )
 
         return model
 
@@ -217,13 +203,15 @@ class VoxelGAN:
             A tf.keras model  
         """
 
-        disc_channels = self.config['disc_channels']
+        disc_channels = self.config["disc_channels"]
         disc_layers = len(disc_channels)
-        kernel_initializer = self.config['kernel_initializer']
-        kernel_regularizer = self.config['kernel_regularizer']
-        kernel_size = self.config['kernel_size']
+        kernel_initializer = self.config["kernel_initializer"]
+        kernel_regularizer = self.config["kernel_regularizer"]
+        kernel_size = self.config["kernel_size"]
 
-        assert 2**(disc_layers + 2) == self.side_length, "2^(Number of discriminator channels) must be equal to side_length / 4"
+        assert (
+            2 ** (disc_layers + 2) == self.side_length
+        ), "2^(Number of discriminator channels) must be equal to side_length / 4"
 
         model = tf.keras.Sequential()
 
@@ -232,14 +220,12 @@ class VoxelGAN:
                 disc_channels[0],
                 kernel_size=kernel_size,
                 strides=2,
-                padding='same',
+                padding="same",
                 kernel_initializer=kernel_initializer,
                 kernel_regularizer=kernel_regularizer,
-                input_shape=(
-                    self.side_length,
-                    self.side_length,
-                    self.side_length,
-                    1)))
+                input_shape=(self.side_length, self.side_length, self.side_length, 1),
+            )
+        )
         model.add(BatchNormalization())
         model.add(LeakyReLU())
 
@@ -249,9 +235,11 @@ class VoxelGAN:
                     channel,
                     kernel_size=kernel_size,
                     strides=2,
-                    padding='same',
+                    padding="same",
                     kernel_initializer=kernel_initializer,
-                    kernel_regularizer=kernel_regularizer))
+                    kernel_regularizer=kernel_regularizer,
+                )
+            )
             model.add(BatchNormalization())
             model.add(LeakyReLU())
 
@@ -261,17 +249,19 @@ class VoxelGAN:
 
         self.gen_model, self.disc_model = self.generator(), self.discriminator()
 
-    def fit(self,
-            train_ds=None,
-            epochs=100,
-            gen_optimizer='Adam',
-            disc_optimizer='Adam',
-            verbose=1,
-            gen_learning_rate=0.0025,
-            disc_learning_rate=0.00001,
-            beta_1=0.5,
-            tensorboard=False,
-            save_model=None):
+    def fit(
+        self,
+        train_ds=None,
+        epochs=100,
+        gen_optimizer="Adam",
+        disc_optimizer="Adam",
+        verbose=1,
+        gen_learning_rate=0.0025,
+        disc_learning_rate=0.00001,
+        beta_1=0.5,
+        tensorboard=False,
+        save_model=None,
+    ):
 
         r"""Function to train the model 
 
@@ -289,25 +279,25 @@ class VoxelGAN:
             save_model (str, optional): Directory to save the trained model. Defaults to ``None``
         """
 
-        assert train_ds is not None, 'Initialize training data through train_ds parameter'
+        assert train_ds is not None, "Initialize training data through train_ds parameter"
 
         self.__load_model()
 
         kwargs = {}
-        kwargs['learning_rate'] = gen_learning_rate
-        if(gen_optimizer == 'Adam'):
-            kwargs['beta_1'] = beta_1
+        kwargs["learning_rate"] = gen_learning_rate
+        if gen_optimizer == "Adam":
+            kwargs["beta_1"] = beta_1
         gen_optimizer = getattr(tf.keras.optimizers, gen_optimizer)(**kwargs)
 
         kwargs = {}
-        kwargs['learning_rate'] = disc_learning_rate
-        if(disc_optimizer == 'Adam'):
-            kwargs['beta_1'] = beta_1
+        kwargs["learning_rate"] = disc_learning_rate
+        if disc_optimizer == "Adam":
+            kwargs["beta_1"] = beta_1
         disc_optimizer = getattr(tf.keras.optimizers, disc_optimizer)(**kwargs)
 
-        if(tensorboard):
+        if tensorboard:
             current_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-            train_log_dir = 'logs/gradient_tape/' + current_time + '/train'
+            train_log_dir = "logs/gradient_tape/" + current_time + "/train"
             train_summary_writer = tf.summary.create_file_writer(train_log_dir)
 
         steps = 0
@@ -324,13 +314,12 @@ class VoxelGAN:
             generator_loss.reset_states()
             discriminator_loss.reset_states()
 
-            pbar = tqdm(total=total, desc='Epoch - ' + str(epoch + 1))
+            pbar = tqdm(total=total, desc="Epoch - " + str(epoch + 1))
             for data in train_ds:
 
                 with tf.GradientTape() as tape:
 
-                    Z = np.random.uniform(
-                        0, 1, (data.shape[0], self.noise_dim))
+                    Z = np.random.uniform(0, 1, (data.shape[0], self.noise_dim))
                     fake = self.gen_model(Z)
                     fake_logits = self.disc_model(fake)
                     real_logits = self.disc_model(data)
@@ -338,62 +327,57 @@ class VoxelGAN:
 
                 discriminator_loss(D_loss)
 
-                if(discriminator_loss.result().numpy() < 0.8):
+                if discriminator_loss.result().numpy() < 0.8:
 
-                    gradients = tape.gradient(
-                        D_loss, self.disc_model.trainable_variables)
+                    gradients = tape.gradient(D_loss, self.disc_model.trainable_variables)
                     disc_optimizer.apply_gradients(
-                        zip(gradients, self.disc_model.trainable_variables))
+                        zip(gradients, self.disc_model.trainable_variables)
+                    )
 
                 with tf.GradientTape() as tape:
 
-                    Z = np.random.uniform(
-                        0, 1, (data.shape[0], self.noise_dim))
+                    Z = np.random.uniform(0, 1, (data.shape[0], self.noise_dim))
                     fake = self.gen_model(Z)
                     fake_logits = self.disc_model(fake)
                     G_loss = gan_generator_loss(fake_logits)
 
-                gradients = tape.gradient(
-                    G_loss, self.gen_model.trainable_variables)
+                gradients = tape.gradient(G_loss, self.gen_model.trainable_variables)
                 gen_optimizer.apply_gradients(
-                    zip(gradients, self.gen_model.trainable_variables))
+                    zip(gradients, self.gen_model.trainable_variables)
+                )
 
                 generator_loss(G_loss)
 
                 steps += 1
                 pbar.update(1)
 
-                if(tensorboard):
+                if tensorboard:
                     with train_summary_writer.as_default():
-                        tf.summary.scalar(
-                            'discr_loss', D_loss.numpy(), step=steps)
-                        tf.summary.scalar(
-                            'genr_loss', G_loss.numpy(), step=steps)
+                        tf.summary.scalar("discr_loss", D_loss.numpy(), step=steps)
+                        tf.summary.scalar("genr_loss", G_loss.numpy(), step=steps)
 
             pbar.close()
             del pbar
 
-            if(verbose == 1):
-                print('Epoch:',
-                      epoch + 1,
-                      'D_loss:',
-                      generator_loss.result().numpy(),
-                      'G_loss',
-                      discriminator_loss.result().numpy())
+            if verbose == 1:
+                print(
+                    "Epoch:",
+                    epoch + 1,
+                    "D_loss:",
+                    generator_loss.result().numpy(),
+                    "G_loss",
+                    discriminator_loss.result().numpy(),
+                )
 
-        if(save_model is not None):
+        if save_model is not None:
 
             assert isinstance(save_model, str), "Not a valid directory"
-            if(save_model[-1] != '/'):
-                self.gen_model.save_weights(
-                    save_model + '/generator_checkpoint')
-                self.disc_model.save_weights(
-                    save_model + '/discriminator_checkpoint')
+            if save_model[-1] != "/":
+                self.gen_model.save_weights(save_model + "/generator_checkpoint")
+                self.disc_model.save_weights(save_model + "/discriminator_checkpoint")
             else:
-                self.gen_model.save_weights(
-                    save_model + 'generator_checkpoint')
-                self.disc_model.save_weights(
-                    save_model + 'discriminator_checkpoint')
+                self.gen_model.save_weights(save_model + "generator_checkpoint")
+                self.disc_model.save_weights(save_model + "discriminator_checkpoint")
 
     def generate_sample(self, n_samples=1, plot=False):
         # For optimal viewing, set n_samples to 1
@@ -411,17 +395,18 @@ class VoxelGAN:
         Z = np.random.uniform(0, 1, (n_samples, self.noise_dim))
         generated_samples = self.gen_model(Z).numpy()
 
-        if(not plot):
+        if not plot:
             return generated_samples
 
         flag = -1
         try:
             import plotly.graph_objects as go
+
             flag = 1
         except ModuleNotFoundError:
             pass
 
-        if(flag == -1 or n_samples > 1):
+        if flag == -1 or n_samples > 1:
 
             fig, axs = plt.subplots(n_samples)
             for i in range(n_samples):
@@ -430,7 +415,7 @@ class VoxelGAN:
                 y = generated_samples[i].nonzero()[1]
                 z = generated_samples[i].nonzero()[2]
 
-                axs[i].scatter(x, y, z, c='black')
+                axs[i].scatter(x, y, z, c="black")
 
         else:
 
@@ -438,12 +423,8 @@ class VoxelGAN:
             y = generated_samples[0].nonzero()[1]
             z = generated_samples[0].nonzero()[2]
 
-            fig = go.Figure(data=[go.Scatter3d(
-                x=x,
-                y=y,
-                z=z,
-                mode='markers',
-                marker=dict(size=3)
-            )])
+            fig = go.Figure(
+                data=[go.Scatter3d(x=x, y=y, z=z, mode="markers", marker=dict(size=3))]
+            )
 
             fig.show()

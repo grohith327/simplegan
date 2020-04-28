@@ -1,9 +1,7 @@
 import tensorflow as tf
 import numpy as np
 
-__all__ = ['load_cifar10',
-           'load_cifar10_with_labels',
-           'load_cifar10_AE']
+__all__ = ["load_cifar10", "load_cifar10_with_labels", "load_cifar10_AE"]
 
 
 def load_cifar10():
@@ -19,7 +17,7 @@ def load_cifar10():
 
     (x_train, _), (_, _) = tf.keras.datasets.cifar10.load_data()
 
-    train_data = x_train.astype('float32')
+    train_data = x_train.astype("float32")
 
     return train_data
 
@@ -37,8 +35,8 @@ def load_cifar10_AE():
 
     (x_train, _), (x_test, _) = tf.keras.datasets.cifar10.load_data()
 
-    train_data = x_train.astype('float32')
-    test_data = x_test.astype('float32')
+    train_data = x_train.astype("float32")
+    test_data = x_test.astype("float32")
 
     return train_data, test_data
 
@@ -58,6 +56,6 @@ def load_cifar10_with_labels():
     train_images = np.concatenate((x_train, x_test), 0)
     train_labels = np.concatenate((y_train, y_test), 0)
 
-    train_images = train_images.astype('float32')
-    train_labels = train_labels.astype('int32')
+    train_images = train_images.astype("float32")
+    train_labels = train_labels.astype("int32")
     return train_images, train_labels

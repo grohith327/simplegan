@@ -1,6 +1,7 @@
 import tensorflow as tf
 
-__all__ = ['mse_loss']
+__all__ = ["mse_loss"]
+
 
 def mse_loss(y_true, y_pred):
 

@@ -1,7 +1,6 @@
 import tensorflow as tf
 
-__all__ = ['wgan_discriminator_loss',
-           'wgan_generator_loss']
+__all__ = ["wgan_discriminator_loss", "wgan_generator_loss"]
 
 
 def wgan_discriminator_loss(real_output, fake_output):
@@ -14,9 +13,8 @@ def wgan_discriminator_loss(real_output, fake_output):
     Return:
         total discriminator loss
     """
-    
-    total_loss = tf.math.reduce_mean(
-        real_output) - tf.math.reduce_mean(fake_output)
+
+    total_loss = tf.math.reduce_mean(real_output) - tf.math.reduce_mean(fake_output)
     return total_loss
 
 

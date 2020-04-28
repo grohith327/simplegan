@@ -14,20 +14,23 @@ import datetime
 import tensorflow as tf
 import imageio
 from tqdm.auto import tqdm
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
+
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 
 ### Silence Imageio warnings
 def silence_imageio_warning(*args, **kwargs):
     pass
 
+
 imageio.core.util._precision_warn = silence_imageio_warning
 
-'''
+"""
 References: 
 -> https://arxiv.org/abs/1511.06434
-'''
+"""
 
-__all__ = ['DCGAN']
+__all__ = ["DCGAN"]
+
 
 class DCGAN:
 
@@ -44,23 +47,17 @@ class DCGAN:
         kernel_regularizer (str, optional): type of regularization to be applied to the weights. Defaults to ``None``
     """
 
-    def __init__(self,
-                noise_dim = 100,
-                dropout_rate = 0.4,
-                gen_channels = [
-                    64,
-                    32,
-                    16],
-                disc_channels = [
-                    16,
-                    32,
-                    64],
-                kernel_size = (
-                    5,
-                    5),
-                activation = 'relu',
-                kernel_initializer = 'glorot_uniform',
-                kernel_regularizer = None):
+    def __init__(
+        self,
+        noise_dim=100,
+        dropout_rate=0.4,
+        gen_channels=[64, 32, 16],
+        disc_channels=[16, 32, 64],
+        kernel_size=(5, 5),
+        activation="relu",
+        kernel_initializer="glorot_uniform",
+        kernel_regularizer=None,
+    ):
 
         self.image_size = None
         self.noise_dim = noise_dim
@@ -68,15 +65,17 @@ class DCGAN:
         self.disc_model = None
         self.config = locals()
 
-    def load_data(self, 
-                data_dir=None, 
-                use_mnist=False,
-                use_cifar10=False, 
-                use_cifar100=False, 
-                use_lsun=False,
-                batch_size=32, 
-                img_shape=(64, 64)):
-        
+    def load_data(
+        self,
+        data_dir=None,
+        use_mnist=False,
+        use_cifar10=False,
+        use_cifar100=False,
+        use_lsun=False,
+        batch_size=32,
+        img_shape=(64, 64),
+    ):
+
         r"""Load data to train the model
 
         Args:
@@ -92,19 +91,19 @@ class DCGAN:
             a tensorflow dataset objects representing the training datset
         """
 
-        if(use_mnist):
+        if use_mnist:
 
             train_data = load_mnist()
 
-        elif(use_cifar10):
+        elif use_cifar10:
 
             train_data = load_cifar10()
 
-        elif(use_cifar100):
+        elif use_cifar100:
 
             train_data = load_cifar100()
 
-        elif(use_lsun):
+        elif use_lsun:
 
             train_data = load_lsun()
 
@@ -115,8 +114,9 @@ class DCGAN:
         self.image_size = train_data.shape[1:]
 
         train_data = (train_data - 127.5) / 127.5
-        train_ds = tf.data.Dataset.from_tensor_slices(
-            train_data).shuffle(10000).batch(batch_size)
+        train_ds = (
+            tf.data.Dataset.from_tensor_slices(train_data).shuffle(10000).batch(batch_size)
+        )
 
         return train_ds
 
@@ -144,19 +144,12 @@ class DCGAN:
 
         sample_images = np.array(sample_images)
 
-        if(save_dir is None):
+        if save_dir is None:
             return sample_images
 
         assert os.path.exists(save_dir), "Directory does not exist"
         for i, sample in enumerate(sample_images):
-            imageio.imwrite(
-                os.path.join(
-                    save_dir,
-                    'sample_' +
-                    str(i) +
-                    '.jpg'),
-                sample)
-
+            imageio.imwrite(os.path.join(save_dir, "sample_" + str(i) + ".jpg"), sample)
 
     def generator(self):
 
@@ -166,32 +159,32 @@ class DCGAN:
             A tf.keras model  
         """
 
-        noise_dim = self.config['noise_dim']
-        gen_channels = self.config['gen_channels']
+        noise_dim = self.config["noise_dim"]
+        gen_channels = self.config["gen_channels"]
         gen_layers = len(gen_channels)
-        activation = self.config['activation']
-        kernel_initializer = self.config['kernel_initializer']
-        kernel_regularizer = self.config['kernel_regularizer']
-        kernel_size = self.config['kernel_size']
+        activation = self.config["activation"]
+        kernel_initializer = self.config["kernel_initializer"]
+        kernel_regularizer = self.config["kernel_regularizer"]
+        kernel_size = self.config["kernel_size"]
 
         model = tf.keras.Sequential()
         model.add(
             Dense(
-                (self.image_size[0] // 4) * (
-                    self.image_size[1] // 4) * (
-                    gen_channels[0] * 2),
+                (self.image_size[0] // 4) * (self.image_size[1] // 4) * (gen_channels[0] * 2),
                 activation=activation,
                 kernel_initializer=kernel_initializer,
                 kernel_regularizer=kernel_regularizer,
-                input_dim=noise_dim))
+                input_dim=noise_dim,
+            )
+        )
         model.add(BatchNormalization())
         model.add(LeakyReLU())
 
         model.add(
             Reshape(
-                ((self.image_size[0] // 4),
-                 (self.image_size[1] // 4),
-                    (gen_channels[0] * 2))))
+                ((self.image_size[0] // 4), (self.image_size[1] // 4), (gen_channels[0] * 2))
+            )
+        )
 
         i = 0
         for _ in range(gen_layers // 2):
@@ -199,13 +192,13 @@ class DCGAN:
                 Conv2DTranspose(
                     gen_channels[i],
                     kernel_size=kernel_size,
-                    strides=(
-                        1,
-                        1),
-                    padding='same',
+                    strides=(1, 1),
+                    padding="same",
                     use_bias=False,
                     kernel_initializer=kernel_initializer,
-                    kernel_regularizer=kernel_regularizer))
+                    kernel_regularizer=kernel_regularizer,
+                )
+            )
             model.add(BatchNormalization())
             model.add(LeakyReLU())
             i += 1
@@ -214,13 +207,13 @@ class DCGAN:
             Conv2DTranspose(
                 gen_channels[i],
                 kernel_size=kernel_size,
-                strides=(
-                    2,
-                    2),
-                padding='same',
+                strides=(2, 2),
+                padding="same",
                 use_bias=False,
                 kernel_initializer=kernel_initializer,
-                kernel_regularizer=kernel_regularizer))
+                kernel_regularizer=kernel_regularizer,
+            )
+        )
         model.add(BatchNormalization())
         model.add(LeakyReLU())
 
@@ -229,13 +222,13 @@ class DCGAN:
                 Conv2DTranspose(
                     gen_channels[i],
                     kernel_size=kernel_size,
-                    strides=(
-                        1,
-                        1),
-                    padding='same',
+                    strides=(1, 1),
+                    padding="same",
                     use_bias=False,
                     kernel_initializer=kernel_initializer,
-                    kernel_regularizer=kernel_regularizer))
+                    kernel_regularizer=kernel_regularizer,
+                )
+            )
             model.add(BatchNormalization())
             model.add(LeakyReLU())
             i += 1
@@ -244,12 +237,12 @@ class DCGAN:
             Conv2DTranspose(
                 self.image_size[2],
                 kernel_size=kernel_size,
-                strides=(
-                    2,
-                    2),
-                padding='same',
+                strides=(2, 2),
+                padding="same",
                 use_bias=False,
-                activation='tanh'))
+                activation="tanh",
+            )
+        )
 
         return model
 
@@ -261,26 +254,26 @@ class DCGAN:
             A tf.keras model  
         """
 
-        dropout_rate = self.config['dropout_rate']
-        disc_channels = self.config['disc_channels']
+        dropout_rate = self.config["dropout_rate"]
+        disc_channels = self.config["disc_channels"]
         disc_layers = len(disc_channels)
-        kernel_initializer = self.config['kernel_initializer']
-        kernel_regularizer = self.config['kernel_regularizer']
-        kernel_size = self.config['kernel_size']
-        
+        kernel_initializer = self.config["kernel_initializer"]
+        kernel_regularizer = self.config["kernel_regularizer"]
+        kernel_size = self.config["kernel_size"]
+
         model = tf.keras.Sequential()
 
         model.add(
             Conv2D(
                 disc_channels[0] // 2,
                 kernel_size=kernel_size,
-                strides=(
-                    2,
-                    2),
-                padding='same',
+                strides=(2, 2),
+                padding="same",
                 kernel_initializer=kernel_initializer,
                 kernel_regularizer=kernel_regularizer,
-                input_shape=self.image_size))
+                input_shape=self.image_size,
+            )
+        )
         model.add(LeakyReLU())
         model.add(Dropout(dropout_rate))
 
@@ -289,22 +282,25 @@ class DCGAN:
                 Conv2D(
                     disc_channels[i],
                     kernel_size=kernel_size,
-                    strides=(
-                        1,
-                        1),
-                    padding='same',
+                    strides=(1, 1),
+                    padding="same",
                     kernel_initializer=kernel_initializer,
-                    kernel_regularizer=kernel_regularizer))
+                    kernel_regularizer=kernel_regularizer,
+                )
+            )
             model.add(LeakyReLU())
             model.add(Dropout(dropout_rate))
 
-        model.add(Conv2D(disc_channels[-1] * 2,
-                         kernel_size=kernel_size,
-                         strides=(2,
-                                  2),
-                         padding='same',
-                         kernel_initializer=kernel_initializer,
-                         kernel_regularizer=kernel_regularizer))
+        model.add(
+            Conv2D(
+                disc_channels[-1] * 2,
+                kernel_size=kernel_size,
+                strides=(2, 2),
+                padding="same",
+                kernel_initializer=kernel_initializer,
+                kernel_regularizer=kernel_regularizer,
+            )
+        )
         model.add(LeakyReLU())
         model.add(Dropout(dropout_rate))
 
@@ -313,22 +309,23 @@ class DCGAN:
 
         return model
 
-
     def __load_model(self):
 
         self.gen_model, self.disc_model = self.generator(), self.discriminator()
 
-    def fit(self,
-            train_ds=None,
-            epochs=100,
-            gen_optimizer='Adam',
-            disc_optimizer='Adam',
-            verbose=1,
-            gen_learning_rate=0.0001,
-            disc_learning_rate=0.0002,
-            beta_1=0.5,
-            tensorboard=False,
-            save_model=None):
+    def fit(
+        self,
+        train_ds=None,
+        epochs=100,
+        gen_optimizer="Adam",
+        disc_optimizer="Adam",
+        verbose=1,
+        gen_learning_rate=0.0001,
+        disc_learning_rate=0.0002,
+        beta_1=0.5,
+        tensorboard=False,
+        save_model=None,
+    ):
 
         r"""Function to train the model
 
@@ -346,25 +343,25 @@ class DCGAN:
             save_model (str, optional): Directory to save the trained model. Defaults to ``None``
         """
 
-        assert train_ds is not None, 'Initialize training data through train_ds parameter'
+        assert train_ds is not None, "Initialize training data through train_ds parameter"
 
         self.__load_model()
 
         kwargs = {}
-        kwargs['learning_rate'] = gen_learning_rate
-        if(gen_optimizer == 'Adam'):
-            kwargs['beta_1'] = beta_1
+        kwargs["learning_rate"] = gen_learning_rate
+        if gen_optimizer == "Adam":
+            kwargs["beta_1"] = beta_1
         gen_optimizer = getattr(tf.keras.optimizers, gen_optimizer)(**kwargs)
 
         kwargs = {}
-        kwargs['learning_rate'] = disc_learning_rate
-        if(disc_optimizer == 'Adam'):
-            kwargs['beta_1'] = beta_1
+        kwargs["learning_rate"] = disc_learning_rate
+        if disc_optimizer == "Adam":
+            kwargs["beta_1"] = beta_1
         disc_optimizer = getattr(tf.keras.optimizers, disc_optimizer)(**kwargs)
 
-        if(tensorboard):
+        if tensorboard:
             current_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-            train_log_dir = 'logs/gradient_tape/' + current_time + '/train'
+            train_log_dir = "logs/gradient_tape/" + current_time + "/train"
             train_summary_writer = tf.summary.create_file_writer(train_log_dir)
 
         steps = 0
@@ -381,7 +378,7 @@ class DCGAN:
             generator_loss.reset_states()
             discriminator_loss.reset_states()
 
-            pbar = tqdm(total = total, desc = 'Epoch - '+str(epoch+1))
+            pbar = tqdm(total=total, desc="Epoch - " + str(epoch + 1))
             for data in train_ds:
 
                 with tf.GradientTape() as tape:
@@ -392,10 +389,10 @@ class DCGAN:
                     real_logits = self.disc_model(data)
                     D_loss = gan_discriminator_loss(real_logits, fake_logits)
 
-                gradients = tape.gradient(
-                    D_loss, self.disc_model.trainable_variables)
+                gradients = tape.gradient(D_loss, self.disc_model.trainable_variables)
                 disc_optimizer.apply_gradients(
-                    zip(gradients, self.disc_model.trainable_variables))
+                    zip(gradients, self.disc_model.trainable_variables)
+                )
 
                 with tf.GradientTape() as tape:
 
@@ -404,10 +401,10 @@ class DCGAN:
                     fake_logits = self.disc_model(fake)
                     G_loss = gan_generator_loss(fake_logits)
 
-                gradients = tape.gradient(
-                    G_loss, self.gen_model.trainable_variables)
+                gradients = tape.gradient(G_loss, self.gen_model.trainable_variables)
                 gen_optimizer.apply_gradients(
-                    zip(gradients, self.gen_model.trainable_variables))
+                    zip(gradients, self.gen_model.trainable_variables)
+                )
 
                 generator_loss(G_loss)
                 discriminator_loss(D_loss)
@@ -415,38 +412,33 @@ class DCGAN:
                 steps += 1
                 pbar.update(1)
 
-                if(tensorboard):
+                if tensorboard:
                     with train_summary_writer.as_default():
-                        tf.summary.scalar(
-                            'discr_loss', D_loss.numpy(), step=steps)
-                        tf.summary.scalar(
-                            'genr_loss', G_loss.numpy(), step=steps)
-
+                        tf.summary.scalar("discr_loss", D_loss.numpy(), step=steps)
+                        tf.summary.scalar("genr_loss", G_loss.numpy(), step=steps)
 
             pbar.close()
             del pbar
 
-            if(verbose == 1):
-                print('Epoch:',
+            if verbose == 1:
+                print(
+                    "Epoch:",
                     epoch + 1,
-                    'D_loss:',
+                    "D_loss:",
                     generator_loss.result().numpy(),
-                    'G_loss',
-                    discriminator_loss.result().numpy())
+                    "G_loss",
+                    discriminator_loss.result().numpy(),
+                )
 
-        if(save_model is not None):
+        if save_model is not None:
 
             assert isinstance(save_model, str), "Not a valid directory"
-            if(save_model[-1] != '/'):
-                self.gen_model.save_weights(
-                    save_model + '/generator_checkpoint')
-                self.disc_model.save_weights(
-                    save_model + '/discriminator_checkpoint')
+            if save_model[-1] != "/":
+                self.gen_model.save_weights(save_model + "/generator_checkpoint")
+                self.disc_model.save_weights(save_model + "/discriminator_checkpoint")
             else:
-                self.gen_model.save_weights(
-                    save_model + 'generator_checkpoint')
-                self.disc_model.save_weights(
-                    save_model + 'discriminator_checkpoint')
+                self.gen_model.save_weights(save_model + "generator_checkpoint")
+                self.disc_model.save_weights(save_model + "discriminator_checkpoint")
 
     def generate_samples(self, n_samples=1, save_dir=None):
 
@@ -463,15 +455,9 @@ class DCGAN:
         Z = tf.random.normal([n_samples, self.noise_dim])
         generated_samples = self.gen_model(Z).numpy()
 
-        if(save_dir is None):
+        if save_dir is None:
             return generated_samples
 
         assert os.path.exists(save_dir), "Directory does not exist"
         for i, sample in enumerate(generated_samples):
-            imageio.imwrite(
-                os.path.join(
-                    save_dir,
-                    'sample_' +
-                    str(i) +
-                    '.jpg'),
-                sample)
+            imageio.imwrite(os.path.join(save_dir, "sample_" + str(i) + ".jpg"), sample)

@@ -2,17 +2,11 @@ import tensorflow as tf
 from ..layers.spectralnorm import SpectralNormalization
 from ..layers.conditionalbatchnorm import ConditionalBatchNorm
 
-__all__ = ['GenResBlock', 'DiscResBlock', 'DiscOptResBlock']
+__all__ = ["GenResBlock", "DiscResBlock", "DiscOptResBlock"]
 
 
 class GenResBlock(tf.keras.Model):
-    def __init__(
-            self,
-            filters,
-            n_classes,
-            kernel_size=3,
-            pad='same',
-            spectral_norm=False):
+    def __init__(self, filters, n_classes, kernel_size=3, pad="same", spectral_norm=False):
         super(GenResBlock, self).__init__()
 
         self.cbn1 = ConditionalBatchNorm(n_classes)
@@ -20,23 +14,22 @@ class GenResBlock(tf.keras.Model):
 
         if spectral_norm:
             self.deconv2a = SpectralNormalization(
-                tf.keras.layers.Conv2DTranspose(
-                    filters, kernel_size, padding=pad))
+                tf.keras.layers.Conv2DTranspose(filters, kernel_size, padding=pad)
+            )
 
             self.deconv2b = SpectralNormalization(
-                tf.keras.layers.Conv2DTranspose(
-                    filters, kernel_size, padding=pad))
+                tf.keras.layers.Conv2DTranspose(filters, kernel_size, padding=pad)
+            )
             self.shortcut_conv = SpectralNormalization(
-                tf.keras.layers.Conv2DTranspose(
-                    filters, kernel_size=1, padding=pad))
+                tf.keras.layers.Conv2DTranspose(filters, kernel_size=1, padding=pad)
+            )
         else:
-            self.deconv2a = tf.keras.layers.Conv2DTranspose(
-                filters, kernel_size, padding=pad)
+            self.deconv2a = tf.keras.layers.Conv2DTranspose(filters, kernel_size, padding=pad)
 
-            self.deconv2b = tf.keras.layers.Conv2DTranspose(
-                filters, kernel_size, padding=pad)
+            self.deconv2b = tf.keras.layers.Conv2DTranspose(filters, kernel_size, padding=pad)
             self.shortcut_conv = tf.keras.layers.Conv2DTranspose(
-                filters, kernel_size=1, padding=pad)
+                filters, kernel_size=1, padding=pad
+            )
 
         self.up_sample = tf.keras.layers.UpSampling2D(size=(2, 2))
 
@@ -59,44 +52,39 @@ class GenResBlock(tf.keras.Model):
 
 class DiscResBlock(tf.keras.Model):
     def __init__(
-            self,
-            filters,
-            kernel_size=3,
-            downsample=False,
-            pad='same',
-            spectral_norm=False):
+        self, filters, kernel_size=3, downsample=False, pad="same", spectral_norm=False
+    ):
         super(DiscResBlock, self).__init__()
 
         if spectral_norm:
             self.conv1 = SpectralNormalization(
                 tf.keras.layers.Conv2D(
-                    filters,
-                    kernel_size,
-                    padding=pad,
-                    kernel_initializer='glorot_uniform',
-                ))
+                    filters, kernel_size, padding=pad, kernel_initializer="glorot_uniform",
+                )
+            )
             self.conv2 = SpectralNormalization(
                 tf.keras.layers.Conv2D(
-                    filters,
-                    kernel_size,
-                    padding=pad,
-                    kernel_initializer='glorot_uniform',
-                ))
+                    filters, kernel_size, padding=pad, kernel_initializer="glorot_uniform",
+                )
+            )
             self.shortcut_conv = SpectralNormalization(
                 tf.keras.layers.Conv2D(
                     filters,
-                    kernel_size=(
-                        1,
-                        1),
-                    kernel_initializer='glorot_uniform',
-                    padding=pad))
+                    kernel_size=(1, 1),
+                    kernel_initializer="glorot_uniform",
+                    padding=pad,
+                )
+            )
         else:
             self.conv1 = tf.keras.layers.Conv2D(
-                filters, kernel_size, padding=pad, kernel_initializer='glorot_uniform', )
+                filters, kernel_size, padding=pad, kernel_initializer="glorot_uniform",
+            )
             self.conv2 = tf.keras.layers.Conv2D(
-                filters, kernel_size, padding=pad, kernel_initializer='glorot_uniform', )
-            self.shortcut_conv = tf.keras.layers.Conv2D(filters, kernel_size=(
-                1, 1), kernel_initializer='glorot_uniform', padding=pad)
+                filters, kernel_size, padding=pad, kernel_initializer="glorot_uniform",
+            )
+            self.shortcut_conv = tf.keras.layers.Conv2D(
+                filters, kernel_size=(1, 1), kernel_initializer="glorot_uniform", padding=pad
+            )
         self.downsample_layer = tf.keras.layers.AvgPool2D((2, 2))
         self.downsample = downsample
 
@@ -119,46 +107,38 @@ class DiscResBlock(tf.keras.Model):
 
 
 class DiscOptResBlock(tf.keras.Model):
-
-    def __init__(
-            self,
-            filters,
-            kernel_size=3,
-            pad='same',
-            spectral_norm=False):
-        super(DiscOptResBlock, self).__init__(name='')
+    def __init__(self, filters, kernel_size=3, pad="same", spectral_norm=False):
+        super(DiscOptResBlock, self).__init__(name="")
 
         if spectral_norm:
             self.conv1 = SpectralNormalization(
                 tf.keras.layers.Conv2D(
-                    filters,
-                    kernel_size,
-                    padding=pad,
-                    kernel_initializer='glorot_uniform',
-                ))
+                    filters, kernel_size, padding=pad, kernel_initializer="glorot_uniform",
+                )
+            )
             self.conv2 = SpectralNormalization(
                 tf.keras.layers.Conv2D(
-                    filters,
-                    kernel_size,
-                    padding=pad,
-                    kernel_initializer='glorot_uniform',
-                ))
+                    filters, kernel_size, padding=pad, kernel_initializer="glorot_uniform",
+                )
+            )
             self.shortcut_conv = SpectralNormalization(
                 tf.keras.layers.Conv2D(
                     filters,
-                    kernel_size=(
-                        1,
-                        1),
-                    kernel_initializer='glorot_uniform',
+                    kernel_size=(1, 1),
+                    kernel_initializer="glorot_uniform",
                     padding=pad,
-                ))
+                )
+            )
         else:
             self.conv1 = tf.keras.layers.Conv2D(
-                filters, kernel_size, padding=pad, kernel_initializer='glorot_uniform', )
+                filters, kernel_size, padding=pad, kernel_initializer="glorot_uniform",
+            )
             self.conv2 = tf.keras.layers.Conv2D(
-                filters, kernel_size, padding=pad, kernel_initializer='glorot_uniform', )
-            self.shortcut_conv = tf.keras.layers.Conv2D(filters, kernel_size=(
-                1, 1), kernel_initializer='glorot_uniform', padding=pad, )
+                filters, kernel_size, padding=pad, kernel_initializer="glorot_uniform",
+            )
+            self.shortcut_conv = tf.keras.layers.Conv2D(
+                filters, kernel_size=(1, 1), kernel_initializer="glorot_uniform", padding=pad,
+            )
         self.downsample_layer = tf.keras.layers.AvgPool2D((2, 2))
 
     def call(self, x):

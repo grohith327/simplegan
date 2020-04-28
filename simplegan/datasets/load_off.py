@@ -5,7 +5,7 @@ from tqdm.auto import tqdm
 import glob
 
 
-__all__ = ['load_vox_from_off']
+__all__ = ["load_vox_from_off"]
 
 
 class load_vox_from_off:
@@ -24,21 +24,21 @@ class load_vox_from_off:
 
     def __load_modelnet(self):
 
-        os.mkdir('./modelnet')
-        command = 'wget -O ./modelnet/ModelNet10.zip https://3dshapenets.cs.princeton.edu/ModelNet10.zip'
+        os.mkdir("./modelnet")
+        command = "wget -O ./modelnet/ModelNet10.zip https://3dshapenets.cs.princeton.edu/ModelNet10.zip"
         os.system(command)
-        command = 'unzip ./modelnet/ModelNet10.zip -d ./modelnet/'
+        command = "unzip ./modelnet/ModelNet10.zip -d ./modelnet/"
         os.system(command)
-        os.system('rm -rf ./modelnet/ModelNet10.zip ./modelnet/__MACOSX/')
+        os.system("rm -rf ./modelnet/ModelNet10.zip ./modelnet/__MACOSX/")
 
-        path = './modelnet/ModelNet10'
-        self.data_files = glob.glob(os.path.join(path, '*/*/*'))
+        path = "./modelnet/ModelNet10"
+        self.data_files = glob.glob(os.path.join(path, "*/*/*"))
 
     def __load_custom_datafiles(self, datadir):
 
-        self.data_files = glob.glob(os.path.join(datadir, '*.off'))
+        self.data_files = glob.glob(os.path.join(datadir, "*.off"))
 
-        error_message = 'files should have extension .off'
+        error_message = "files should have extension .off"
         assert len(self.data_files) > 0, error_message
 
     def load_data(self):
@@ -51,9 +51,9 @@ class load_vox_from_off:
         try:
             import trimesh
         except ModuleNotFoundError:
-            print('module trimesh not found. install using \'pip install trimesh\' command')
+            print("module trimesh not found. install using 'pip install trimesh' command")
 
-        if(self.datadir is None):
+        if self.datadir is None:
 
             self.__load_modelnet()
 
@@ -63,23 +63,17 @@ class load_vox_from_off:
 
         data_voxels = []
 
-        for file in tqdm(self.data_files, desc='rendering data'):
+        for file in tqdm(self.data_files, desc="rendering data"):
 
             mesh = trimesh.load(file)
             voxel = mesh.voxelized(0.5)
             (x, y, z) = map(float, voxel.shape)
-            zoom_fac = (
-                self.side_length / x,
-                self.side_length / y,
-                self.side_length / z)
-            voxel = ndimage.zoom(
-                voxel.matrix,
-                zoom_fac,
-                order=1,
-                mode='nearest')
+            zoom_fac = (self.side_length / x, self.side_length / y, self.side_length / z)
+            voxel = ndimage.zoom(voxel.matrix, zoom_fac, order=1, mode="nearest")
             data_voxels.append(voxel)
 
         data_voxels = np.array(data_voxels)
         data_voxels = data_voxels.reshape(
-            (-1, self.side_length, self.side_length, self.side_length, 1))
+            (-1, self.side_length, self.side_length, self.side_length, 1)
+        )
         return data_voxels
