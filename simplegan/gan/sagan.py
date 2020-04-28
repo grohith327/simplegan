@@ -178,21 +178,19 @@ class SAGAN:
                     '.jpg'),
                 sample)
 
+    
+    def generator(self):
+        return Generator(self.n_classes)
+    
+    def discriminator(self):
+        return Discriminator(self.n_classes)
+    
     def __load_model(self):
         self.gen_model, self.disc_model = Generator(
             self.n_classes), Discriminator(self.n_classes)
 
     @tf.function
     def train_step(self, images, labels):
-        r"""Function to do one training step
-
-        Args:
-            images (Tensor): Batch of images
-            labels (Tensor): Batch of labels
-
-        Return:
-            Dictionary containing loss & gradients of the batch
-        """
 
         with tf.GradientTape() as disc_tape:
             bs = images.shape[0]
