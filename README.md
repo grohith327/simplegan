@@ -1,6 +1,6 @@
 # SimpleGAN
 
-[![License](http://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat)](LICENSE) [![Documentation Status](https://readthedocs.org/projects/simplegan/badge/?version=latest)](https://simplegan.readthedocs.io/en/latest/?badge=latest) [![Downloads](https://pepy.tech/badge/simplegan)](https://pepy.tech/project/simplegan) [![Downloads](https://pepy.tech/badge/simplegan/month)](https://pepy.tech/project/simplegan/month) [![Downloads](https://pepy.tech/badge/simplegan/week)](https://pepy.tech/project/simplegan/week)
+[![License](http://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat)](LICENSE) [![Documentation Status](https://readthedocs.org/projects/simplegan/badge/?version=latest)](https://simplegan.readthedocs.io/en/latest/?badge=latest) [![Downloads](https://pepy.tech/badge/simplegan)](https://pepy.tech/project/simplegan) [![Downloads](https://pepy.tech/badge/simplegan/month)](https://pepy.tech/project/simplegan/month) [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
 **Framework to ease training of generative models**
 
@@ -30,6 +30,15 @@ Latest Development release:
 >>> samples = gan.get_sample(train_ds, n_samples = 5)
 >>> gan.fit(train_ds = train_ds)
 >>> generated_samples = gan.generate_samples(n_samples = 5)
+```
+##### Custom training loops for GANs
+```python
+>>> from simplegan.gan import Pix2Pix
+>>> gan = Pix2Pix()
+>>> generator = gan.generator() ## A tf.keras model
+>>> discriminator = gan.discriminator() ## A tf.keras model
+>>> with tf.GradientTape() as tape:
+>>>     """ Custom training loops """
 ```
 ##### Convolutional Autoencoder
 ```python
