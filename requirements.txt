@@ -4,7 +4,8 @@ opencv-python
 tensorflow-datasets
 imageio
 numpy
-plotly
-matplotlib
-trimesh
-scipy
+# uncomment following packages for VoxelGAN(3DGAN)
+#plotly
+#matplotlib
+#trimesh
+#scipy
