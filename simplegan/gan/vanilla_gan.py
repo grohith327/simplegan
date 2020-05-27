@@ -103,7 +103,9 @@ class VanillaGAN:
             / 255
         )
         train_ds = (
-            tf.data.Dataset.from_tensor_slices(train_data).shuffle(10000).batch(batch_size)
+            tf.data.Dataset.from_tensor_slices(train_data)
+            .shuffle(10000)
+            .batch(batch_size)
         )
 
         return train_ds
@@ -128,7 +130,9 @@ class VanillaGAN:
         for img in data.take(n_samples):
 
             img = img.numpy()
-            img = img.reshape((self.image_size[0], self.image_size[1], self.image_size[2]))
+            img = img.reshape(
+                (self.image_size[0], self.image_size[1], self.image_size[2])
+            )
             sample_images.append(img)
 
         sample_images = np.array(sample_images)
@@ -265,7 +269,9 @@ class VanillaGAN:
             save_model (str, optional): Directory to save the trained model. Defaults to ``None``
         """
 
-        assert train_ds is not None, "Initialize training data through train_ds parameter"
+        assert (
+            train_ds is not None
+        ), "Initialize training data through train_ds parameter"
 
         self.__load_model()
 
@@ -329,6 +335,10 @@ class VanillaGAN:
 
                 steps += 1
                 pbar.update(1)
+                pbar.set_postfix(
+                    disc_loss=discriminator_loss.result().numpy(),
+                    gen_loss=generator_loss.result().numpy(),
+                )
 
                 if tensorboard:
                     with train_summary_writer.as_default():
