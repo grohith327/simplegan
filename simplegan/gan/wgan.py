@@ -106,7 +106,9 @@ class WGAN(DCGAN):
             save_model (str, optional): Directory to save the trained model. Defaults to ``None``
         """
 
-        assert train_ds is not None, "Initialize training data through train_ds parameter"
+        assert (
+            train_ds is not None
+        ), "Initialize training data through train_ds parameter"
 
         self.__load_model()
 
@@ -154,7 +156,9 @@ class WGAN(DCGAN):
                         real_logits = self.disc_model(data)
                         D_loss = wgan_discriminator_loss(real_logits, fake_logits)
 
-                    gradients = tape.gradient(D_loss, self.disc_model.trainable_variables)
+                    gradients = tape.gradient(
+                        D_loss, self.disc_model.trainable_variables
+                    )
                     clipped_gradients = [
                         (tf.clip_by_value(grad, -0.01, 0.01)) for grad in gradients
                     ]
@@ -180,6 +184,10 @@ class WGAN(DCGAN):
 
                 steps += 1
                 pbar.update(1)
+                pbar.set_postfix(
+                    disc_loss=discriminator_loss.result().numpy(),
+                    gen_loss=generator_loss.result().numpy(),
+                )
 
                 if tensorboard:
                     with train_summary_writer.as_default():

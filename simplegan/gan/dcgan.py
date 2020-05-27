@@ -115,7 +115,9 @@ class DCGAN:
 
         train_data = (train_data - 127.5) / 127.5
         train_ds = (
-            tf.data.Dataset.from_tensor_slices(train_data).shuffle(10000).batch(batch_size)
+            tf.data.Dataset.from_tensor_slices(train_data)
+            .shuffle(10000)
+            .batch(batch_size)
         )
 
         return train_ds
@@ -170,7 +172,9 @@ class DCGAN:
         model = tf.keras.Sequential()
         model.add(
             Dense(
-                (self.image_size[0] // 4) * (self.image_size[1] // 4) * (gen_channels[0] * 2),
+                (self.image_size[0] // 4)
+                * (self.image_size[1] // 4)
+                * (gen_channels[0] * 2),
                 activation=activation,
                 kernel_initializer=kernel_initializer,
                 kernel_regularizer=kernel_regularizer,
@@ -182,7 +186,11 @@ class DCGAN:
 
         model.add(
             Reshape(
-                ((self.image_size[0] // 4), (self.image_size[1] // 4), (gen_channels[0] * 2))
+                (
+                    (self.image_size[0] // 4),
+                    (self.image_size[1] // 4),
+                    (gen_channels[0] * 2),
+                )
             )
         )
 
@@ -343,7 +351,9 @@ class DCGAN:
             save_model (str, optional): Directory to save the trained model. Defaults to ``None``
         """
 
-        assert train_ds is not None, "Initialize training data through train_ds parameter"
+        assert (
+            train_ds is not None
+        ), "Initialize training data through train_ds parameter"
 
         self.__load_model()
 
@@ -411,6 +421,10 @@ class DCGAN:
 
                 steps += 1
                 pbar.update(1)
+                pbar.set_postfix(
+                    disc_loss=discriminator_loss.result().numpy(),
+                    gen_loss=generator_loss.result().numpy(),
+                )
 
                 if tensorboard:
                     with train_summary_writer.as_default():

@@ -7,6 +7,7 @@ from tensorflow.keras.layers import Conv3DTranspose, LeakyReLU
 from tensorflow.keras.layers import Reshape, Dense
 from tensorflow.keras import Model
 from tqdm.auto import tqdm
+import numpy as np
 from ..datasets.load_off import load_vox_from_off
 from ..losses.minmax_loss import gan_discriminator_loss, gan_generator_loss
 
@@ -55,7 +56,9 @@ class VoxelGAN:
 
         return x and (not (x & (x - 1)))
 
-    def load_data(self, data_dir=None, use_modelnet=False, batch_size=100, side_length=64):
+    def load_data(
+        self, data_dir=None, use_modelnet=False, batch_size=100, side_length=64
+    ):
 
         r"""Load data to train the voxelgan model
 
@@ -82,7 +85,9 @@ class VoxelGAN:
         self.side_length = side_length
         data_voxels = data_obj.load_data()
         voxel_ds = (
-            tf.data.Dataset.from_tensor_slices(data_voxels).shuffle(10000).batch(batch_size)
+            tf.data.Dataset.from_tensor_slices(data_voxels)
+            .shuffle(10000)
+            .batch(batch_size)
         )
         return voxel_ds
 
@@ -190,7 +195,9 @@ class VoxelGAN:
             model.add(BatchNormalization())
 
         model.add(
-            Conv3DTranspose(1, kernel_size, strides=2, padding="same", activation="sigmoid")
+            Conv3DTranspose(
+                1, kernel_size, strides=2, padding="same", activation="sigmoid"
+            )
         )
 
         return model
@@ -279,7 +286,9 @@ class VoxelGAN:
             save_model (str, optional): Directory to save the trained model. Defaults to ``None``
         """
 
-        assert train_ds is not None, "Initialize training data through train_ds parameter"
+        assert (
+            train_ds is not None
+        ), "Initialize training data through train_ds parameter"
 
         self.__load_model()
 
@@ -329,7 +338,9 @@ class VoxelGAN:
 
                 if discriminator_loss.result().numpy() < 0.8:
 
-                    gradients = tape.gradient(D_loss, self.disc_model.trainable_variables)
+                    gradients = tape.gradient(
+                        D_loss, self.disc_model.trainable_variables
+                    )
                     disc_optimizer.apply_gradients(
                         zip(gradients, self.disc_model.trainable_variables)
                     )
@@ -350,6 +361,10 @@ class VoxelGAN:
 
                 steps += 1
                 pbar.update(1)
+                pbar.set_postfix(
+                    disc_loss=discriminator_loss.result().numpy(),
+                    gen_loss=generator_loss.result().numpy(),
+                )
 
                 if tensorboard:
                     with train_summary_writer.as_default():

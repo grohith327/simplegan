@@ -163,9 +163,9 @@ class CGAN:
 
         start_image_size = (self.image_size[0] // 4, self.image_size[1] // 4)
 
-        embedded_label = layers.Embedding(input_dim=self.n_classes, output_dim=self.embed_dim)(
-            label
-        )
+        embedded_label = layers.Embedding(
+            input_dim=self.n_classes, output_dim=self.embed_dim
+        )(label)
         embedded_label = layers.Dense(
             units=start_image_size[0] * start_image_size[1],
             activation=activation,
@@ -243,9 +243,9 @@ class CGAN:
         input_image = layers.Input(shape=self.image_size)
         input_label = layers.Input(shape=1)
 
-        embedded_label = layers.Embedding(input_dim=self.n_classes, output_dim=self.embed_dim)(
-            input_label
-        )
+        embedded_label = layers.Embedding(
+            input_dim=self.n_classes, output_dim=self.embed_dim
+        )(input_label)
         embedded_label = layers.Dense(
             units=self.image_size[0] * self.image_size[1], activation=activation
         )(embedded_label)
@@ -308,7 +308,9 @@ class CGAN:
             save_model (str, optional): Directory to save the trained model. Defaults to ``None``
         """
 
-        assert train_ds is not None, "Initialize training data through train_ds parameter"
+        assert (
+            train_ds is not None
+        ), "Initialize training data through train_ds parameter"
 
         self.__load_model()
 
@@ -352,7 +354,9 @@ class CGAN:
                     fake_imgs = self.gen_model([noise, sampled_labels])
 
                     real_output = self.disc_model([data, labels], training=True)
-                    fake_output = self.disc_model([fake_imgs, sampled_labels], training=True)
+                    fake_output = self.disc_model(
+                        [fake_imgs, sampled_labels], training=True
+                    )
 
                     G_loss = gan_generator_loss(fake_output)
                     D_loss = gan_discriminator_loss(real_output, fake_output)
@@ -376,6 +380,10 @@ class CGAN:
 
                 steps += 1
                 pbar.update(1)
+                pbar.set_postfix(
+                    disc_loss=discriminator_loss.result().numpy(),
+                    gen_loss=generator_loss.result().numpy(),
+                )
 
                 if tensorboard:
                     with train_summary_writer.as_default():
@@ -417,7 +425,9 @@ class CGAN:
             returns ``None`` if save_dir is ``not None``, otherwise returns a numpy array with generated samples
         """
 
-        assert labels_list is not None, "Enter list of labels to condition the generator"
+        assert (
+            labels_list is not None
+        ), "Enter list of labels to condition the generator"
         assert (
             len(labels_list) == n_samples
         ), "Number of samples does not match length of labels list"

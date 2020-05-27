@@ -235,7 +235,9 @@ class CycleGAN(Pix2Pix):
             else:
                 down_stack.append(
                     self._downsample(
-                        channel, kernel_size=kernel_size, kernel_initializer=kernel_initializer
+                        channel,
+                        kernel_size=kernel_size,
+                        kernel_initializer=kernel_initializer,
                     )
                 )
 
@@ -273,7 +275,10 @@ class CycleGAN(Pix2Pix):
         """
 
         self.gen_model_g, self.gen_model_f = self.generator(), self.generator()
-        self.disc_model_x, self.disc_model_y = self.discriminator(), self.discriminator()
+        self.disc_model_x, self.disc_model_y = (
+            self.discriminator(),
+            self.discriminator(),
+        )
 
     def _save_samples(self, model, image, count):
 
@@ -294,11 +299,13 @@ class CycleGAN(Pix2Pix):
         for input_image, prediction in zip(image, pred):
 
             imageio.imwrite(
-                os.path.join(curr_dir, "input_image_" + str(sample) + ".png"), input_image
+                os.path.join(curr_dir, "input_image_" + str(sample) + ".png"),
+                input_image,
             )
 
             imageio.imwrite(
-                os.path.join(curr_dir, "translated_image_" + str(sample) + ".png"), prediction
+                os.path.join(curr_dir, "translated_image_" + str(sample) + ".png"),
+                prediction,
             )
             sample += 1
 
@@ -442,9 +449,9 @@ class CycleGAN(Pix2Pix):
                     gen_g_loss = gan_generator_loss(disc_fake_y)
                     gen_f_loss = gan_generator_loss(disc_fake_x)
 
-                    total_cycle_loss = cycle_loss(image_x, cycled_x, self.LAMBDA) + cycle_loss(
-                        image_y, cycled_y, self.LAMBDA
-                    )
+                    total_cycle_loss = cycle_loss(
+                        image_x, cycled_x, self.LAMBDA
+                    ) + cycle_loss(image_y, cycled_y, self.LAMBDA)
 
                     total_gen_g_loss = (
                         gen_g_loss
@@ -482,10 +489,14 @@ class CycleGAN(Pix2Pix):
                 )
 
                 disc_x_optimizer.apply_gradients(
-                    zip(discriminator_x_gradients, self.disc_model_x.trainable_variables)
+                    zip(
+                        discriminator_x_gradients, self.disc_model_x.trainable_variables
+                    )
                 )
                 disc_y_optimizer.apply_gradients(
-                    zip(discriminator_y_gradients, self.disc_model_y.trainable_variables)
+                    zip(
+                        discriminator_y_gradients, self.disc_model_y.trainable_variables
+                    )
                 )
 
                 generator_g_loss(total_gen_g_loss)
@@ -496,6 +507,12 @@ class CycleGAN(Pix2Pix):
 
                 steps += 1
                 pbar.update(1)
+                pbar.set_postfix(
+                    disc_x_loss=discriminator_x_loss.result().numpy(),
+                    disc_y_loss=discriminator_y_loss.result().numpy(),
+                    gen_g_loss=generator_g_loss.result().numpy(),
+                    gen_f_loss=generator_f_loss.result().numpy(),
+                )
 
                 if tensorboard:
                     with train_summary_writer.as_default():

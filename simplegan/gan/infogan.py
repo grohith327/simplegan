@@ -106,7 +106,9 @@ class InfoGAN:
 
         train_data = (train_data - 127.5) / 127.5
         train_ds = (
-            tf.data.Dataset.from_tensor_slices(train_data).shuffle(10000).batch(batch_size)
+            tf.data.Dataset.from_tensor_slices(train_data)
+            .shuffle(10000)
+            .batch(batch_size)
         )
 
         return train_ds
@@ -256,14 +258,21 @@ class InfoGAN:
         input_shape = self.noise_dim + self.n_classes + self.code_dim
         input_noise = layers.Input(shape=input_shape)
         _input = layers.Dense(
-            (self.image_size[0] // 4) * (self.image_size[1]) // 4 * (gen_channels[0] * 2),
+            (self.image_size[0] // 4)
+            * (self.image_size[1])
+            // 4
+            * (gen_channels[0] * 2),
             use_bias=False,
         )(input_noise)
         _input = layers.BatchNormalization()(_input)
         _input = layers.LeakyReLU()(_input)
 
         img = layers.Reshape(
-            ((self.image_size[0] // 4), (self.image_size[1] // 4), (gen_channels[0] * 2))
+            (
+                (self.image_size[0] // 4),
+                (self.image_size[1] // 4),
+                (gen_channels[0] * 2),
+            )
         )(_input)
 
         for i in range(len(gen_channels)):
@@ -363,18 +372,25 @@ class InfoGAN:
                 with tf.GradientTape() as gen_tape, tf.GradientTape() as disc_tape:
                     Z = np.random.randn(batch_size, self.noise_dim)
                     label_input = tf.keras.utils.to_categorical(
-                        (np.random.randint(0, self.n_classes, batch_size)), self.n_classes
+                        (np.random.randint(0, self.n_classes, batch_size)),
+                        self.n_classes,
                     )
                     code_input = np.random.randn(batch_size, self.code_dim)
                     c = np.concatenate((Z, label_input, code_input), axis=1)
 
                     gen_imgs = self.gen_model(c, training=True)
                     real_output, _, _ = self.disc_model(data, training=True)
-                    fake_output, discrete, cont_out = self.disc_model(gen_imgs, training=True)
+                    fake_output, discrete, cont_out = self.disc_model(
+                        gen_imgs, training=True
+                    )
 
-                    info_loss = auxillary_loss(discrete, label_input, code_input, cont_out)
+                    info_loss = auxillary_loss(
+                        discrete, label_input, code_input, cont_out
+                    )
                     gen_loss = gan_generator_loss(fake_output) + info_loss
-                    disc_loss = gan_discriminator_loss(real_output, fake_output) + info_loss
+                    disc_loss = (
+                        gan_discriminator_loss(real_output, fake_output) + info_loss
+                    )
 
                     generator_grads = gen_tape.gradient(
                         gen_loss, self.gen_model.trainable_variables
@@ -394,11 +410,17 @@ class InfoGAN:
                     discriminator_loss.update_state(disc_loss)
 
                     pbar.update(1)
+                    pbar.set_postfix(
+                        disc_loss=discriminator_loss.result().numpy(),
+                        gen_loss=generator_loss.result().numpy(),
+                    )
                     steps += 1
 
                     if tensorboard:
                         with train_summary_writer.as_default():
-                            tf.summary.scalar("discr_loss", disc_loss.numpy(), step=steps)
+                            tf.summary.scalar(
+                                "discr_loss", disc_loss.numpy(), step=steps
+                            )
                             tf.summary.scalar("genr_loss", gen_loss.numpy(), step=steps)
             pbar.close()
             del pbar

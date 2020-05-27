@@ -247,7 +247,9 @@ class Pix2Pix:
 
         for channel in gen_enc_channels:
             down_stack.append(
-                self._downsample(channel, kernel_size, kernel_initializer=kernel_initializer)
+                self._downsample(
+                    channel, kernel_size, kernel_initializer=kernel_initializer
+                )
             )
 
         up_stack = []
@@ -264,7 +266,9 @@ class Pix2Pix:
                 )
             else:
                 up_stack.append(
-                    self._upsample(channel, kernel_size, kernel_initializer=kernel_initializer)
+                    self._upsample(
+                        channel, kernel_size, kernel_initializer=kernel_initializer
+                    )
                 )
 
         last = Conv2DTranspose(
@@ -325,7 +329,9 @@ class Pix2Pix:
             else:
                 down_stack.append(
                     self._downsample(
-                        channel, kernel_size=kernel_size, kernel_initializer=kernel_initializer
+                        channel,
+                        kernel_size=kernel_size,
+                        kernel_initializer=kernel_initializer,
                     )
                 )
 
@@ -381,15 +387,18 @@ class Pix2Pix:
         ):
 
             imageio.imwrite(
-                os.path.join(curr_dir, "input_image_" + str(sample) + ".png"), input_image
+                os.path.join(curr_dir, "input_image_" + str(sample) + ".png"),
+                input_image,
             )
 
             imageio.imwrite(
-                os.path.join(curr_dir, "target_image_" + str(sample) + ".png"), target_image
+                os.path.join(curr_dir, "target_image_" + str(sample) + ".png"),
+                target_image,
             )
 
             imageio.imwrite(
-                os.path.join(curr_dir, "translated_image_" + str(sample) + ".png"), prediction
+                os.path.join(curr_dir, "translated_image_" + str(sample) + ".png"),
+                prediction,
             )
             sample += 1
 
@@ -429,7 +438,9 @@ class Pix2Pix:
             save_img_per_epoch (int, optional): frequency of saving images during training. Defaults to ``30``
         """
 
-        assert train_ds is not None, "Initialize training data through train_ds parameter"
+        assert (
+            train_ds is not None
+        ), "Initialize training data through train_ds parameter"
         assert test_ds is not None, "Initialize testing data through test_ds parameter"
         self.LAMBDA = LAMBDA
 
@@ -484,12 +495,16 @@ class Pix2Pix:
                     disc_real_output = self.disc_model(
                         [input_image, target_image], training=True
                     )
-                    disc_gen_output = self.disc_model([input_image, gen_output], training=True)
+                    disc_gen_output = self.disc_model(
+                        [input_image, gen_output], training=True
+                    )
 
                     gen_total_loss, gan_loss, l1_loss = pix2pix_generator_loss(
                         disc_gen_output, gen_output, target_image, self.LAMBDA
                     )
-                    disc_loss = pix2pix_discriminator_loss(disc_real_output, disc_gen_output)
+                    disc_loss = pix2pix_discriminator_loss(
+                        disc_real_output, disc_gen_output
+                    )
 
                 gen_gradients = gen_tape.gradient(
                     gen_total_loss, self.gen_model.trainable_variables
@@ -510,17 +525,25 @@ class Pix2Pix:
 
                 steps += 1
                 pbar.update(1)
+                pbar.set_postfix(
+                    disc_loss=discriminator_loss.result().numpy(),
+                    gen_loss=generator_loss.result().numpy(),
+                )
 
                 if tensorboard:
                     with train_summary_writer.as_default():
                         tf.summary.scalar("discr_loss", disc_loss.numpy(), step=steps)
-                        tf.summary.scalar("total_gen_loss", gen_total_loss.numpy(), step=steps)
+                        tf.summary.scalar(
+                            "total_gen_loss", gen_total_loss.numpy(), step=steps
+                        )
                         tf.summary.scalar("gan_loss", gan_loss.numpy(), step=steps)
                         tf.summary.scalar("l1_loss", l1_loss.numpy(), step=steps)
 
             if epoch % save_img_per_epoch == 0:
                 for input_image, target_image in test_ds.take(1):
-                    self._save_samples(self.gen_model, input_image, target_image, str(epoch))
+                    self._save_samples(
+                        self.gen_model, input_image, target_image, str(epoch)
+                    )
 
             pbar.close()
             del pbar

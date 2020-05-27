@@ -35,7 +35,9 @@ class Generator(tf.keras.Model):
     def __init__(self, n_classes, filters=64):
         super(Generator, self).__init__()
         self.filters = filters
-        self.sn_linear = SpectralNormalization(tf.keras.layers.Dense(filters * 16 * 4 * 4))
+        self.sn_linear = SpectralNormalization(
+            tf.keras.layers.Dense(filters * 16 * 4 * 4)
+        )
         self.rs = tf.keras.layers.Reshape((4, 4, 16 * filters))
         self.res_block1 = GenResBlock(
             n_classes=n_classes, filters=filters * 16, spectral_norm=True
@@ -50,7 +52,9 @@ class Generator(tf.keras.Model):
         self.res_block4 = GenResBlock(
             n_classes=n_classes, filters=filters * 2, spectral_norm=True
         )
-        self.res_block5 = GenResBlock(n_classes=n_classes, filters=filters, spectral_norm=True)
+        self.res_block5 = GenResBlock(
+            n_classes=n_classes, filters=filters, spectral_norm=True
+        )
         self.bn1 = tf.keras.layers.BatchNormalization()
         self.snconv2d1 = SpectralNormalization(
             tf.keras.layers.Conv2D(kernel_size=3, filters=3, strides=1, padding="same")
@@ -290,7 +294,9 @@ class SAGAN:
         kwargs["learning_rate"] = disc_learning_rate
         if disc_optimizer == "Adam":
             kwargs["beta_1"] = beta_1
-        self.discriminator_optimizer = getattr(tf.keras.optimizers, disc_optimizer)(**kwargs)
+        self.discriminator_optimizer = getattr(tf.keras.optimizers, disc_optimizer)(
+            **kwargs
+        )
 
         if tensorboard:
             current_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
@@ -324,6 +330,10 @@ class SAGAN:
 
                 steps += 1
                 pbar.update(1)
+                pbar.set_postfix(
+                    disc_loss=average_discriminator_loss.result().numpy(),
+                    gen_loss=average_generator_loss.result().numpy(),
+                )
 
                 if tensorboard:
                     with train_summary_writer.as_default():
@@ -364,7 +374,9 @@ class SAGAN:
             returns ``None`` if save_dir is ``not None``, otherwise returns a numpy array with generated samples
         """
 
-        assert labels_list is not None, "Enter list of labels to condition the generator"
+        assert (
+            labels_list is not None
+        ), "Enter list of labels to condition the generator"
         assert (
             len(labels_list) == n_samples
         ), "Number of samples does not match length of labels list"
