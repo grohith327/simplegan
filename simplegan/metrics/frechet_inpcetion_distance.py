@@ -9,6 +9,15 @@ __all__ = ["fid"]
 
 def fid(images1, images2):
 
+    r"""
+    Args:
+        images1: a numpy array/tensor of images. Shape: NxHxWxC
+        images2: a numpy array/tensor of images. Shape: NxHxWxC
+
+    Return:
+        Frechet inception distance between images
+    """
+
     ## Taken from https://github.com/mseitzer/pytorch-fid/blob/011829daeccc84341c1e8e6061d10a640a495573/fid_score.py#L138
     def calculate_fid(mu1, sigma1, mu2, sigma2, eps=1e-6):
         diff = mu1 - mu2

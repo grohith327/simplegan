@@ -6,6 +6,14 @@ __all__ = ["inception_score"]
 
 def inception_score(images):
 
+    r"""
+    Args:
+        images: a numpy array/tensor of images. Shape: NxHxWxC
+
+    Return:
+        inception score
+    """
+
     img_shape = images.shape
     if img_shape[1] != 299:
         images = tf.image.resize(images, size=(299, 299))
