@@ -21,3 +21,4 @@ SimpleGAN
    modules/gan
    modules/datasets
    modules/losses
+   modules/metrics
