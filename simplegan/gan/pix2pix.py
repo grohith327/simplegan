@@ -56,6 +56,8 @@ class Pix2Pix:
         disc_channels=[64, 128, 256, 512],
         kernel_size=(4, 4),
         kernel_initializer=tf.random_normal_initializer(0.0, 0.02),
+        gen_path=None,
+        disc_path=None,
     ):
 
         self.gen_model = None
@@ -365,6 +367,13 @@ class Pix2Pix:
 
         self.gen_model, self.disc_model = self.generator(), self.discriminator()
 
+        if self.config["gen_path"] is not None:
+            self.gen_model.load_weights(self.config["gen_path"])
+            print("Generator checkpoint restored")
+        if self.config["disc_path"] is not None:
+            self.disc_model.load_weights(self.config["disc_path"])
+            print("Discriminator checkpoint restored")
+
     def _save_samples(self, model, ex_input, ex_target, count):
 
         assert os.path.exists(self.save_img_dir), "sample directory does not exist"
@@ -581,6 +590,9 @@ class Pix2Pix:
         """
 
         assert test_ds is not None, "Enter input test dataset"
+
+        if self.gen_model is None:
+            self.__load_model()
 
         generated_samples = []
         for image in test_ds:

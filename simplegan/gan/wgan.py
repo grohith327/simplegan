@@ -58,6 +58,8 @@ class WGAN(DCGAN):
         activation="relu",
         kernel_initializer="glorot_uniform",
         kernel_regularizer=None,
+        gen_path=None,
+        disc_path=None,
     ):
 
         DCGAN.__init__(
@@ -70,11 +72,20 @@ class WGAN(DCGAN):
             activation,
             kernel_initializer,
             kernel_regularizer,
+            gen_path,
+            disc_path,
         )
 
     def __load_model(self):
 
         self.gen_model, self.disc_model = self.generator(), self.discriminator()
+
+        if self.config["gen_path"] is not None:
+            self.gen_model.load_weights(self.config["gen_path"])
+            print("Generator checkpoint restored")
+        if self.config["disc_path"] is not None:
+            self.disc_model.load_weights(self.config["disc_path"])
+            print("Discriminator checkpoint restored")
 
     def fit(
         self,

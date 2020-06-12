@@ -115,13 +115,13 @@ class SAGAN:
         noise_dim (int, optional): represents the dimension of the prior to sample values. Defaults to ``128``
     """
 
-    def __init__(
-        self, noise_dim=128,
-    ):
+    def __init__(self, noise_dim=128, gen_path=None, disc_path=None):
 
         self.image_size = None
         self.noise_dim = noise_dim
         self.n_classes = None
+        self.gen_model = None
+        self.disc_model = None
         self.config = locals()
 
     def load_data(
@@ -210,6 +210,13 @@ class SAGAN:
             Generator(self.n_classes),
             Discriminator(self.n_classes),
         )
+
+        if self.config["gen_path"] is not None:
+            self.gen_model.load_weights(self.config["gen_path"])
+            print("Generator checkpoint restored")
+        if self.config["disc_path"] is not None:
+            self.disc_model.load_weights(self.config["disc_path"])
+            print("Discriminator checkpoint restored")
 
     @tf.function
     def train_step(self, images, labels):
@@ -380,6 +387,9 @@ class SAGAN:
         assert (
             len(labels_list) == n_samples
         ), "Number of samples does not match length of labels list"
+
+        if self.gen_model is None:
+            self.__load_model()
 
         Z = np.random.uniform(-1, 1, (n_samples, self.noise_dim))
         labels_list = np.array(labels_list)

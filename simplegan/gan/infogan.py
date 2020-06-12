@@ -5,7 +5,7 @@ import tensorflow as tf
 from tensorflow.keras import layers
 from ..datasets.load_mnist import load_mnist
 from ..datasets.load_cifar10 import load_cifar10
-from ..datasets.load_custom_data import load_custom_data
+from ..datasets.load_custom_data import load_custom_data_with_labels
 from ..losses.minmax_loss import gan_discriminator_loss, gan_generator_loss
 from ..losses.infogan_loss import auxillary_loss
 import datetime
@@ -57,6 +57,8 @@ class InfoGAN:
         activation="leaky_relu",
         kernel_initializer="glorot_uniform",
         kernel_regularizer=None,
+        gen_path=None,
+        disc_path=None,
     ):
 
         self.image_size = None
@@ -304,6 +306,13 @@ class InfoGAN:
 
         self.gen_model, self.disc_model = self.generator(), self.discriminator()
 
+        if self.config["gen_path"] is not None:
+            self.gen_model.load_weights(self.config["gen_path"])
+            print("Generator checkpoint restored")
+        if self.config["disc_path"] is not None:
+            self.disc_model.load_weights(self.config["disc_path"])
+            print("Discriminator checkpoint restored")
+
     def fit(
         self,
         train_ds=None,
@@ -456,6 +465,9 @@ class InfoGAN:
         Return:
             returns ``None`` if save_dir is ``not None``, otherwise returns a numpy array with generated samples
         """
+
+        if self.gen_model is None:
+            self.__load_model()
 
         Z = np.random.randn(n_samples, self.noise_dim)
         label_input = tf.keras.utils.to_categorical(

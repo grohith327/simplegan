@@ -44,6 +44,8 @@ class VoxelGAN:
         activation="relu",
         kernel_initializer="glorot_uniform",
         kernel_regularizer=None,
+        gen_path=None,
+        disc_path=None,
     ):
 
         self.noise_dim = noise_dim
@@ -256,6 +258,13 @@ class VoxelGAN:
 
         self.gen_model, self.disc_model = self.generator(), self.discriminator()
 
+        if self.config["gen_path"] is not None:
+            self.gen_model.load_weights(self.config["gen_path"])
+            print("Generator checkpoint restored")
+        if self.config["disc_path"] is not None:
+            self.disc_model.load_weights(self.config["disc_path"])
+            print("Discriminator checkpoint restored")
+
     def fit(
         self,
         train_ds=None,
@@ -406,6 +415,9 @@ class VoxelGAN:
         Return:
             ``None`` if ``plot`` is ``True`` else a numpy array of samples of shape ``(n_samples, side_length, side_length, side_length, 1)``
         """
+
+        if self.gen_model is None:
+            self.__load_model()
 
         Z = np.random.uniform(0, 1, (n_samples, self.noise_dim))
         generated_samples = self.gen_model(Z).numpy()

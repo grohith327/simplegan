@@ -58,6 +58,10 @@ class CycleGAN(Pix2Pix):
         disc_channels=[64, 128, 256, 512],
         kernel_size=(4, 4),
         kernel_initializer=tf.random_normal_initializer(0.0, 0.02),
+        gen_g_path=None,
+        gen_f_path=None,
+        disc_x_path=None,
+        disc_y_path=None,
     ):
 
         Pix2Pix.__init__(
@@ -74,6 +78,8 @@ class CycleGAN(Pix2Pix):
         self.gen_model_f = None
         self.disc_model_x = None
         self.disc_model_y = None
+
+        self.config = locals()
 
     def load_data(
         self,
@@ -279,6 +285,19 @@ class CycleGAN(Pix2Pix):
             self.discriminator(),
             self.discriminator(),
         )
+
+        if self.config["gen_g_path"] is not None:
+            self.gen_model_g.load_weights(self.config["gen_g_path"])
+            print("Generator-G checkpoint restored")
+        if self.config["gen_f_path"] is not None:
+            self.gen_model_f.load_weights(self.config["gen_f_path"])
+            print("Generator-F checkpoint restored")
+        if self.config["disc_x_path"] is not None:
+            self.disc_model_x.load_weights(self.config["disc_x_path"])
+            print("Discriminator-X checkpoint restored")
+        if self.config["disc_y_path"] is not None:
+            self.disc_model_y.load_weights(self.config["disc_y_path"])
+            print("Discriminator-Y checkpoint restored")
 
     def _save_samples(self, model, image, count):
 
@@ -552,8 +571,18 @@ class CycleGAN(Pix2Pix):
             assert isinstance(save_model, str), "Not a valid directory"
             if save_model[-1] != "/":
                 self.gen_model_g.save_weights(save_model + "/generator_g_checkpoint")
+                self.gen_model_f.save_weights(save_model + "/generator_f_checkpoint")
+                self.disc_model_x.save_weights(
+                    save_model + "/discrimnator_x_checkpoint"
+                )
+                self.disc_model_y.save_weights(
+                    save_model + "/discrimnator_y_checkpoint"
+                )
             else:
                 self.gen_model_g.save_weights(save_model + "generator_g_checkpoint")
+                self.gen_model_f.save_weights(save_model + "generator_f_checkpoint")
+                self.disc_model_x.save_weights(save_model + "discrimnator_x_checkpoint")
+                self.disc_model_y.save_weights(save_model + "discrimnator_y_checkpoint")
 
     def generate_samples(self, test_ds=None, save_dir=None):
 
@@ -568,6 +597,9 @@ class CycleGAN(Pix2Pix):
         """
 
         assert test_ds is not None, "Enter input test dataset"
+
+        if self.gen_model_g is None:
+            self.__load_model()
 
         generated_samples = []
         for image in test_ds:

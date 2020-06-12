@@ -55,6 +55,8 @@ class CGAN:
         activation="relu",
         kernel_initializer="glorot_uniform",
         kernel_regularizer=None,
+        gen_path=None,
+        disc_path=None,
     ):
 
         self.image_size = None
@@ -278,6 +280,13 @@ class CGAN:
 
         self.gen_model, self.disc_model = self.generator(), self.discriminator()
 
+        if self.config["gen_path"] is not None:
+            self.gen_model.load_weights(self.config["gen_path"])
+            print("Generator checkpoint restored")
+        if self.config["disc_path"] is not None:
+            self.disc_model.load_weights(self.config["disc_path"])
+            print("Discriminator checkpoint restored")
+
     def fit(
         self,
         train_ds=None,
@@ -431,6 +440,9 @@ class CGAN:
         assert (
             len(labels_list) == n_samples
         ), "Number of samples does not match length of labels list"
+
+        if self.gen_model is None:
+            self.__load_model()
 
         Z = np.random.uniform(-1, 1, (n_samples, self.noise_dim))
         labels_list = np.array(labels_list)
