@@ -46,6 +46,8 @@ class Pix2Pix:
         disc_channels (int, list, optional): represents the number of filters in the discriminator network. Defaults to ``[64, 128, 256, 512]```
         kernel_size (int, tuple, optional): repersents the size of the kernel to perform the convolution. Defaults to ``(4, 4)``
         kernel_initializer (str, optional): initialization of kernel weights. Defaults to ``tf.random_normal_initializer(0., 0.02)``
+        gen_path (str, optional): path to generator checkpoint to load model weights. Defaults to ``None``
+        disc_path (str, optional): path to discriminator checkpoint to load model weights. Defaults to ``None``
     """
 
     def __init__(

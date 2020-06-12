@@ -113,6 +113,8 @@ class SAGAN:
 
     Args:
         noise_dim (int, optional): represents the dimension of the prior to sample values. Defaults to ``128``
+        gen_path (str, optional): path to generator checkpoint to load model weights. Defaults to ``None``
+        disc_path (str, optional): path to discriminator checkpoint to load model weights. Defaults to ``None``
     """
 
     def __init__(self, noise_dim=128, gen_path=None, disc_path=None):

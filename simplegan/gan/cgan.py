@@ -42,6 +42,8 @@ class CGAN:
         activation (str, optional): type of non-linearity to be applied. Defaults to ``relu``
         kernel_initializer (str, optional): initialization of kernel weights. Defaults to ``glorot_uniform``
         kernel_regularizer (str, optional): type of regularization to be applied to the weights. Defaults to ``None``
+        gen_path (str, optional): path to generator checkpoint to load model weights. Defaults to ``None``
+        disc_path (str, optional): path to discriminator checkpoint to load model weights. Defaults to ``None``
     """
 
     def __init__(
